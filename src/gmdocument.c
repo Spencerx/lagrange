@@ -432,6 +432,7 @@ static iRangecc addLink_GmDocument_(iGmDocument *d, iRangecc line, iGmLinkId *li
                 if (startsWith_Rangecc(parts.path, "image/png") ||
                     startsWith_Rangecc(parts.path, "image/jpg") ||
                     startsWith_Rangecc(parts.path, "image/jpeg") ||
+                    startsWith_Rangecc(parts.path, "image/jxl") ||
                     startsWith_Rangecc(parts.path, "image/webp") ||
                     startsWith_Rangecc(parts.path, "image/gif")) {
                     link->flags |= imageFileExtension_GmLinkFlag;
@@ -452,6 +453,9 @@ static iRangecc addLink_GmDocument_(iGmDocument *d, iRangecc line, iGmLinkId *li
                 if (endsWithCase_String(path, ".gif")  || endsWithCase_String(path, ".jpg") ||
                     endsWithCase_String(path, ".jpeg") || endsWithCase_String(path, ".png") ||
                     endsWithCase_String(path, ".tga")  || endsWithCase_String(path, ".psd") ||
+#if defined (LAGRANGE_ENABLE_JXL)
+                    endsWithCase_String(path, ".jxl") ||
+#endif
 #if defined (LAGRANGE_ENABLE_WEBP)
                     endsWithCase_String(path, ".webp") ||
 #endif
