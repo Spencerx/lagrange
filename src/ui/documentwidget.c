@@ -2447,7 +2447,8 @@ static iBool handleMediaCommand_DocumentWidget_(iDocumentWidget *d, const char *
         if (isSuccess_GmStatusCode(code)) {
             iGmResponse *resp = lockResponse_GmRequest(req->req);
             if (isDownloadRequest_DocumentWidget(d, req) ||
-                startsWith_String(&resp->meta, "audio/")) {
+                startsWith_String(&resp->meta, "audio/") ||
+                startsWith_String(&resp->meta, "image/")) {
                 /* TODO: Use a helper? This is same as below except for the partialData flag. */
                 if (setData_Media(media_GmDocument(d->view->doc),
                                   req->linkId,

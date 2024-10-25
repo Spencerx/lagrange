@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #   include <webp/decode.h>
 #endif
 #if defined (LAGRANGE_ENABLE_JXL)
+#   include <the_Foundation/map.h>
 #   include <jxl/types.h>
 #   include <jxl/decode.h>
 #   include <jxl/codestream_header.h>
@@ -140,117 +141,178 @@ static void applyImageStyle_(enum iImageStyle style, iInt2 size, uint8_t *imgDat
 }
 
 #if defined (LAGRANGE_ENABLE_JXL)
-static uint8_t *loadJxl_(const iBlock *data, int *x, int *y) {
-    void          *runner;
-    JxlDecoder    *dec;
-    JxlBasicInfo   info;
-    size_t         bufsize;
-    uint8_t       *imgData = NULL;
-    JxlPixelFormat format  = {
+
+iDeclareType(StatefulJxlDecoder)
+
+struct Impl_StatefulJxlDecoder {
+    iMapNode *parent;
+    iMapNode *child[2];
+    int flags;
+    iMapKey key;
+
+    JxlDecoder *decoder;
+    iInt2 imSize;
+    uint8_t *buffer;
+    size_t bufferSize;
+    void *opaqueRunner;
+    size_t nSeenBytes;
+};
+
+iDeclareTypeConstructionArgs(StatefulJxlDecoder, iGmLinkId linkId, int wantedEvents)
+
+void init_StatefulJxlDecoder(iStatefulJxlDecoder *s, iGmLinkId linkId, int wantedEvents) {
+    memset(s, 0, sizeof(iStatefulJxlDecoder));
+
+    s->key = linkId;
+    s->decoder = JxlDecoderCreate(NULL);
+
+    if (!(s->opaqueRunner = JxlResizableParallelRunnerCreate(NULL)))
+        fprintf(stderr, "[media] JxlResizableParallelRunnerCreate failed\n");
+
+    if (s->opaqueRunner && 
+        JXL_DEC_SUCCESS != JxlDecoderSetParallelRunner(s->decoder, JxlResizableParallelRunner, s->opaqueRunner))
+        fprintf(stderr, "[media] JxlDecoderSetParallelRunner failed\n");
+
+    if (JXL_DEC_SUCCESS != JxlDecoderSubscribeEvents(s->decoder, wantedEvents))
+        fprintf(stderr, "[media] JxlDecoderSubscribeEvents failed\n");
+}
+
+void deinit_StatefulJxlDecoder(iStatefulJxlDecoder *s) {
+    JxlDecoderDestroy(s->decoder);
+    JxlResizableParallelRunnerDestroy(s->opaqueRunner);
+    free(s->buffer);
+    memset(s, 0, sizeof(iStatefulJxlDecoder));
+}
+
+iStatefulJxlDecoder* new_StatefulJxlDecoder(iGmLinkId linkId, int wantedEvents) {
+    iStatefulJxlDecoder *s = iMalloc(StatefulJxlDecoder);
+    init_StatefulJxlDecoder(s, linkId, wantedEvents);
+    return s;
+}
+
+void delete_StatefulJxlDecoder(iStatefulJxlDecoder *s) {
+    deinit_StatefulJxlDecoder(s);
+    free(s);
+}
+
+static int compare_MapNode_(iMapKey a, iMapKey b) {
+    return (a > b) - (a < b);
+}
+
+static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iBool isPartial) {
+    static iMap         *decoderMap = NULL;
+
+    iStatefulJxlDecoder *s;
+    JxlBasicInfo         info;
+    JxlDecoderStatus     status;
+    uint8_t             *imgData    = NULL;
+    const size_t         blockSize  = size_Block(data);
+    const JxlPixelFormat format     = {
          .num_channels  = 4,
          .data_type     = JXL_TYPE_UINT8,
          .endianness    = JXL_NATIVE_ENDIAN,
          .align         = 0
     };
 
-    if (!(runner = JxlResizableParallelRunnerCreate(NULL))) {
-        fprintf(stderr, "[media] JxlResizableParallelRunnerCreate failed\n");
-        goto ret;
-    }
-    if (!(dec = JxlDecoderCreate(NULL))) {
-        fprintf(stderr, "[media] JxlDecoderCreate failed\n");
-        goto ret;
+    if (!decoderMap && !(decoderMap = new_Map(compare_MapNode_)))
+        fprintf(stderr, "[media] Creating JxlDecoderMap failed\n");
+
+    
+    if (decoderMap && contains_Map(decoderMap, linkId))
+        s = (iStatefulJxlDecoder*)value_Map(decoderMap, linkId);
+    else {
+        s = new_StatefulJxlDecoder(linkId, JXL_DEC_BASIC_INFO | JXL_DEC_FULL_IMAGE);
+        if (decoderMap && isPartial)
+            insert_Map(decoderMap, (iMapNode*)s);
     }
 
-    if (JXL_DEC_SUCCESS !=
-        JxlDecoderSubscribeEvents(dec, JXL_DEC_BASIC_INFO | JXL_DEC_FULL_IMAGE)) {
-        fprintf(stderr, "[media] JxlDecoderSubscribeEvents failed\n");
-        goto ret;
-    }
-
-    if (JXL_DEC_SUCCESS != JxlDecoderSetParallelRunner(dec, JxlResizableParallelRunner, runner)) {
-        fprintf(stderr, "JxlDecoderSetParallelRunner failed\n");
-        goto ret;
-    }
-
-    JxlDecoderSetInput(dec, constData_Block(data), size_Block(data));
-    JxlDecoderCloseInput(dec);
+    JxlDecoderSetInput(s->decoder, constData_Block(data) + s->nSeenBytes, blockSize - s->nSeenBytes);
+    if (!isPartial)
+        JxlDecoderCloseInput(s->decoder);
 
     while (true) {
-        switch (JxlDecoderProcessInput(dec)) {
+        switch (status = JxlDecoderProcessInput(s->decoder)) {
+            case JXL_DEC_BASIC_INFO:
+                if (JXL_DEC_SUCCESS != JxlDecoderGetBasicInfo(s->decoder, &info)) {
+                    fprintf(stderr, "[media] JxlDecoderGetBasicInfo failed\n");
+                    goto err;
+                }
+                s->imSize = init_I2(info.xsize, info.ysize);
+                JxlResizableParallelRunnerSetThreads(
+                    s->opaqueRunner, JxlResizableParallelRunnerSuggestThreads(info.xsize, info.ysize));
+                break;
+            case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
+                if (JXL_DEC_SUCCESS != JxlDecoderImageOutBufferSize(s->decoder, &format, &s->bufferSize)) {
+                    fprintf(stderr, "JxlDecoderImageOutBufferSize failed\n");
+                    goto err;
+                }
+                s->buffer = realloc(s->buffer, s->bufferSize);
+                if (JXL_DEC_SUCCESS !=
+                    JxlDecoderSetImageOutBuffer(s->decoder, &format, s->buffer, s->bufferSize)) {
+                    fprintf(stderr, "JxlDecoderSetImageOutBuffer failed\n");
+                    goto err;
+                }
+                break;
+            case JXL_DEC_NEED_MORE_INPUT:
+                if (!isPartial) {
+                    fprintf(stderr, "[media] Incomplete JXL data\n");
+                    goto err;
+                }
+            case JXL_DEC_FULL_IMAGE:
+                s->nSeenBytes = blockSize - JxlDecoderReleaseInput(s->decoder);
+
+                if (status != JXL_DEC_NEED_MORE_INPUT || 
+                    JXL_DEC_SUCCESS == JxlDecoderFlushImage(s->decoder)) {
+                    printf("[media] flushed jxl after %lu bytes\n", s->nSeenBytes);
+                    *imSize = s->imSize;
+                    imgData = malloc(s->bufferSize);
+                    memcpy(imgData, s->buffer, s->bufferSize);
+                }
+                
+                goto ret;
+            case JXL_DEC_SUCCESS:
+		*imSize = s->imSize;
+                imgData = s->buffer;
+                s->buffer = NULL;
+                goto ret;
             case JXL_DEC_ERROR:
                 fprintf(stderr, "[media] JXL decoder error\n");
-                goto ret;
-            case JXL_DEC_NEED_MORE_INPUT:
-                fprintf(stderr, "[media] Incomplete JXL data\n");
-                goto ret;
-            case JXL_DEC_BASIC_INFO:
-                if (JXL_DEC_SUCCESS != JxlDecoderGetBasicInfo(dec, &info)) {
-                    fprintf(stderr, "[media] JxlDecoderGetBasicInfo failed\n");
-                    goto ret;
-                }
-                *x = info.xsize;
-                *y = info.ysize;
-                JxlResizableParallelRunnerSetThreads(
-                    runner, JxlResizableParallelRunnerSuggestThreads(*x, *y));
-                break;
-            case JXL_DEC_COLOR_ENCODING:
-                break; // don't care
-            case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
-                if (JXL_DEC_SUCCESS != JxlDecoderImageOutBufferSize(dec, &format, &bufsize)) {
-                    fprintf(stderr, "JxlDecoderImageOutBufferSize failed\n");
-                    goto ret;
-                }
-                if (bufsize != *x * *y * 4 * sizeof(uint8_t)) {
-                    fprintf(stderr,
-                            "Invalid out buffer size %lu %d\n",
-                            bufsize,
-                            *x * *y * 4 * sizeof(uint8_t));
-                    goto ret;
-                }
-                imgData = realloc(imgData, bufsize);
-                if (JXL_DEC_SUCCESS !=
-                    JxlDecoderSetImageOutBuffer(dec, &format, imgData, bufsize)) {
-                    fprintf(stderr, "JxlDecoderSetImageOutBuffer failed\n");
-                    goto ret;
-                }
-                break;
-            case JXL_DEC_FULL_IMAGE:
-                break; // don't care, keep last image
-            case JXL_DEC_SUCCESS:
-                goto ret;
+                goto err;
             default:
                 fprintf(stderr, "[media] JXL unknown decoder status\n");
-                goto ret;
+                goto err;
         } /* switch (status) */
     } /* while */
 
 ret:
-    if (dec) {
-        JxlDecoderReleaseInput(dec);
-        JxlDecoderDestroy(dec);
+    if (!isPartial) {
+err:
+        if (decoderMap)
+            remove_Map(decoderMap, s->key);
+        delete_StatefulJxlDecoder(s);
     }
-    if (runner) JxlResizableParallelRunnerDestroy(runner);
 
     return imgData;
 }
-#endif
 
-void makeTexture_GmImage(iGmImage *d) {
+#endif /* defined (LAGRANGE_ENABLE_JXL) */
+
+iBool makeTexture_GmImage(iGmImage *d, iBool isPartial) {
     iBlock *data     = &d->partialData;
     d->numBytes      = size_Block(data);
     uint8_t *imgData = NULL;
-    if (cmp_String(&d->props.mime, "image/webp") == 0) {
+    iBool isNew      = iFalse;
+    if (!isPartial && cmp_String(&d->props.mime, "image/webp") == 0) {
 #if defined (LAGRANGE_ENABLE_WEBP)
         imgData = WebPDecodeRGBA(constData_Block(data), size_Block(data), &d->size.x, &d->size.y);
 #endif
     }
     else if (cmp_String(&d->props.mime, "image/jxl") == 0) {
 #if defined (LAGRANGE_ENABLE_JXL)
-        imgData = loadJxl_(data, &d->size.x, &d->size.y);
+        imgData = loadJxl_(data, &d->size, d->props.linkId, isPartial);
 #endif
     }
-    else {
+    else if (!isPartial) {
         imgData = stbi_load_from_memory(
             constData_Block(data), (int) size_Block(data), &d->size.x, &d->size.y, NULL, 4);
         if (!imgData) {
@@ -303,8 +365,12 @@ void makeTexture_GmImage(iGmImage *d) {
         d->texture = SDL_CreateTextureFromSurface(renderer_Window(window), surface);
         SDL_FreeSurface(surface);
         free(imgData);
+        isNew = iTrue;
     }
-    clear_Block(data);
+    if (!isPartial)
+        clear_Block(data);
+
+    return isNew;
 }
 
 iDefineTypeConstructionArgs(GmImage, (const iBlock *data), data)
@@ -506,9 +572,7 @@ iBool setData_Media(iMedia *d, iGmLinkId linkId, const iString *mime, const iBlo
             img = at_PtrArray(&d->items[image_MediaType], existingIndex);
             iAssert(equal_String(&img->props.mime, mime)); /* MIME cannot change */
             set_Block(&img->partialData, data);
-            if (!isPartial) {
-                makeTexture_GmImage(img);
-            }
+            isNew = makeTexture_GmImage(img, isPartial);
         }
     }
     else if (existing.type == audio_MediaType) {
@@ -560,10 +624,7 @@ iBool setData_Media(iMedia *d, iGmLinkId linkId, const iString *mime, const iBlo
             img->props.isPermanent = !allowHide;
             set_String(&img->props.mime, mime);
             pushBack_PtrArray(&d->items[image_MediaType], img);
-            if (!isPartial) {
-                makeTexture_GmImage(img);
-            }
-            isNew = iTrue;
+            isNew = makeTexture_GmImage(img, isPartial);
         }
         else if (startsWith_String(mime, "audio/")) {
 #if defined (LAGRANGE_ENABLE_AUDIO)
