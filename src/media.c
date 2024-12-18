@@ -142,57 +142,44 @@ static void applyImageStyle_(enum iImageStyle style, iInt2 size, uint8_t *imgDat
 
 #if defined (LAGRANGE_ENABLE_JXL)
 
-iDeclareType(StatefulJxlDecoder)
+iDeclareType(StatefulJxlDecoder);
 
 struct Impl_StatefulJxlDecoder {
-    iMapNode *parent;
-    iMapNode *child[2];
-    int flags;
-    iMapKey key;
-
+    iMapNode    node;
     JxlDecoder *decoder;
-    iInt2 imSize;
-    uint8_t *buffer;
-    size_t bufferSize;
-    void *opaqueRunner;
-    size_t nSeenBytes;
+    iInt2       imSize;
+    uint8_t    *buffer;
+    size_t      bufferSize;
+    void       *opaqueRunner;
+    size_t      nSeenBytes;
 };
 
-iDeclareTypeConstructionArgs(StatefulJxlDecoder, iGmLinkId linkId, int wantedEvents)
+iDeclareTypeConstructionArgs(StatefulJxlDecoder, iGmLinkId linkId, int wantedEvents);
+iDefineTypeConstructionArgs(StatefulJxlDecoder, (iGmLinkId linkId, int wantedEvents), linkId,
+                            wantedEvents);
 
-void init_StatefulJxlDecoder(iStatefulJxlDecoder *s, iGmLinkId linkId, int wantedEvents) {
-    memset(s, 0, sizeof(iStatefulJxlDecoder));
+void init_StatefulJxlDecoder(iStatefulJxlDecoder *d, iGmLinkId linkId, int wantedEvents) {
+    memset(d, 0, sizeof(iStatefulJxlDecoder));
 
-    s->key = linkId;
-    s->decoder = JxlDecoderCreate(NULL);
+    d->node.key = linkId;
+    d->decoder  = JxlDecoderCreate(NULL);
 
-    if (!(s->opaqueRunner = JxlResizableParallelRunnerCreate(NULL)))
+    if (!(d->opaqueRunner = JxlResizableParallelRunnerCreate(NULL)))
         fprintf(stderr, "[media] JxlResizableParallelRunnerCreate failed\n");
 
-    if (s->opaqueRunner && 
-        JXL_DEC_SUCCESS != JxlDecoderSetParallelRunner(s->decoder, JxlResizableParallelRunner, s->opaqueRunner))
+    if (d->opaqueRunner &&
+        JXL_DEC_SUCCESS !=
+            JxlDecoderSetParallelRunner(d->decoder, JxlResizableParallelRunner, d->opaqueRunner))
         fprintf(stderr, "[media] JxlDecoderSetParallelRunner failed\n");
 
-    if (JXL_DEC_SUCCESS != JxlDecoderSubscribeEvents(s->decoder, wantedEvents))
+    if (JXL_DEC_SUCCESS != JxlDecoderSubscribeEvents(d->decoder, wantedEvents))
         fprintf(stderr, "[media] JxlDecoderSubscribeEvents failed\n");
 }
 
-void deinit_StatefulJxlDecoder(iStatefulJxlDecoder *s) {
-    JxlDecoderDestroy(s->decoder);
-    JxlResizableParallelRunnerDestroy(s->opaqueRunner);
-    free(s->buffer);
-    memset(s, 0, sizeof(iStatefulJxlDecoder));
-}
-
-iStatefulJxlDecoder* new_StatefulJxlDecoder(iGmLinkId linkId, int wantedEvents) {
-    iStatefulJxlDecoder *s = iMalloc(StatefulJxlDecoder);
-    init_StatefulJxlDecoder(s, linkId, wantedEvents);
-    return s;
-}
-
-void delete_StatefulJxlDecoder(iStatefulJxlDecoder *s) {
-    deinit_StatefulJxlDecoder(s);
-    free(s);
+void deinit_StatefulJxlDecoder(iStatefulJxlDecoder *d) {
+    JxlDecoderDestroy(d->decoder);
+    JxlResizableParallelRunnerDestroy(d->opaqueRunner);
+    free(d->buffer);
 }
 
 static int compare_MapNode_(iMapKey a, iMapKey b) {
@@ -200,55 +187,54 @@ static int compare_MapNode_(iMapKey a, iMapKey b) {
 }
 
 static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iBool isPartial) {
-    static iMap         *decoderMap = NULL;
+    static iMap *decoderMap = NULL;
 
-    iStatefulJxlDecoder *s;
+    iStatefulJxlDecoder *d;
     JxlBasicInfo         info;
     JxlDecoderStatus     status;
-    uint8_t             *imgData    = NULL;
-    const size_t         blockSize  = size_Block(data);
-    const JxlPixelFormat format     = {
-         .num_channels  = 4,
-         .data_type     = JXL_TYPE_UINT8,
-         .endianness    = JXL_NATIVE_ENDIAN,
-         .align         = 0
+    uint8_t             *imgData   = NULL;
+    const size_t         blockSize = size_Block(data);
+
+    const JxlPixelFormat format = {
+        .num_channels = 4, .data_type = JXL_TYPE_UINT8, .endianness = JXL_NATIVE_ENDIAN, .align = 0
     };
 
-    if (!decoderMap && !(decoderMap = new_Map(compare_MapNode_)))
-        fprintf(stderr, "[media] Creating JxlDecoderMap failed\n");
+    if (!decoderMap) decoderMap = new_Map(compare_MapNode_);
+    iAssert(decoderMap);
 
-    
-    if (decoderMap && contains_Map(decoderMap, linkId))
-        s = (iStatefulJxlDecoder*)value_Map(decoderMap, linkId);
+    if (contains_Map(decoderMap, linkId)) {
+        d = (iStatefulJxlDecoder *) value_Map(decoderMap, linkId);
+    }
     else {
-        s = new_StatefulJxlDecoder(linkId, JXL_DEC_BASIC_INFO | JXL_DEC_FULL_IMAGE);
-        if (decoderMap && isPartial)
-            insert_Map(decoderMap, (iMapNode*)s);
+        d = new_StatefulJxlDecoder(linkId, JXL_DEC_BASIC_INFO | JXL_DEC_FULL_IMAGE);
+        if (decoderMap && isPartial) insert_Map(decoderMap, &d->node);
     }
 
-    JxlDecoderSetInput(s->decoder, constData_Block(data) + s->nSeenBytes, blockSize - s->nSeenBytes);
-    if (!isPartial)
-        JxlDecoderCloseInput(s->decoder);
+    JxlDecoderSetInput(
+        d->decoder, constData_Block(data) + d->nSeenBytes, blockSize - d->nSeenBytes);
+    if (!isPartial) JxlDecoderCloseInput(d->decoder);
 
     while (true) {
-        switch (status = JxlDecoderProcessInput(s->decoder)) {
+        switch (status = JxlDecoderProcessInput(d->decoder)) {
             case JXL_DEC_BASIC_INFO:
-                if (JXL_DEC_SUCCESS != JxlDecoderGetBasicInfo(s->decoder, &info)) {
+                if (JXL_DEC_SUCCESS != JxlDecoderGetBasicInfo(d->decoder, &info)) {
                     fprintf(stderr, "[media] JxlDecoderGetBasicInfo failed\n");
                     goto err;
                 }
-                s->imSize = init_I2(info.xsize, info.ysize);
+                d->imSize = init_I2(info.xsize, info.ysize);
                 JxlResizableParallelRunnerSetThreads(
-                    s->opaqueRunner, JxlResizableParallelRunnerSuggestThreads(info.xsize, info.ysize));
+                    d->opaqueRunner,
+                    JxlResizableParallelRunnerSuggestThreads(info.xsize, info.ysize));
                 break;
             case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
-                if (JXL_DEC_SUCCESS != JxlDecoderImageOutBufferSize(s->decoder, &format, &s->bufferSize)) {
+                if (JXL_DEC_SUCCESS !=
+                    JxlDecoderImageOutBufferSize(d->decoder, &format, &d->bufferSize)) {
                     fprintf(stderr, "JxlDecoderImageOutBufferSize failed\n");
                     goto err;
                 }
-                s->buffer = realloc(s->buffer, s->bufferSize);
+                d->buffer = realloc(d->buffer, d->bufferSize);
                 if (JXL_DEC_SUCCESS !=
-                    JxlDecoderSetImageOutBuffer(s->decoder, &format, s->buffer, s->bufferSize)) {
+                    JxlDecoderSetImageOutBuffer(d->decoder, &format, d->buffer, d->bufferSize)) {
                     fprintf(stderr, "JxlDecoderSetImageOutBuffer failed\n");
                     goto err;
                 }
@@ -259,21 +245,21 @@ static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iB
                     goto err;
                 }
             case JXL_DEC_FULL_IMAGE:
-                s->nSeenBytes = blockSize - JxlDecoderReleaseInput(s->decoder);
+                d->nSeenBytes = blockSize - JxlDecoderReleaseInput(d->decoder);
 
-                if (status != JXL_DEC_NEED_MORE_INPUT || 
-                    JXL_DEC_SUCCESS == JxlDecoderFlushImage(s->decoder)) {
-                    printf("[media] flushed jxl after %lu bytes\n", s->nSeenBytes);
-                    *imSize = s->imSize;
-                    imgData = malloc(s->bufferSize);
-                    memcpy(imgData, s->buffer, s->bufferSize);
+                if (status != JXL_DEC_NEED_MORE_INPUT ||
+                    JXL_DEC_SUCCESS == JxlDecoderFlushImage(d->decoder)) {
+                    printf("[media] flushed jxl after %lu bytes\n", d->nSeenBytes);
+                    *imSize = d->imSize;
+                    imgData = malloc(d->bufferSize);
+                    memcpy(imgData, d->buffer, d->bufferSize);
                 }
-                
+
                 goto ret;
             case JXL_DEC_SUCCESS:
-		*imSize = s->imSize;
-                imgData = s->buffer;
-                s->buffer = NULL;
+                *imSize   = d->imSize;
+                imgData   = d->buffer;
+                d->buffer = NULL;
                 goto ret;
             case JXL_DEC_ERROR:
                 fprintf(stderr, "[media] JXL decoder error\n");
@@ -283,15 +269,14 @@ static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iB
                 goto err;
         } /* switch (status) */
     } /* while */
-
 ret:
     if (!isPartial) {
-err:
-        if (decoderMap)
-            remove_Map(decoderMap, s->key);
-        delete_StatefulJxlDecoder(s);
+    err:
+        if (decoderMap) {
+            remove_Map(decoderMap, d->node.key);
+        }
+        delete_StatefulJxlDecoder(d);
     }
-
     return imgData;
 }
 

@@ -368,6 +368,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         { "prefs.dataurl.openimages", &d->prefs.openDataUrlImagesOnLoad },
         { "prefs.editor.highlight", &d->prefs.editorSyntaxHighlighting },
         { "prefs.evensplit", &d->prefs.evenSplit },
+        { "prefs.expandline", &d->prefs.expandToLongLines },
         { "prefs.font.smooth", &d->prefs.fontSmoothing },
         { "prefs.font.warnmissing", &d->prefs.warnAboutMissingGlyphs },
         { "prefs.gopher.gemstyle", &d->prefs.geminiStyledGopher },
@@ -3875,6 +3876,13 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         }
         return iTrue;
     }
+    else if (equal_Command(cmd, "prefs.expandline.changed")) {
+        d->prefs.expandToLongLines = arg_Command(cmd) != 0;
+        if (!d->isLoadingPrefs) {
+            postCommand_App("document.layout.changed");
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "prefs.sideicon.changed")) {
         d->prefs.sideIcon = arg_Command(cmd) != 0;
         postRefreshAllWindows_App();
@@ -4093,7 +4101,7 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         if (startsWith_String(url, "//")) {
             prependCStr_String(url, "gemini:");
         }
-        if (!isEmpty_String(url) && !startsWithCase_String(url, "gemini://")) {
+        if (!isEmpty_String(url) && equal_Rangecc(urlScheme_String(url), "")) {
             prependCStr_String(url, "gemini://");
         }
         return iTrue;
@@ -4976,6 +4984,7 @@ iBool handleCommand_App(const char *cmd) {
         setToggle_Widget(findChild_Widget(dlg, "prefs.biglede"), d->prefs.bigFirstParagraph);
         setToggle_Widget(findChild_Widget(dlg, "prefs.justify"), d->prefs.justifyParagraph);
         setToggle_Widget(findChild_Widget(dlg, "prefs.plaintext.wrap"), d->prefs.plainTextWrap);
+        setToggle_Widget(findChild_Widget(dlg, "prefs.expandline"), d->prefs.expandToLongLines);
         setToggle_Widget(findChild_Widget(dlg, "prefs.sideicon"), d->prefs.sideIcon);
         setToggle_Widget(findChild_Widget(dlg, "prefs.centershort"), d->prefs.centerShortDocs);
         updateColorThemeButton_(findChild_Widget(dlg, "prefs.doctheme.dark"), d->prefs.docThemeDark);
