@@ -23,6 +23,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "media.h"
 #include "gmdocument.h"
 #include "gmrequest.h"
+#include "the_Foundation/block.h"
 #include "ui/window.h"
 #include "ui/paint.h" /* size_SDLTexture */
 #include "audio/player.h"
@@ -164,6 +165,7 @@ struct Impl_StatefulJxlDecoder {
     size_t      bufferSize;
     void       *opaqueRunner;
     size_t      nSeenBytes;
+    iBlock     *blockHandle;
 };
 
 iDeclareTypeConstructionArgs(StatefulJxlDecoder, iGmLinkId linkId, int wantedEvents);
@@ -173,8 +175,9 @@ iDefineTypeConstructionArgs(StatefulJxlDecoder, (iGmLinkId linkId, int wantedEve
 void init_StatefulJxlDecoder(iStatefulJxlDecoder *d, iGmLinkId linkId, int wantedEvents) {
     memset(d, 0, sizeof(iStatefulJxlDecoder));
 
-    d->node.key = linkId;
-    d->decoder  = JxlDecoderCreate(NULL);
+    d->node.key    = linkId;
+    d->decoder     = JxlDecoderCreate(NULL);
+    d->blockHandle = new_Block(0);
 
     if (!(d->opaqueRunner = JxlResizableParallelRunnerCreate(NULL)))
         fprintf(stderr, "[media] JxlResizableParallelRunnerCreate failed\n");
@@ -191,7 +194,13 @@ void init_StatefulJxlDecoder(iStatefulJxlDecoder *d, iGmLinkId linkId, int wante
 void deinit_StatefulJxlDecoder(iStatefulJxlDecoder *d) {
     JxlDecoderDestroy(d->decoder);
     JxlResizableParallelRunnerDestroy(d->opaqueRunner);
+    if (d->blockHandle)
+        clear_Block(d->blockHandle);
     free(d->buffer);
+}
+
+static int compare_MapNode_(iMapKey a, iMapKey b) {
+    return (a > b) - (a < b);
 }
 
 static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iBool isPartial, iMedia *media) {
@@ -199,13 +208,21 @@ static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iB
     JxlBasicInfo         info;
     JxlDecoderStatus     status;
     uint8_t             *imgData   = NULL;
-    const size_t         blockSize = size_Block(data);
 
     const JxlPixelFormat format = {
         .num_channels = 4, .data_type = JXL_TYPE_UINT8, .endianness = JXL_NATIVE_ENDIAN, .align = 0
     };
 
+    if (size_Block(data) == 0) {
+        return NULL;
+    }
+
+    if (!media->jxlDecoderMap) {
+        media->jxlDecoderMap = new_Map(compare_MapNode_);
+    }
+    
     iAssert(media->jxlDecoderMap);
+
     if (contains_Map(media->jxlDecoderMap, linkId)) {
         d = (iStatefulJxlDecoder *) value_Map(media->jxlDecoderMap, linkId);
     }
@@ -214,8 +231,13 @@ static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iB
         if (isPartial) insert_Map(media->jxlDecoderMap, &d->node);
     }
 
-    JxlDecoderSetInput(
-        d->decoder, constData_Block(data) + d->nSeenBytes, blockSize - d->nSeenBytes);
+    // add refcount s.t. data is not freed until decoder is done
+    set_Block(d->blockHandle, data);
+
+    JxlDecoderSetInput(d->decoder,
+                       constData_Block(d->blockHandle) + d->nSeenBytes,
+                       size_Block(d->blockHandle) - d->nSeenBytes);
+
     if (!isPartial) JxlDecoderCloseInput(d->decoder);
 
     while (true) {
@@ -249,7 +271,8 @@ static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iB
                     goto err;
                 }
             case JXL_DEC_FULL_IMAGE:
-                d->nSeenBytes = blockSize - JxlDecoderReleaseInput(d->decoder);
+                d->nSeenBytes = size_Block(d->blockHandle) - JxlDecoderReleaseInput(d->decoder);
+                clear_Block(d->blockHandle);
 
                 if (status != JXL_DEC_NEED_MORE_INPUT ||
                     JXL_DEC_SUCCESS == JxlDecoderFlushImage(d->decoder)) {
@@ -456,18 +479,12 @@ iDefineTypeConstruction(GmDownload)
 
 /*----------------------------------------------------------------------------------------------*/
 
-#if defined (LAGRANGE_ENABLE_JXL)
-static int compare_MapNode_(iMapKey a, iMapKey b) {
-    return (a > b) - (a < b);
-}
-#endif
-
 void init_Media(iMedia *d) {
     iForIndices(i, d->items) {
         init_PtrArray(&d->items[i]);
     }
 #if defined (LAGRANGE_ENABLE_JXL)
-    d->jxlDecoderMap = new_Map(compare_MapNode_);
+    d->jxlDecoderMap = NULL;
 #endif
 }
 
@@ -482,6 +499,21 @@ void deinit_Media(iMedia *d) {
 }
 
 void clear_Media(iMedia *d) {
+#if defined (LAGRANGE_ENABLE_JXL)
+    if (d->jxlDecoderMap) {
+        iMapIterator jxlDecoderMapIterator;
+        iStatefulJxlDecoder *decoder;
+
+        init_MapIterator(&jxlDecoderMapIterator, d->jxlDecoderMap);
+
+        while ((decoder = (iStatefulJxlDecoder *)remove_MapIterator(&jxlDecoderMapIterator))) {
+            collect_StatefulJxlDecoder(decoder);
+            next_MapIterator(&jxlDecoderMapIterator);
+        }
+
+        clear_Map(d->jxlDecoderMap);
+    }
+#endif
     iForEach(PtrArray, i, &d->items[image_MediaType]) {
         deinit_GmImage(i.ptr);
     }
@@ -494,19 +526,6 @@ void clear_Media(iMedia *d) {
     iForIndices(type, d->items) {
         clear_PtrArray(&d->items[type]);
     }
-#if defined (LAGRANGE_ENABLE_JXL)
-    iMapIterator jxlDecoderMapIterator;
-    iStatefulJxlDecoder *decoder;
-
-    init_MapIterator(&jxlDecoderMapIterator, d->jxlDecoderMap);
-
-    while ((decoder = (iStatefulJxlDecoder *)remove_MapIterator(&jxlDecoderMapIterator))) {
-        collect_StatefulJxlDecoder(decoder);
-        next_MapIterator(&jxlDecoderMapIterator);
-    }
-
-    clear_Map(d->jxlDecoderMap);
-#endif
 }
 
 size_t memorySize_Media(const iMedia *d) {
@@ -571,6 +590,14 @@ iBool setData_Media(iMedia *d, iGmLinkId linkId, const iString *mime, const iBlo
         iGmImage *img;
         if (isDeleting) {
             take_PtrArray(&d->items[image_MediaType], existingIndex, (void **) &img);
+#if defined (LAGRANGE_ENABLE_JXL)
+            // abort possible in-progress decoding
+            if (d->jxlDecoderMap) {
+                iStatefulJxlDecoder *jxlDecoder = (iStatefulJxlDecoder *) remove_Map(d->jxlDecoderMap, linkId);
+                if (jxlDecoder)
+                    delete_StatefulJxlDecoder(jxlDecoder);
+            }
+#endif
             delete_GmImage(img);
         }
         else {
@@ -694,11 +721,13 @@ iInt2 imageSize_Media(const iMedia *d, iMediaId imageId) {
     return zero_I2();
 }
 
-SDL_Texture *imageTexture_Media(const iMedia *d, iMediaId imageId) {
+SDL_Texture *imageTexture_Media(const iMedia *d, iMediaId imageId, iBool *incomplete) {
     iAssert(imageId.type == image_MediaType);
     const size_t index = index_MediaId(imageId);
+    *incomplete = iFalse;
     if (index < size_PtrArray(&d->items[image_MediaType])) {
         const iGmImage *img = constAt_PtrArray(&d->items[image_MediaType], index);
+        *incomplete = img->texture == NULL;
         return img->texture;
     }
     return NULL;
