@@ -48,6 +48,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <SDL_render.h>
 #include <SDL_timer.h>
 
+struct Impl_Media {
+    iPtrArray items[max_MediaType];
+    /* TODO: Add a hash to quickly look up a link's media. */
+#if defined (LAGRANGE_ENABLE_JXL)
+    iMap *jxlDecoderMap;
+#endif
+};
+
+iDefineTypeConstruction(Media)
+
+/*----------------------------------------------------------------------------------------------*/
+
 iDeclareType(GmMediaProps)
 
 struct Impl_GmMediaProps {
@@ -182,13 +194,7 @@ void deinit_StatefulJxlDecoder(iStatefulJxlDecoder *d) {
     free(d->buffer);
 }
 
-static int compare_MapNode_(iMapKey a, iMapKey b) {
-    return (a > b) - (a < b);
-}
-
-static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iBool isPartial) {
-    static iMap *decoderMap = NULL;
-
+static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iBool isPartial, iMedia *media) {
     iStatefulJxlDecoder *d;
     JxlBasicInfo         info;
     JxlDecoderStatus     status;
@@ -199,15 +205,13 @@ static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iB
         .num_channels = 4, .data_type = JXL_TYPE_UINT8, .endianness = JXL_NATIVE_ENDIAN, .align = 0
     };
 
-    if (!decoderMap) decoderMap = new_Map(compare_MapNode_);
-    iAssert(decoderMap);
-
-    if (contains_Map(decoderMap, linkId)) {
-        d = (iStatefulJxlDecoder *) value_Map(decoderMap, linkId);
+    iAssert(media->jxlDecoderMap);
+    if (contains_Map(media->jxlDecoderMap, linkId)) {
+        d = (iStatefulJxlDecoder *) value_Map(media->jxlDecoderMap, linkId);
     }
     else {
         d = new_StatefulJxlDecoder(linkId, JXL_DEC_BASIC_INFO | JXL_DEC_FULL_IMAGE);
-        if (decoderMap && isPartial) insert_Map(decoderMap, &d->node);
+        if (isPartial) insert_Map(media->jxlDecoderMap, &d->node);
     }
 
     JxlDecoderSetInput(
@@ -272,17 +276,15 @@ static uint8_t *loadJxl_(const iBlock *data, iInt2 *imSize, iGmLinkId linkId, iB
 ret:
     if (!isPartial) {
     err:
-        if (decoderMap) {
-            remove_Map(decoderMap, d->node.key);
-        }
-        delete_StatefulJxlDecoder(d);
+        remove_Map(media->jxlDecoderMap, d->node.key);
+        collect_StatefulJxlDecoder(d);
     }
     return imgData;
 }
 
 #endif /* defined (LAGRANGE_ENABLE_JXL) */
 
-iBool makeTexture_GmImage(iGmImage *d, iBool isPartial) {
+iBool makeTexture_GmImage(iGmImage *d, iBool isPartial, __attribute__((unused)) iMedia *media) {
     iBlock *data     = &d->partialData;
     d->numBytes      = size_Block(data);
     uint8_t *imgData = NULL;
@@ -294,7 +296,7 @@ iBool makeTexture_GmImage(iGmImage *d, iBool isPartial) {
     }
     else if (cmp_String(&d->props.mime, "image/jxl") == 0) {
 #if defined (LAGRANGE_ENABLE_JXL)
-        imgData = loadJxl_(data, &d->size, d->props.linkId, isPartial);
+        imgData = loadJxl_(data, &d->size, d->props.linkId, isPartial, media);
 #endif
     }
     else if (!isPartial) {
@@ -454,17 +456,19 @@ iDefineTypeConstruction(GmDownload)
 
 /*----------------------------------------------------------------------------------------------*/
 
-struct Impl_Media {
-    iPtrArray items[max_MediaType];
-    /* TODO: Add a hash to quickly look up a link's media. */
-};
-
-iDefineTypeConstruction(Media)
+#if defined (LAGRANGE_ENABLE_JXL)
+static int compare_MapNode_(iMapKey a, iMapKey b) {
+    return (a > b) - (a < b);
+}
+#endif
 
 void init_Media(iMedia *d) {
     iForIndices(i, d->items) {
         init_PtrArray(&d->items[i]);
     }
+#if defined (LAGRANGE_ENABLE_JXL)
+    d->jxlDecoderMap = new_Map(compare_MapNode_);
+#endif
 }
 
 void deinit_Media(iMedia *d) {
@@ -472,6 +476,9 @@ void deinit_Media(iMedia *d) {
     iForIndices(i, d->items) {
         deinit_PtrArray(&d->items[i]);
     }
+#if defined (LAGRANGE_ENABLE_JXL)
+    delete_Map(d->jxlDecoderMap);
+#endif
 }
 
 void clear_Media(iMedia *d) {
@@ -487,6 +494,19 @@ void clear_Media(iMedia *d) {
     iForIndices(type, d->items) {
         clear_PtrArray(&d->items[type]);
     }
+#if defined (LAGRANGE_ENABLE_JXL)
+    iMapIterator jxlDecoderMapIterator;
+    iStatefulJxlDecoder *decoder;
+
+    init_MapIterator(&jxlDecoderMapIterator, d->jxlDecoderMap);
+
+    while ((decoder = (iStatefulJxlDecoder *)remove_MapIterator(&jxlDecoderMapIterator))) {
+        collect_StatefulJxlDecoder(decoder);
+        next_MapIterator(&jxlDecoderMapIterator);
+    }
+
+    clear_Map(d->jxlDecoderMap);
+#endif
 }
 
 size_t memorySize_Media(const iMedia *d) {
@@ -557,7 +577,7 @@ iBool setData_Media(iMedia *d, iGmLinkId linkId, const iString *mime, const iBlo
             img = at_PtrArray(&d->items[image_MediaType], existingIndex);
             iAssert(equal_String(&img->props.mime, mime)); /* MIME cannot change */
             set_Block(&img->partialData, data);
-            isNew = makeTexture_GmImage(img, isPartial);
+            isNew = makeTexture_GmImage(img, isPartial, d);
         }
     }
     else if (existing.type == audio_MediaType) {
@@ -609,7 +629,7 @@ iBool setData_Media(iMedia *d, iGmLinkId linkId, const iString *mime, const iBlo
             img->props.isPermanent = !allowHide;
             set_String(&img->props.mime, mime);
             pushBack_PtrArray(&d->items[image_MediaType], img);
-            isNew = makeTexture_GmImage(img, isPartial);
+            isNew = makeTexture_GmImage(img, isPartial, d);
         }
         else if (startsWith_String(mime, "audio/")) {
 #if defined (LAGRANGE_ENABLE_AUDIO)
