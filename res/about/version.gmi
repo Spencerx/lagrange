@@ -13,6 +13,7 @@ Changes and enhancements:
 
 Fixes:
 * Erase possible link icon leftovers after toggling link numbering.
+* Hang when encountering the U+FDFD character.
 
 ## 1.18.4
 * Added option to disable page width expansion to fit long lines.
