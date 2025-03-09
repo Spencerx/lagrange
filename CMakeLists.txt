@@ -22,11 +22,11 @@ project (Lagrange
     DESCRIPTION "A Beautiful Gemini Client"
     LANGUAGES C
 )
-set (COPYRIGHT_YEAR 2024)
+set (COPYRIGHT_YEAR 2025)
 if (IOS)
     set (PROJECT_VERSION 1.18)
-    set (IOS_BUNDLE_VERSION 8)
-    set (IOS_BUILD_DATE "2024-12-11")
+    set (IOS_BUNDLE_VERSION 9)
+    set (IOS_BUILD_DATE "2025-03-09")
 endif ()
 if (ANDROID)
     set (PROJECT_VERSION 1.18)
