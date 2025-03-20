@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2024-10-03 14:43+0000\n"
-"PO-Revision-Date: 2025-03-18 09:39+0000\n"
+"PO-Revision-Date: 2025-03-21 05:37+0000\n"
 "Last-Translator: Arns Udovič <zordsdavini@arns.lt>\n"
 "Language-Team: Samogitian <http://weblate.skyjake.fi/projects/lagrange/ui/"
 "sgs/>\n"
@@ -2403,3 +2403,60 @@ msgstr "Pridietė žīmas apatiuo:"
 
 msgid "prefs.collapsepre"
 msgstr "Soskleistė napadailinta teksta:"
+
+msgid "prefs.retainwindow"
+msgstr "Ėšsauguotė longū ėšdiestīma:"
+
+msgid "prefs.sideicon"
+msgstr "Kapsolės ikuona kairie pusie:"
+
+msgid "prefs.feedinterval"
+msgstr "Sāraša atnaujėnėma intervals:"
+
+msgid "prefs.customframe"
+msgstr "Patė pritaikīts longa riems:"
+
+msgid "prefs.blink"
+msgstr "Blūkčiuojontis kursuorios:"
+
+msgid "prefs.returnkey"
+msgstr "Enter mīgtoka veiksmos:"
+
+msgid "prefs.imagestyle.text"
+msgstr "Teksta barva"
+
+msgid "prefs.imagestyle"
+msgstr "Pasuodrintė paveiksliokus barvuoms:"
+
+msgid "prefs.imagestyle.preformat"
+msgstr "Nadailinta teksta barva"
+
+msgid "prefs.gopher.gemstyle"
+msgstr "Autuomatėškā aptėktė Gopher maniu stilius:"
+
+msgid "prefs.tui.simple"
+msgstr "Nauduotė ASCII simbuolius:"
+
+# Color of text background.
+msgid "prefs.gemtext.ansi.bg"
+msgstr "Pagrinda barva"
+
+msgid "prefs.time.24h"
+msgstr "24 adīnas laika fuormats:"
+
+msgid "prefs.font.ui"
+msgstr "UI šrifts:"
+
+# Font to use for headings and body when Monospace body is enabled.
+msgid "prefs.font.monodoc"
+msgstr "Vėinuoda pluotė šrifts:"
+
+# Color of the text foreground, i.e., the characters.
+msgid "prefs.gemtext.ansi.fg"
+msgstr "Teksta barva"
+
+msgid "prefs.gemtext.ansi.fontstyle"
+msgstr "Šrifta stilios"
+
+msgid "prefs.doctheme.name.vibrantlight"
+msgstr "Skaistē švėisi"
