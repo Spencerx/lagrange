@@ -2234,7 +2234,7 @@ iWindow *newPopup_Window(iInt2 screenPos, iWidget *rootWidget) {
     setForceSoftwareRender_App(iTrue);
 #endif
     SDL_Rect usableRect;
-    SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(get_MainWindow()->base.win),
+    SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(get_Window()->win),
                                &usableRect);
     const float pixelRatio = get_Window()->pixelRatio;
     iRect winRect = (iRect){ screenPos,

@@ -2212,13 +2212,23 @@ void processEvents_App(enum iAppEventMode eventMode) {
                             break;
                         }
                         window->lastHover = window->hover;
+                        /* When clicking a mouse button, we need to be able to close previously 
+                           existing popup windows. However, after the event has been processed,
+                           a new popup menu may have just opened, so we first take a copy
+                           of the existing list of popups. */
+                        const iPtrArray *lastPopupWindows = ev.type == SDL_MOUSEBUTTONDOWN ?
+                            collect_PtrArray(copy_PtrArray(&d->popupWindows)) : NULL;
                         wasUsed = processEvent_Window(window, &ev);
                         if (wasUsed) {
-                            if (!isEmpty_Array(&d->popupWindows) && window->type != popup_WindowType) {
+                            if (ev.type == SDL_MOUSEBUTTONDOWN && window->type != popup_WindowType &&
+                                !isEmpty_Array(lastPopupWindows)) {
                                 /* Clicking outside the open popups is supposed to close all of them. */
-                                if (ev.type == SDL_MOUSEBUTTONDOWN) {
-                                    postCommand_App("menu.cancel");
-                                    break;
+                                iConstForEach(PtrArray, i, lastPopupWindows) {
+                                    iWindow *pop = i.ptr;
+                                    iRoot *popRoot = pop->roots[0];
+                                    if (popRoot && !isRecentlyDeleted_Widget(popRoot->widget)) {
+                                        postCommandf_Root(popRoot, "menu.cancel");
+                                    }                                    
                                 }
                             }
                             break;
