@@ -73,7 +73,7 @@ if (ENABLE_HARFBUZZ)
             ExternalProject_Add (harfbuzz-ext
                 PREFIX              ${CMAKE_BINARY_DIR}/harfbuzz-ext
                 SOURCE_DIR          ${CMAKE_SOURCE_DIR}/lib/harfbuzz
-                CONFIGURE_COMMAND   NINJA=${NINJA_EXECUTABLE} ${MESON_EXECUTABLE}
+                CONFIGURE_COMMAND   ${MESON_EXECUTABLE}
                                         ${CMAKE_SOURCE_DIR}/lib/harfbuzz
                                         -Dbuildtype=release
                                         -Ddefault_library=both
@@ -93,6 +93,8 @@ if (ENABLE_HARFBUZZ)
                 # Link dynamically.
                 target_link_libraries (harfbuzz-lib INTERFACE -L${_dst}/lib harfbuzz)
                 install (PROGRAMS ${_dst}/bin/msys-harfbuzz-0.dll DESTINATION .)
+            elseif (MINGW)
+                target_link_libraries (harfbuzz-lib INTERFACE ${_dst}/lib/libharfbuzz.a)
             else ()
                 if (APPLE)
                     target_link_libraries (harfbuzz-lib INTERFACE ${_dst}/lib/libharfbuzz.0.dylib)
@@ -139,7 +141,7 @@ if (ENABLE_FRIBIDI)
             ExternalProject_Add (fribidi-ext
                 PREFIX              ${CMAKE_BINARY_DIR}/fribidi-ext
                 SOURCE_DIR          ${CMAKE_SOURCE_DIR}/lib/fribidi
-                CONFIGURE_COMMAND   NINJA=${NINJA_EXECUTABLE} ${MESON_EXECUTABLE}
+                CONFIGURE_COMMAND   ${MESON_EXECUTABLE}
                                         ${CMAKE_SOURCE_DIR}/lib/fribidi
                                         -Dbuildtype=release
                                         -Ddefault_library=static
@@ -160,6 +162,7 @@ if (ENABLE_FRIBIDI)
         add_library (fribidi-lib INTERFACE)
         target_include_directories (fribidi-lib INTERFACE ${_dst}/include)
         target_link_libraries (fribidi-lib INTERFACE ${_dst}/lib/libfribidi.a)
+        target_compile_definitions (fribidi-lib INTERFACE FRIBIDI_LIB_STATIC=1)
         set (FRIBIDI_FOUND YES)
     endif ()
 endif ()
