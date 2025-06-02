@@ -85,6 +85,7 @@ if (ENABLE_HARFBUZZ)
                                         --prefix ${_dst}
                 BUILD_COMMAND       ${NINJA_EXECUTABLE} install
                 INSTALL_COMMAND     ""
+                BUILD_BYPRODUCTS    ${_dst}/lib/libharfbuzz.a
             )
             list (APPEND _dependsToBuild harfbuzz-ext)
             add_library (harfbuzz-lib INTERFACE)
