@@ -1686,8 +1686,10 @@ const iString *debugInfo_App(void) {
     iString *msg = collectNew_String();
     iObjectList *docs = iClob(listDocuments_App(NULL));
     format_String(msg, "# Debug information\n");
-    appendFormat_String(msg, "Executable path: %s\n", cstr_String(execPath_App()));
-    appendFormat_String(msg, "User directory: %s\n", cstr_String(dataDir_App()));
+    if (isDesktop_Platform()) {
+        appendFormat_String(msg, "Executable path: %s\n", cstr_String(execPath_App()));
+        appendFormat_String(msg, "User directory: %s\n", cstr_String(dataDir_App()));
+    }
     appendFormat_String(msg, "\n## Memory usage\n"); {
         iMemInfo total = { 0, 0 };
         iForEach(ObjectList, i, docs) {
