@@ -111,6 +111,7 @@ set (RESOURCES
     res/lang/nl.bin
     res/lang/pl.bin
     res/lang/ru.bin
+    res/lang/sgs.bin
     res/lang/sk.bin
     res/lang/sr.bin
     res/lang/tok.bin
