@@ -1701,23 +1701,18 @@ void draw_MainWindow(iMainWindow *d) {
        when the custom frame is being used. */ {
         setCurrent_Root(w->roots[0]);
         iColor back;
-        if (isMobile_Platform()) {
-            back = get_Color(uiBackground_ColorId);
-            if (deviceType_App() == phone_AppDeviceType) {
-                /* Page background extends to safe area, so fill it completely. */
-                back = get_Color(tmBackground_ColorId);
-            }
-        }
-        else {
 #if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
-            back = get_Color(gotFocus && d->place.snap != maximized_WindowSnap &&
-                                     ~winFlags & SDL_WINDOW_FULLSCREEN_DESKTOP
-                                 ? uiAnnotation_ColorId
-                                 : uiSeparator_ColorId);
+        back = get_Color(gotFocus && d->place.snap != maximized_WindowSnap &&
+                                    ~winFlags & SDL_WINDOW_FULLSCREEN_DESKTOP
+                                ? uiAnnotation_ColorId
+                                : uiSeparator_ColorId);
 #else
-            back = get_Color(uiBackground_ColorId);
+        back = get_Color(uiBackground_ColorId);
+        if (deviceType_App() == phone_AppDeviceType) {
+            /* Page background extends to safe area, so fill it completely. */
+            back = get_Color(tmBackground_ColorId);
+        }        
 #endif
-        }
         unsetClip_Paint(&p); /* update clip to full window */
         SDL_SetRenderDrawColor(w->render, back.r, back.g, back.b, 255);
         SDL_RenderClear(w->render);
