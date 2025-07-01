@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-01-21 09:41+0000\n"
-"PO-Revision-Date: 2025-07-01 12:46+0000\n"
+"PO-Revision-Date: 2025-07-01 19:23+0000\n"
 "Last-Translator: BALLOON | FU-SEN <balloonakafusen+weblate@gmail.com>\n"
 "Language-Team: Japanese <http://weblate.skyjake.fi/projects/lagrange/ui/ja/>"
 "\n"
@@ -575,7 +575,7 @@ msgstr "半ページ上へスクロール"
 #, c-format
 msgid "feeds.list.counts"
 msgid_plural "feeds.list.counts.n"
-msgstr[0] "%u フィードに  %%s を含めて購読します。\n"
+msgstr[0] "%u フィードに %%s を含めて購読します。\n"
 
 msgid "feeds.list.refreshtime.now"
 msgstr "最新の更新はほんの少し前に発生しました。"
@@ -712,7 +712,7 @@ msgstr "フィード一覧"
 
 #, c-format
 msgid "feeds.list.refreshtime"
-msgstr "最新の更新は  %s 発生しました。"
+msgstr "最新の更新は %s 発生しました。"
 
 msgid "prefs.theme.black"
 msgstr "黒"
@@ -2790,3 +2790,6 @@ msgstr "送信先:"
 
 msgid "upload.file.drophere"
 msgstr "ファイルパスを入力するかウィンドウにファイルをドラッグアンドドロップします"
+
+msgid "keys.link.homerow.next"
+msgstr "ホーム・矢印キーリンクの次のセット"
