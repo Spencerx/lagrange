@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-01-21 09:41+0000\n"
-"PO-Revision-Date: 2025-07-01 19:23+0000\n"
+"PO-Revision-Date: 2025-07-03 00:44+0000\n"
 "Last-Translator: BALLOON | FU-SEN <balloonakafusen+weblate@gmail.com>\n"
 "Language-Team: Japanese <http://weblate.skyjake.fi/projects/lagrange/ui/ja/>"
 "\n"
@@ -127,7 +127,7 @@ msgstr "日付"
 # used as adjective, n is 8, 16, 24, 32, or 64
 #, c-format
 msgid "n.bit"
-msgstr "%dビット"
+msgstr "%d ビット"
 
 msgid "numbertype.integer"
 msgstr "整数"
@@ -174,7 +174,7 @@ msgstr "戻る"
 msgid "page.timestamp"
 msgstr ""
 "%Y/%m/%d\n"
-"%I:%M %pに取得"
+"%I:%M %p に取得"
 
 msgid "menu.sidebar"
 msgstr "サイドバーを切り替え"
@@ -201,7 +201,7 @@ msgid "menu.releasenotes"
 msgstr "リリースノート"
 
 msgid "menu.quit"
-msgstr "Lagrangeを終了"
+msgstr "Lagrange を終了"
 
 msgid "menu.cut"
 msgstr "切り取り"
@@ -258,7 +258,7 @@ msgstr "ページのリンクをコピー"
 
 #, c-format
 msgid "doc.archive"
-msgstr "%sは圧縮されたアーカイブです。"
+msgstr "%s は圧縮されたアーカイブです。"
 
 msgid "doc.archive.view"
 msgstr "アーカイブの内容を表示"
@@ -284,16 +284,16 @@ msgstr "英語"
 
 # A language choice in the Translation dialog.
 msgid "lang.fr"
-msgstr "仏語"
+msgstr "フランス語"
 
 msgid "dlg.translate"
 msgstr "翻訳する"
 
 msgid "dlg.translate.from"
-msgstr "翻訳元："
+msgstr "翻訳元:"
 
 msgid "dlg.translate.to"
-msgstr "翻訳対象："
+msgstr "翻訳対象:"
 
 # A language choice in the Translation dialog.
 msgid "lang.ar"
@@ -333,7 +333,7 @@ msgid "lang.es"
 msgstr "スペイン語"
 
 msgid "error.cert.needed.msg"
-msgstr "このリソースにアクセスするには、本人確認（TLSクライアント証明書による）が必要です。"
+msgstr "このリソースにアクセスするには SSL クライアント証明書による本人確認が必要です。"
 
 msgid "error.glyphs.msg"
 msgstr "一部の文字が欠落しているため、このページを正しく表示することができませんでした。追加のフォントをインストールしてこれを修正できます。"
@@ -371,7 +371,7 @@ msgid "keys.zoom.in"
 msgstr "拡大"
 
 msgid "prefs.markdown.viewsource"
-msgstr "ソースをMarkdownで表示:"
+msgstr "ソースを Markdown で表示:"
 
 msgid "keys.tab.prev"
 msgstr "前のタブ"
@@ -430,7 +430,7 @@ msgid "menu.split.horizontal"
 msgstr "横に並べて表示"
 
 msgid "error.cgi"
-msgstr "CGIエラー"
+msgstr "CGI エラー"
 
 msgid "prefs.scrollspeed.keyboard"
 msgstr "キーボードの速度:"
@@ -498,7 +498,7 @@ msgid "heading.settings"
 msgstr "設定"
 
 msgid "menu.page.upload.edit"
-msgstr "Titanでページを編集…"
+msgstr "Titan でページを編集…"
 
 msgid "spartan.input"
 msgstr "送信テキストを入力:"
@@ -535,7 +535,7 @@ msgid "menu.snip.prefs"
 msgstr "設定…"
 
 msgid "prefs.ca.file"
-msgstr "CAファイル:"
+msgstr "CA ファイル:"
 
 msgid "feeds.edit"
 msgstr "フィードの編集…"
@@ -547,7 +547,7 @@ msgid "link.browser"
 msgstr "デフォルトブラウザでリンクを開く"
 
 msgid "prefs.theme.dark"
-msgstr "暗"
+msgstr "ダーク"
 
 # Interpret as "Results from bookmarks..."
 msgid "heading.lookup.bookmarks"
@@ -557,10 +557,10 @@ msgid "heading.addfolder"
 msgstr "フォルダの追加"
 
 msgid "prefs.toolbaraction1"
-msgstr "ボタン1"
+msgstr "ボタン 1"
 
 msgid "prefs.toolbaraction2"
-msgstr "ボタン2"
+msgstr "ボタン 2"
 
 msgid "prefs.blink"
 msgstr "カーソルの点滅:"
@@ -643,16 +643,16 @@ msgid "dlg.spartan.upload"
 msgstr "エディタを開く…"
 
 msgid "heading.upload"
-msgstr "Titanでアップロード"
+msgstr "Titan でアップロード"
 
 msgid "heading.upload.spartan"
-msgstr "Spartanでアップロード"
+msgstr "Spartan でアップロード"
 
 msgid "heading.prefs.pagecontent"
 msgstr "ページの色"
 
 msgid "prefs.searchurl"
-msgstr "検索URL:"
+msgstr "検索 URL:"
 
 msgid "dlg.file.delete.confirm"
 msgstr "このファイルを削除してよろしいですか？"
@@ -686,7 +686,7 @@ msgid "prefs.font.monodoc"
 msgstr "等幅フォント:"
 
 msgid "menu.page.upload"
-msgstr "Titanでアップロード…"
+msgstr "Titan でアップロード…"
 
 msgid "prefs.font.smooth"
 msgstr "フォントスムージンズ:"
@@ -721,7 +721,7 @@ msgid "menu.dup"
 msgstr "複製…"
 
 msgid "menu.copyurl"
-msgstr "URLをコピー"
+msgstr "URL をコピー"
 
 msgid "prefs.accent.blue"
 msgstr "青"
@@ -868,7 +868,7 @@ msgid "feeds.entry.bookmark"
 msgstr "ブックマークに追加…"
 
 msgid "prefs.bottomtabbar"
-msgstr "下のタブ"
+msgstr "タブを下に"
 
 msgid "menu.folder.opentab"
 msgstr "新しいタブで開く"
@@ -994,7 +994,7 @@ msgid "prefs.smoothscroll"
 msgstr "スムーズスクロール:"
 
 msgid "prefs.theme"
-msgstr "UIのテーマ:"
+msgstr "UI のテーマ:"
 
 # Operating system's UI accent color.
 msgid "prefs.accent.system"
@@ -1034,7 +1034,7 @@ msgid "prefs.imagestyle.text"
 msgstr "文字色"
 
 msgid "prefs.font.ui"
-msgstr "UIフォント:"
+msgstr "UI のフォント:"
 
 msgid "prefs.font.heading"
 msgstr "見出し:"
@@ -1065,10 +1065,10 @@ msgid "prefs.quoteicon.line"
 msgstr "線"
 
 msgid "prefs.urlsize"
-msgstr "最大URLサイズ:"
+msgstr "最大 URL サイズ:"
 
 msgid "prefs.proxy.gopher"
-msgstr "Gppherプロキシ:"
+msgstr "Gppher プロキシ:"
 
 msgid "dir.empty"
 msgstr "このディレクトリは空です。"
@@ -1107,7 +1107,7 @@ msgid "prefs.font"
 msgstr "本文のフォント:"
 
 msgid "menu.website"
-msgstr "プロジェクトのWebサイト…"
+msgstr "プロジェクトの Web サイト…"
 
 # used on mobile
 msgid "dlg.upload.file"
@@ -1120,7 +1120,7 @@ msgid "menu.page.translate"
 msgstr "翻訳…"
 
 msgid "menu.page.copyurl"
-msgstr "ページURLをコピー"
+msgstr "ページ URL をコピー"
 
 msgid "mb.per.sec"
 msgstr "MB/s"
@@ -1143,7 +1143,7 @@ msgid "link.newtab"
 msgstr "新しいタブでリンクを開く"
 
 msgid "link.searchurl"
-msgstr "検索URLを使用"
+msgstr "検索 URL を使用"
 
 msgid "link.file.delete"
 msgstr "ファイルの削除"
@@ -1155,7 +1155,7 @@ msgid "upload.file.name"
 msgstr "ファイル名:"
 
 msgid "prefs.decodeurls"
-msgstr "デコードURL:"
+msgstr "デコード URL:"
 
 msgid "keys.scroll.down"
 msgstr "下へスクロール"
@@ -1170,10 +1170,10 @@ msgid "keys.zoom.out"
 msgstr "縮小"
 
 msgid "keys.upload"
-msgstr "Titanでアップロード"
+msgstr "Titan でアップロード"
 
 msgid "keys.upload.edit"
-msgstr "Titanでページを編集"
+msgstr "Titan でページを編集"
 
 msgid "menu.title.window"
 msgstr "ウインドウ"
@@ -1225,7 +1225,7 @@ msgstr "内容:"
 
 # Keyboard shortcut for the terminal. Should be very short or abbreviated.
 msgid "term.url"
-msgstr "URLを入力:"
+msgstr "URL を入力:"
 
 # Keyboard shortcut for the terminal. Should be very short or abbreviated.
 msgid "term.linkkeys"
@@ -1259,7 +1259,7 @@ msgid "menu.email"
 msgstr "メールでお問い合わせ"
 
 msgid "menu.viewformat.gemini"
-msgstr "Gemtextを表示"
+msgstr "Gemtext を表示"
 
 msgid "menu.identity.import"
 msgstr "インポート…"
@@ -1309,7 +1309,7 @@ msgstr "ページについて"
 
 # Used in the desktop Help menu.
 msgid "menu.aboutapp"
-msgstr "Lagrangeについて"
+msgstr "Lagrange について"
 
 msgid "menu.fonts"
 msgstr "フォントの管理…"
@@ -1395,7 +1395,7 @@ msgid "heading.lookup.pagecontent"
 msgstr "ページコンテンツ"
 
 msgid "heading.upload.edit"
-msgstr "Titanで編集"
+msgstr "Titan で編集"
 
 msgid "upload.type"
 msgstr "内容"
@@ -1404,7 +1404,7 @@ msgid "upload.file.size"
 msgstr "ファイルサイズ:"
 
 msgid "upload.mime"
-msgstr "MIMEの種類:"
+msgstr "MIME type:"
 
 msgid "upload.token"
 msgstr "トークン:"
@@ -1420,7 +1420,7 @@ msgid "dlg.upload.edit"
 msgstr "送信"
 
 msgid "heading.uploadport"
-msgstr "Titanアップロードポート"
+msgstr "Titan アップロードポート"
 
 # used on mobile
 msgid "dlg.upload.pickfile"
@@ -1484,7 +1484,7 @@ msgid "dlg.newident.email"
 msgstr "メール:"
 
 msgid "dlg.newident.userid"
-msgstr "ユーザーID:"
+msgstr "ユーザー ID:"
 
 msgid "heading.bookmark.add"
 msgstr "ブックマークを追加"
@@ -1493,7 +1493,7 @@ msgid "heading.bookmark.editfolder"
 msgstr "フォルダの編集"
 
 msgid "fontpack.install.ttf"
-msgstr "TrueTypeフォントのインストール"
+msgstr "TrueType フォントのインストール"
 
 msgid "dlg.bookmark.title"
 msgstr "タイトル:"
@@ -1509,7 +1509,7 @@ msgid "heading.prefs.network"
 msgstr "ネットワーク"
 
 msgid "heading.prefs.uitheme"
-msgstr "UIの色"
+msgstr "UI の色"
 
 msgid "heading.prefs.proxies"
 msgstr "プロキシ"
@@ -1526,7 +1526,7 @@ msgstr "なし"
 
 # User preference that controls whether index.gmi pages get automatically opened when browsing the contents of a directory inside a compressed archive.
 msgid "prefs.archive.openindex"
-msgstr "ZIPアーカイブのindex.gmiを開く:"
+msgstr "ZIP アーカイブの index.gmi を開く:"
 
 msgid "prefs.pinsplit.none"
 msgstr "なし"
@@ -1538,7 +1538,7 @@ msgid "prefs.ostheme"
 msgstr "システムテーマを使用:"
 
 msgid "prefs.theme.light"
-msgstr "明"
+msgstr "ライト"
 
 msgid "prefs.accent.orange"
 msgstr "オレンジ"
@@ -1547,7 +1547,7 @@ msgid "prefs.doctheme.name.black"
 msgstr "黒"
 
 msgid "prefs.tui.simple"
-msgstr "ASCIIキャラクターセットの強制:"
+msgstr "ASCII キャラクターセットの強制:"
 
 msgid "prefs.font.mono"
 msgstr "フォーマット済み:"
@@ -1568,13 +1568,13 @@ msgid "prefs.memorysize"
 msgstr "メモリのサイズ:"
 
 msgid "prefs.ca.path"
-msgstr "CAパス:"
+msgstr "CA パス:"
 
 msgid "prefs.proxy.gemini"
-msgstr "Geminiプロキシ:"
+msgstr "Gemini プロキシ:"
 
 msgid "prefs.proxy.http"
-msgstr "HTTPプロキシ:"
+msgstr "HTTP プロキシ:"
 
 msgid "keys.scroll.up"
 msgstr "上へスクロール"
@@ -1640,7 +1640,7 @@ msgid "pageinfo.cert.expired"
 msgstr "期限切れ"
 
 msgid "sitespec.tlscache"
-msgstr "TLSセッションの再開:"
+msgstr "SSL セッションの再開:"
 
 msgid "ident.sendmsg"
 msgstr "メッセージの送信…"
@@ -1676,7 +1676,7 @@ msgid "dlg.unsub"
 msgstr "登録解除"
 
 msgid "pageinfo.cert.ca.unverified"
-msgstr "CA未検証"
+msgstr "CA 未検証"
 
 msgid "pageinfo.cert.notexpired"
 msgstr "期限有効"
@@ -1709,13 +1709,13 @@ msgid "import.userdata.snippets"
 msgstr "スニペット:"
 
 msgid "heading.upload.misfin"
-msgstr "Misfinメッセージの送信"
+msgstr "Misfin メッセージの送信"
 
 msgid "heading.upload.misfin.noident"
-msgstr "Misfin身分証明なし"
+msgstr "Misfin 身分証明なし"
 
 msgid "dlg.upload.misfin.noident"
-msgstr "メッセージを送信するにはまずMisfin証明書をインポートする必要があります。"
+msgstr "メッセージを送信するにはまず Misfin 証明書をインポートする必要があります。"
 
 msgid "heading.misfin.ok"
 msgstr "送信済みメッセージ"
@@ -1864,7 +1864,7 @@ msgid "glyphfinder.results.empty"
 msgstr "申し訳ありませんが、一致するフォントパックは見つかりませんでした。"
 
 msgid "prefs.warn.security"
-msgstr "TLSセキュリティ警告:"
+msgstr "SSL セキュリティ警告:"
 
 msgid "keys.sitespec"
 msgstr "サイト固有の設定を表示"
@@ -1894,10 +1894,10 @@ msgid "dlg.certwarn.domain.expired"
 msgstr "受け取った証明書は有効期限が切れ、誤ったドメインです。"
 
 msgid "dlg.certimport.help"
-msgstr "PEMエンコードされた証明書および・または秘密鍵を貼り付けるか、ウィンドウに .crt・.key ファイルをドロップしてください。"
+msgstr "PEM エンコードされた証明書および・または秘密鍵を貼り付けるか、ウィンドウに .crt・.key ファイルをドロップしてください。"
 
 msgid "prefs.bottomnavbar"
-msgstr "Navバーを下に"
+msgstr "Nav バーを下に"
 
 msgid "error.proxyverify"
 msgstr "プロキシは信頼できません"
@@ -1948,7 +1948,7 @@ msgid "ident.notused"
 msgstr "使用なし"
 
 msgid "sitespec.ansi"
-msgstr "ANSIエスケープの警告:"
+msgstr "ANSI エスケープの警告:"
 
 msgid "error.unavail"
 msgstr "サーバーは利用できません"
@@ -2043,7 +2043,7 @@ msgstr "未読エントリなし"
 # The %s format characters are used to highlight the word "Help" and must be used in the translation in same way as here.
 #, c-format
 msgid "ident.gotohelp"
-msgstr "TLSクライアント証明書の詳細については、%sヘルプ%s を参照してください。"
+msgstr "SSL クライアント証明書の詳細については、%sヘルプ%s を参照してください。"
 
 #, c-format
 msgid "dlg.confirm.unsub"
@@ -2069,7 +2069,7 @@ msgid "sidebar.action.show"
 msgstr "表示:"
 
 msgid "menu.input.setprompt"
-msgstr "このURLでは入力が必要だと仮定されます"
+msgstr "この URL では入力が必要だと仮定されます"
 
 # Usage: "(count) Unread" in the sidebar tab title, referring to feed entries.
 msgid "sidebar.unread"
@@ -2096,7 +2096,7 @@ msgid "pageinfo.cert.status"
 msgstr "証明書の状態:"
 
 msgid "pageinfo.cert.ca.verified"
-msgstr "CAによって検証済"
+msgstr "CA によって検証済"
 
 msgid "sitespec.palette"
 msgstr "テーマパレットシード:"
@@ -2124,10 +2124,10 @@ msgstr "ページの内容はまだダウンロード中です。"
 msgid "error.gone"
 msgstr "閉鎖"
 
-#, c-format
+#, c-format, fuzzy
 msgid "dlg.import.add"
 msgid_plural "dlg.import.add.n"
-msgstr[0] "%s %d ヶ所のブックマークを追加"
+msgstr[0] "ブックマーク %s へ %d ヶ所追加"
 
 msgid "reload.never"
 msgstr "なし"
@@ -2139,10 +2139,10 @@ msgid "dlg.certimport.notes"
 msgstr "メモ:"
 
 msgid "menu.forgeturl"
-msgstr "URLを削除"
+msgstr "URL を削除"
 
 msgid "bookmark.export.format.sub"
-msgstr "このページは \"Gemini Pagesへの購読\" コンパニオン仕様に従ってフォーマットされています。"
+msgstr "このページは \"Gemini Pages への購読\" コンパニオン仕様に従ってフォーマットされています。"
 
 msgid "bookmark.export.format.linklines"
 msgstr "各リンクはブックマークを表します。"
@@ -2194,14 +2194,14 @@ msgid "heading.prefs.snip"
 msgstr "スニペット"
 
 msgid "prefs.hoverlink"
-msgstr "ホバーでURLを表示:"
+msgstr "ホバーで URL を表示:"
 
 msgid "prefs.bookmarks.addbottom"
 msgstr "ブックマークの下へ追加:"
 
 # User preference that controls whether image data embedded in Data URLs gets automatically displayed when a page is loaded.
 msgid "prefs.dataurl.openimages"
-msgstr "データURLで画像を開く:"
+msgstr "データ URL で画像を開く:"
 
 msgid "prefs.imageloadscroll"
 msgstr "スクロールキーで次の画像読込："
@@ -2222,7 +2222,7 @@ msgid "prefs.retaintabs"
 msgstr "起動時にタブを復元:"
 
 msgid "prefs.uiscale"
-msgstr "UIスケールファクター:"
+msgstr "UI スケールファクター:"
 
 msgid "prefs.returnkey.accept"
 msgstr "承認"
@@ -2231,7 +2231,7 @@ msgid "prefs.retainwindow"
 msgstr "ウィンドウ位置の保存:"
 
 msgid "prefs.sideicon"
-msgstr "左端Capsuleアイコン:"
+msgstr "左端 Capsule アイコン:"
 
 msgid "prefs.doctheme.name.colorfullight"
 msgstr "カラフルライト"
@@ -2249,7 +2249,7 @@ msgid "prefs.imagestyle"
 msgstr "画像の色付け:"
 
 msgid "prefs.gopher.gemstyle"
-msgstr "自動検出Gopherメニュースタイル:"
+msgstr "自動検出した Gopher のメニュースタイル:"
 
 msgid "prefs.linespacing"
 msgstr "行間隔:"
@@ -2273,7 +2273,7 @@ msgid "keys.subscribe"
 msgstr "ページの購読"
 
 msgid "keys.hoverurl"
-msgstr "ホバーでURL表示の切り替え"
+msgstr "ホバーで URL 表示の切り替え"
 
 msgid "keys.feeds.showall"
 msgstr "サイドバー: すべてのフィードエントリーを表示"
@@ -2318,7 +2318,7 @@ msgid "menu.paste.snippet"
 msgstr "スニペットの貼り付け"
 
 msgid "menu.snippet.add"
-msgstr "Selectionからのスニペット…"
+msgstr "Selection からのスニペット…"
 
 msgid "error.badresource"
 msgstr "リソースが無効です"
@@ -2392,7 +2392,7 @@ msgid "heading.sitespec"
 msgstr "サイト固有の設定"
 
 msgid "menu.input.unsetprompt"
-msgstr "このURLは入力が必要だと仮定されません"
+msgstr "この URL は入力が必要だと仮定されません"
 
 msgid "menu.input.restore"
 msgstr "以前の復元:"
@@ -2404,7 +2404,7 @@ msgid "dlg.import.headings"
 msgstr "次の見出しからのサブフォルダ："
 
 msgid "reload.onceperday"
-msgstr "１日１回"
+msgstr "1 日 1 回"
 
 msgid "link.download"
 msgstr "リンクされたファイルをダウンロード"
@@ -2439,7 +2439,7 @@ msgid "error.incompleteheader"
 msgstr "見出しが不完全です"
 
 msgid "error.certexpired.msg"
-msgstr "TLS証明書が期限切れになったため、サーバーへの接続がキャンセルされました。"
+msgstr "SSL 証明書が期限切れになったため、サーバーへの接続がキャンセルされました。"
 
 msgid "gempub.cover.aboutbook"
 msgstr "この本について"
@@ -2463,7 +2463,7 @@ msgid "hint.upload.token"
 msgstr "サーバーの指示を参照してください"
 
 msgid "dlg.uploadport.msg"
-msgstr "このURLに使用するようにTitanサーバーポートを設定します。ポートはサイト固有の構成に保存されます。"
+msgstr "この URL に使用するように Titan サーバーポートを設定します。ポートはサイト固有の構成に保存されます。"
 
 msgid "dlg.translate.pre"
 msgstr "フォーマット済みをスキップ:"
@@ -2472,7 +2472,7 @@ msgid "dlg.glyphfinder.help.empty"
 msgstr "ページを更新して、不足している文字種をもう一度確認してください。"
 
 msgid "dlg.newident.rsa.selfsign"
-msgstr "自己署名された2048ビットRSA証明書を作成します。"
+msgstr "自己署名された 2048 ビット RSA 証明書を作成します。"
 
 msgid "heading.newident.missing"
 msgstr "情報がありません"
@@ -2487,10 +2487,10 @@ msgid "collapse.bydefault"
 msgstr "ページ読込時"
 
 msgid "prefs.time.24h"
-msgstr "24時間:"
+msgstr "時間 (24 時間表記):"
 
 msgid "prefs.returnkey"
-msgstr "Returnキーの動作:"
+msgstr "Return キーの動作:"
 
 msgid "prefs.returnkey.linebreak"
 msgstr "改行"
@@ -2533,10 +2533,10 @@ msgid "error.tls.msg"
 msgstr "サーバーとの通信に失敗しました。"
 
 msgid "error.badstatus.msg"
-msgstr "サーバーはGeminiプロトコル仕様にないステータスコードで応答しました。おそらくサーバーは誤動作しています。"
+msgstr "サーバーは Gemini プロトコル仕様にないステータスコードで応答しました。おそらくサーバーは誤動作しています。"
 
 msgid "error.proxyexpired.msg"
-msgstr "プロキシサーバーのTLS証明書が期限切れになったため、接続がキャンセルされました。"
+msgstr "プロキシサーバーの SSL 証明書が期限切れになったため、接続がキャンセルされました。"
 
 msgid "error.certverify"
 msgstr "サーバーが信頼されていません"
@@ -2564,7 +2564,7 @@ msgid "error.cert.invalid.msg"
 msgstr "提供されたクライアント証明書は期限切れまたは無効です。"
 
 msgid "gempub.cover.viewlocal"
-msgstr "このGempubの本は、ローカルで保存された後に見ることができます。"
+msgstr "この Gempub の本は、ローカルで保存された後に見ることができます。"
 
 msgid "gempub.cover.untitled"
 msgstr "タイトルなしの本"
@@ -2585,7 +2585,8 @@ msgstr "\"%s\" を永続的に削除"
 
 msgid "error.badheader.msg"
 msgstr ""
-"受信されたヘッダーはGeminiプロトコル仕様に準拠していません。おそらくサーバーが誤動作しているかGeminiではないサーバーに連絡しようとしました。"
+"受信されたヘッダーは Gemini プロトコル仕様に準拠していません。おそらくサーバーが誤動作しているか Gemini "
+"ではないサーバーに連絡しようとしました。"
 
 msgid "truetype.help"
 msgstr "Lagrange はユーザーフォントディレクトリにコピーされたすべての個々の TrueType ファイルをロードしようとします。"
@@ -2598,7 +2599,7 @@ msgid "dlg.dismiss.ansi"
 msgstr "端子エミュレーション %s についての警告を永久に無視しますか？"
 
 msgid "sniped.help"
-msgstr "名前が ! から始まるスニペット (例: \"!w\" ) はURLフィールドでクエリショートカットとして使用できます。"
+msgstr "名前が ! から始まるスニペット (例: \"!w\" ) は URL フィールドでクエリショートカットとして使用できます。"
 
 msgid "heading.snip.new"
 msgstr "新しいスニペット"
@@ -2644,7 +2645,8 @@ msgstr "次の文字を表示できませんでした。"
 
 msgid "error.schemeredirect.msg"
 msgstr ""
-"サーバーは発信URLのスキームとは異なるスキームのURLにリダイレクトしようとしました。ここにリンクがありますので必要に応じて手動で開くことができます。"
+"サーバーは発信 URL のスキームとは異なるスキームの URL "
+"にリダイレクトしようとしました。ここにリンクがありますので必要に応じて手動で開くことができます。"
 
 msgid "glyphfinder.results"
 msgstr "次のフォントパックは、欠落している文字種の1つ以上を提供します:"
@@ -2656,21 +2658,21 @@ msgid "error.manyredirects.msg"
 msgstr "リダイレクトループの可能性があります。次のリダイレクトされたURLは手動で続行する事ができます。"
 
 msgid "error.tls"
-msgstr "ネットワーク・TLS障害"
+msgstr "ネットワーク・SSL 障害"
 
 msgid "error.proxyexpired"
 msgstr "プロキシ証明書の期限が切れています"
 
 msgid "error.certverify.msg"
 msgstr ""
-"TLS証明書が信頼できるものと一致しないため、サーバーへの接続がキャンセルされました。サーバーが証明書の変更を発表したかどうかを確認してください。"
+"SSL 証明書が信頼できるものと一致しないため、サーバーへの接続がキャンセルされました。サーバーが証明書の変更を発表したかどうかを確認してください。"
 "そうでない場合は悪意のあるサードパーティが到達しようとしたサーバーを装っている可能性があります\n"
 "\n"
 "証明書はページ情報に信頼されているとマークできます。"
 
 msgid "error.proxyverify.msg"
 msgstr ""
-"プロキシサーバーのTLS証明書が私たちが信頼するものと一致しないため、接続がキャンセルされました\n"
+"プロキシサーバーの SSL 証明書が信頼するものと一致しないため、接続がキャンセルされました\n"
 "\n"
 "プロキシサーバーの証明書は、ページ情報に信頼されているとマークできます。"
 
@@ -2703,20 +2705,20 @@ msgstr "証明書が無効です"
 
 msgid "error.ansi.msg"
 msgstr ""
-"このページは正しく表示されない場合があります。 ANSIエスケープシーケンスを使用してテキストをスタイルします。テキストは部分的にのみサポートされています"
-"。ターミナルエミュレーターを使用して表示することができます。"
+"このページは正しく表示されない場合があります。 ANSI エスケープシーケンスを使用してテキストをスタイルします。テキストは部分的にのみサポートされていま"
+"す。ターミナルエミュレーターを使用して表示することができます。"
 
 msgid "error.glyphs"
 msgstr "文字種の不足"
 
 msgid "error.showutf8"
-msgstr "UTF-8の自動検出"
+msgstr "UTF-8 の自動検出"
 
 msgid "error.showutf8.msg"
-msgstr "このページのメディアタイプは認識されませんでしたが、UTF-8エンコードテキストとして有効です。"
+msgstr "このページのメディアタイプは認識されませんでしたが、UTF-8 エンコードテキストとして有効です。"
 
 msgid "gempub.cover.view"
-msgstr "Gempubコンテンツの表示"
+msgstr "Gempub コンテンツの表示"
 
 msgid "gempub.meta.revdate"
 msgstr "改訂日"
@@ -2726,8 +2728,8 @@ msgstr "テンプレートのフォントパックを表示"
 
 msgid "fontpack.help"
 msgstr ""
-"Lagrange フォントパックは一連のフォントファイルと関連する構成パラメーターを含む zip "
-"アーカイブです。インストールするとフォントはドキュメントコンテンツとUIに使用できます。有効なフォントは 設定 -フォント で選択できます。"
+"Lagrange フォントパックは一連のフォントファイルと関連する構成パラメーターを含む zip アーカイブです。"
+"インストールするとフォントはドキュメントコンテンツと UI に使用できます。有効なフォントは 設定 -フォント で選択できます。"
 
 msgid "sniped.new"
 msgstr "新しいスニペット"
@@ -2752,19 +2754,19 @@ msgid "misfin.failure"
 msgstr "メッセージの送信中にエラーが発生しました。"
 
 msgid "misfin.needcert"
-msgstr "Misfin証明書を提供して、自分自身の身分証明をする必要があります。"
+msgstr "Misfin 証明書を提供して、自分自身の身分証明をする必要があります。"
 
 msgid "misfin.unauth"
 msgstr "この受信者にメッセージを送信することは許可されていません。"
 
 msgid "misfin.badcert"
-msgstr "Misfin証明書は無効です。"
+msgstr "Misfin 証明書は無効です。"
 
 msgid "misfin.changed"
-msgstr "Misfin証明書は受信者が期待する証明書と一致しません。"
+msgstr "Misfin 証明書は受信者が期待する証明書と一致しません。"
 
 msgid "misfin.unknown"
-msgstr "サーバーとの通信に失敗しました。"
+msgstr "サーバとの通信に失敗しました。"
 
 msgid "dlg.cert.fingerprint.pubkey"
 msgstr "SHA-256 公開鍵のコピー"
