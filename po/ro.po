@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
-"PO-Revision-Date: 2025-06-30 20:13+0000\n"
+"PO-Revision-Date: 2025-07-01 19:23+0000\n"
 "Last-Translator: Sava Alexandru Stefan <savaalexandrustefan@gmail.com>\n"
 "Language-Team: Romanian <http://weblate.skyjake.fi/projects/lagrange/ui/ro/>"
 "\n"
@@ -50,14 +50,14 @@ msgid "numbertype.float"
 msgstr "virgulă mobilă"
 
 msgid "feeds.list.refreshtime.now"
-msgstr "Ultima reîmprospătare a avut loc acum câteva momente"
+msgstr "Ultima reîmprospătare a avut loc acum câteva momente."
 
 #, c-format
 msgid "feeds.list.entrycount"
 msgid_plural "feeds.list.entrycount.n"
-msgstr[0] "un total de %u intrare."
-msgstr[1] "un total de %u intrări."
-msgstr[2] ""
+msgstr[0] "un total de %u intrare"
+msgstr[1] "un total de %u intrări"
+msgstr[2] "un total de %u intrări"
 
 #, c-format
 msgid "feeds.list.refreshtime"
@@ -68,14 +68,14 @@ msgid "minutes.ago"
 msgid_plural "minutes.ago.n"
 msgstr[0] "%d minut"
 msgstr[1] "%d minute"
-msgstr[2] ""
+msgstr[2] "%d minute"
 
 #, c-format
 msgid "days.ago"
 msgid_plural "days.ago.n"
 msgstr[0] "%d zi"
 msgstr[1] "%d zile"
-msgstr[2] ""
+msgstr[2] "%d zile"
 
 # Alt-text of the preformatted logo.
 msgid "about.logo"
@@ -270,7 +270,7 @@ msgid "hours.ago"
 msgid_plural "hours.ago.n"
 msgstr[0] "%d oră"
 msgstr[1] "%d ore"
-msgstr[2] ""
+msgstr[2] "%d ore"
 
 msgid "about.version"
 msgstr "Versiunea"
@@ -356,9 +356,9 @@ msgstr "Dată"
 #, c-format
 msgid "feeds.list.counts"
 msgid_plural "feeds.list.counts.n"
-msgstr[0] "Ești deja abonat la %u subscribție ce conține %%@.\n"
+msgstr[0] "Ești deja abonat la %u subscribție ce conține %%s.\n"
 msgstr[1] "Ești deja abonat la %u subscribții ce contin %%s.\n"
-msgstr[2] ""
+msgstr[2] "Ești deja abonat la %u subscribții ce contin %%s.\n"
 
 msgid "menu.snip.clipboard"
 msgstr "Copiază în Clipboard"
@@ -380,3 +380,96 @@ msgstr "Arată următorul tab"
 
 msgid "menu.tab.prev"
 msgstr "Arată tabul precedent"
+
+msgid "menu.bookmarks.bytag"
+msgstr "Marcaje după etichetă"
+
+# keep this short (3x1 horiz layout)
+msgid "menu.selectall"
+msgstr "Selectează tot"
+
+msgid "menu.window.full"
+msgstr "Comută ecran complet"
+
+msgid "menu.split.merge"
+msgstr "Reunește"
+
+msgid "menu.split.swap"
+msgstr "Inversează părțile"
+
+msgid "menu.foldall"
+msgstr "Ascunde tot"
+
+msgid "menu.unfoldall"
+msgstr "Arată tot"
+
+msgid "menu.bookmarks.list"
+msgstr "Listează toate marcajele"
+
+msgid "macos.menu.bookmarks.list"
+msgstr "Listează tot"
+
+msgid "menu.userdata"
+msgstr "Datele utilizatorului"
+
+msgid "macos.menu.bookmarks.bytag"
+msgstr "Listează după etichetă"
+
+msgid "menu.bookmarks.bytime"
+msgstr "Listează marcajele după data creării"
+
+msgid "macos.menu.bookmarks.bytime"
+msgstr "Listează după data creării"
+
+msgid "menu.feeds.entrylist"
+msgstr "Intrări din flux"
+
+msgid "menu.preferences"
+msgstr "Preferințe…"
+
+msgid "menu.update"
+msgstr "Cauta update-uri…"
+
+# used for Preferences on mobile
+msgid "menu.settings"
+msgstr "Setări"
+
+msgid "menu.help"
+msgstr "Ajutor"
+
+msgid "menu.releasenotes"
+msgstr "Notele versiunii"
+
+msgid "menu.website"
+msgstr "Website-ul proiectului…"
+
+msgid "menu.email"
+msgstr "Contact prin email"
+
+msgid "menu.quit"
+msgstr "Închide LaGrange"
+
+msgid "menu.cut"
+msgstr "Taie"
+
+msgid "menu.copy"
+msgstr "Copiază"
+
+msgid "menu.paste"
+msgstr "Lipește"
+
+msgid "menu.paste.go"
+msgstr "Lipește și accesează"
+
+msgid "menu.paste.snippet"
+msgstr "Lipește fragment"
+
+msgid "menu.search"
+msgstr "Caută"
+
+msgid "menu.snippet.add"
+msgstr "Fragment din selecție…"
+
+# keep this short (3x1 horiz layout)
+msgid "menu.delete"
+msgstr "Șterge"
