@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-01-21 09:41+0000\n"
-"PO-Revision-Date: 2025-07-01 10:06+0000\n"
-"Last-Translator: Griffen Schwiesow <griffen@zipmail.ch>\n"
+"PO-Revision-Date: 2025-07-01 12:46+0000\n"
+"Last-Translator: BALLOON | FU-SEN <balloonakafusen+weblate@gmail.com>\n"
 "Language-Team: Japanese <http://weblate.skyjake.fi/projects/lagrange/ui/ja/>"
 "\n"
 "Language: ja\n"
@@ -49,7 +49,7 @@ msgstr "フィード一覧を表示"
 
 # Alt-text of the preformatted logo.
 msgid "about.logo"
-msgstr "アスキーアート: 大きいフォントを用いた「Lagrange」の言葉"
+msgstr "アスキーアート: 大きいフォントを用いた \"Lagrange\" の言葉"
 
 msgid "cancel"
 msgstr "キャンセル"
@@ -336,7 +336,7 @@ msgid "error.cert.needed.msg"
 msgstr "このリソースにアクセスするには、本人確認（TLSクライアント証明書による）が必要です。"
 
 msgid "error.glyphs.msg"
-msgstr "一部の文字が欠落しているため、このページを正しく表示することができませんでした。修正するには、追加のフォントをインストールすることができます。"
+msgstr "一部の文字が欠落しているため、このページを正しく表示することができませんでした。追加のフォントをインストールしてこれを修正できます。"
 
 # A language choice in the Translation dialog.
 msgid "lang.ja"
@@ -695,7 +695,7 @@ msgid "dlg.bookmark.parentfolder"
 msgstr "親フォルダ:"
 
 msgid "keys.top"
-msgstr "トップへ移動"
+msgstr "一番上へ移動"
 
 msgid "keys.scroll.page.up"
 msgstr "1ページ上へスクロール"
@@ -748,9 +748,9 @@ msgstr "キャッシュサイズ:"
 msgid "fontpack.meta.viewfile"
 msgstr "ファイルを表示"
 
-#, c-format, fuzzy
+#, c-format
 msgid "fontpack.meta.version"
-msgstr "Version %d"
+msgstr "バージョン %d"
 
 msgid "heading.fontpack.delete"
 msgstr "フォントパックの削除"
@@ -1155,7 +1155,7 @@ msgid "upload.file.name"
 msgstr "ファイル名:"
 
 msgid "prefs.decodeurls"
-msgstr "URL デコード:"
+msgstr "デコードURL:"
 
 msgid "keys.scroll.down"
 msgstr "下へスクロール"
@@ -1584,3 +1584,1209 @@ msgstr "半ページ下へスクロール"
 
 msgid "close"
 msgstr "閉じる"
+
+msgid "collapse.notbydefault"
+msgstr "手動"
+
+msgid "collapse.always"
+msgstr "常に"
+
+msgid "prefs.centershort"
+msgstr "垂直中央寄せ:"
+
+msgid "link.side.newtab"
+msgstr "もう片方の新しいタブでリンクを開く"
+
+msgid "menu.title.identity"
+msgstr "身分証明"
+
+msgid "sidebar.identities"
+msgstr "身分証明"
+
+msgid "toolbar.outline"
+msgstr "ページ概要"
+
+# Interpretation: (Bold links) on light (background).
+msgid "prefs.boldlink.light"
+msgstr "ライト"
+
+msgid "prefs.feedinterval"
+msgstr "フィード更新間隔:"
+
+#, c-format
+msgid "dlg.confirm.ident.delete"
+msgstr "証明書や秘密鍵ファイルを含む身分証明 %s\"%s\"%s を削除してよろしいですか？"
+
+msgid "heading.certimport.pasted"
+msgstr "クリップボードから貼り付け"
+
+msgid "dlg.certimport.nocert"
+msgstr "証明書なし"
+
+msgid "dlg.userdata.missing"
+msgstr "欠落時"
+
+msgid "error.badrequest"
+msgstr "要求の形式が正しくありません"
+
+msgid "ident.unset"
+msgstr "ピンを外す"
+
+# Interpret as "Results from feeds..."
+msgid "heading.lookup.feeds"
+msgstr "フィード"
+
+msgid "pageinfo.cert.expired"
+msgstr "期限切れ"
+
+msgid "sitespec.tlscache"
+msgstr "TLSセッションの再開:"
+
+msgid "ident.sendmsg"
+msgstr "メッセージの送信…"
+
+msgid "pageinfo.cert.trusted"
+msgstr "信頼済"
+
+msgid "pageinfo.cert.untrusted"
+msgstr "未信頼"
+
+msgid "pageinfo.domain.match"
+msgstr "ドメイン名一致"
+
+msgid "pageinfo.domain.mismatch"
+msgstr "ドメイン名不一致"
+
+msgid "menu.page.import"
+msgstr "リンクをブックマークとしてインポート…"
+
+msgid "sidebar.outline"
+msgstr "概要"
+
+msgid "sidebar.action.feeds.showall"
+msgstr "すべて"
+
+msgid "feeds.entry.markbelowread"
+msgstr "以下を既読とマーク"
+
+msgid "bookmark.tag.remote"
+msgstr "ブックマークソースとして使用"
+
+msgid "dlg.unsub"
+msgstr "登録解除"
+
+msgid "pageinfo.cert.ca.unverified"
+msgstr "CA未検証"
+
+msgid "pageinfo.cert.notexpired"
+msgstr "期限有効"
+
+# Active identity toolbar menu.
+msgid "menu.hide.identities"
+msgstr "身分証明の非表示"
+
+msgid "link.side"
+msgstr "もう片方でリンクを開く"
+
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
+msgid "menu.show.outline"
+msgstr "ページ概要を表示"
+
+msgid "dlg.autoreload"
+msgstr "このタブの自動更新間隔を選択します。"
+
+msgid "menu.identity.notactive"
+msgstr "有効な身分証明はありません"
+
+msgid "link.noproxy"
+msgstr "プロキシなしで開く"
+
+#, c-format
+msgid "dlg.certwarn.expired"
+msgstr "受け取った証明書は %s で期限切れになりました。"
+
+msgid "import.userdata.snippets"
+msgstr "スニペット:"
+
+msgid "heading.upload.misfin"
+msgstr "Misfinメッセージの送信"
+
+msgid "heading.upload.misfin.noident"
+msgstr "Misfin身分証明なし"
+
+msgid "dlg.upload.misfin.noident"
+msgstr "メッセージを送信するにはまずMisfin証明書をインポートする必要があります。"
+
+msgid "heading.misfin.ok"
+msgstr "送信済みメッセージ"
+
+msgid "misfin.success"
+msgstr "メッセージは正常に送信されました。"
+
+msgid "heading.ident.delete"
+msgstr "身分証明の削除"
+
+msgid "menu.upload.delete.confirm"
+msgstr "本当にすべてを削除します (元に戻せません)"
+
+msgid "heading.glyphfinder"
+msgstr "文字種の欠落"
+
+msgid "dlg.certwarn.title"
+msgstr "セキュリティ問題"
+
+msgid "heading.certimport"
+msgstr "身分証明のインポート"
+
+msgid "dlg.newident.commonname"
+msgstr "コモンネーム:"
+
+msgid "dlg.newident.temp"
+msgstr "一時的:"
+
+msgid "dlg.feed.entrytype"
+msgstr "エントリーの種類:"
+
+msgid "dlg.feed.type.headings"
+msgstr "新しい見出し"
+
+msgid "heading.import.userdata.error"
+msgstr "インポートに失敗しました"
+
+msgid "bookmark.export.format.tags"
+msgstr "タグはレベル2の見出しで定義されます。"
+
+msgid "dlg.bookmark.identity"
+msgstr "次の身分証明をピン留めしました:"
+
+msgid "heading.prefs.appearance"
+msgstr "外観"
+
+msgid "prefs.swipe.edge"
+msgstr "エッジからスワイプ:"
+
+msgid "prefs.imagestyle.preformat"
+msgstr "フォーマット済カラー"
+
+msgid "prefs.linewidth.normal"
+msgstr "通常"
+
+#, fuzzy
+msgid "prefs.linewidth.fill"
+msgstr "埋める"
+
+msgid "error.openfile.msg"
+msgstr "要求されたファイルは存在しないかアクセスできません。ファイルパスを確認してください。"
+
+#, c-format
+msgid "dlg.fontpack.delete.confirm"
+msgstr "フォントパック \"%s\" を削除してよろしいですか？"
+
+msgid "bookmark.untag.remote"
+msgstr "ブックマークソースから削除"
+
+msgid "feeds.unsubscribe"
+msgstr "購読解除…"
+
+msgid "dlg.glyphfinder.disable"
+msgstr "警告を無効にする"
+
+#, c-format
+msgid "ident.usedonurls"
+msgid_plural "ident.usedonurls.n"
+msgstr[0] "%u URL 使用"
+
+msgid "ident.stopuse.all"
+msgstr "常時使用の停止"
+
+msgid "heading.ident.use"
+msgstr "身分証明の使用"
+
+msgid "menu.edit.notes"
+msgstr "メモの編集…"
+
+msgid "heading.ident.notes"
+msgstr "身分証明のメモ"
+
+msgid "dlg.cert.fingerprint"
+msgstr "Fingerprint"
+
+#, c-format
+msgid "dlg.import.found"
+msgid_plural "dlg.import.found.n"
+msgstr[0] "ページに %d ヶ所新しいリンクが見つかりました。"
+
+msgid "dlg.upload.id.default"
+msgstr "デフォルトの身分証明"
+
+msgid "dlg.newident.scope.none"
+msgstr "未使用"
+
+msgid "prefs.customframe"
+msgstr "カスタムウィンドウフレーム:"
+
+msgid "keys.link.homerow.hover"
+msgstr "ホーム・矢印キーでリンクをホバーする"
+
+# Used on the mobile Settings page.
+#, fuzzy
+msgid "menu.about"
+msgstr "About"
+
+msgid "dlg.newident.scope"
+msgstr "使用:"
+
+msgid "error.manyredirects"
+msgstr "リダイレクトが多すぎます"
+
+msgid "dlg.upload.edit.error"
+msgstr "編集可能なリソースのコンテンツをダウンロードできませんでした。"
+
+msgid "dlg.upload.edit.incompatible"
+msgstr "このタイプのリソースは、アプリケーションで編集することはできません。"
+
+msgid "heading.upload.edit.error"
+msgstr "編集に失敗しました"
+
+msgid "ident.temporary"
+msgstr "一時的"
+
+msgid "dlg.certimport.notfound"
+msgstr "証明書や秘密鍵は見つかりませんでした。"
+
+msgid "ident.delete"
+msgstr "身分証明の削除…"
+
+msgid "dlg.cert.trust"
+msgstr "信頼"
+
+msgid "glyphfinder.results.empty"
+msgstr "申し訳ありませんが、一致するフォントパックは見つかりませんでした。"
+
+msgid "prefs.warn.security"
+msgstr "TLSセキュリティ警告:"
+
+msgid "keys.sitespec"
+msgstr "サイト固有の設定を表示"
+
+msgid "dlg.newident.notsaved"
+msgstr "ディスクへ保存してません"
+
+msgid "dlg.newident.more"
+msgstr "詳細…"
+
+msgid "hint.dlg.bookmark.tags"
+msgstr "空間分離用語"
+
+msgid "keys.split.menu"
+msgstr "表示分割モードの設定"
+
+msgid "keys.split.next"
+msgstr "フォーカスを次の分割に切り替え"
+
+msgid "link.newtab.background"
+msgstr "バックグラウンドタブでリンクを開く"
+
+msgid "dlg.certwarn.different"
+msgstr "受け取った証明書は有効ですが、信頼できる証明書とは異なります。"
+
+msgid "dlg.certwarn.domain.expired"
+msgstr "受け取った証明書は有効期限が切れ、誤ったドメインです。"
+
+msgid "dlg.certimport.help"
+msgstr "PEMエンコードされた証明書および・または秘密鍵を貼り付けるか、ウィンドウに .crt・.key ファイルをドロップしてください。"
+
+msgid "prefs.bottomnavbar"
+msgstr "Navバーを下に"
+
+msgid "error.proxyverify"
+msgstr "プロキシは信頼できません"
+
+msgid "import.userdata.idents"
+msgstr "身分証明:"
+
+msgid "import.userdata.trusted"
+msgstr "信頼済み証明書:"
+
+#, c-format
+msgid "fontpack.disable"
+msgstr "\"%s\" を無効にする"
+
+msgid "dlg.userdata.all"
+msgstr "すべて (上書き)"
+
+msgid "dlg.userdata.alldup"
+msgstr "すべて (重複は維持)"
+
+# Abbrevation: background-to-foreground
+msgid "prefs.imagestyle.bgfg"
+msgstr "背景から前景"
+
+msgid "dlg.dismiss.warning"
+msgstr "警告を無視する"
+
+msgid "import.userdata.error"
+msgstr "%S は有効な Lagrange でエクスポートしたアーカイブではありません。"
+
+msgid "prefs.quoteicon"
+msgstr "引用符:"
+
+#, fuzzy
+msgid "prefs.justify"
+msgstr "要素の配置:"
+
+msgid "prefs.plaintext.wrap"
+msgstr "長いプレーンテキスト行の折り返し:"
+
+msgid "error.badredirect"
+msgstr "リダイレクトが無効です"
+
+msgid "ident.use"
+msgstr "このページを使用"
+
+msgid "ident.notused"
+msgstr "使用なし"
+
+msgid "sitespec.ansi"
+msgstr "ANSIエスケープの警告:"
+
+msgid "error.unavail"
+msgstr "サーバーは利用できません"
+
+msgid "error.notfound.msg"
+msgstr "現時点で要求されたリソースは見つかりませんでした。"
+
+msgid "error.cert.auth"
+msgstr "証明書が許可されていません"
+
+msgid "error.badstatus"
+msgstr "不明なステータスコード"
+
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
+msgid "menu.show.identities"
+msgstr "身分証明の表示"
+
+msgid "dlg.certimport.nokey"
+msgstr "秘密鍵なし"
+
+msgid "link.hint.audio"
+msgstr "音声"
+
+msgid "menu.identity.newdomain"
+msgstr "ドメインの新しい身分証明…"
+
+msgid "dlg.newident.create"
+msgstr "身分証明の作成"
+
+# This label should be fairly short so it fits in a button in the sidebar.
+msgid "sidebar.action.feeds.markallread"
+msgstr "すべて既読にする"
+
+msgid "sidebar.action.feeds.showunread"
+msgstr "未読"
+
+msgid "heading.bookmark.tags"
+msgstr "行動"
+
+msgid "feeds.atom.translated"
+msgstr "この Atom XMLドキュメントは、Gemini フィードに自動的に翻訳されており、購読を許可します。"
+
+msgid "dlg.confirm.history.clear"
+msgstr "訪問した全ページの履歴を削除してよろしいですか？"
+
+msgid "heading.prefs.widelayout"
+msgstr "ワイドレイアウト"
+
+msgid "menu.identity.new"
+msgstr "新たな身分証明…"
+
+msgid "ident.using"
+msgstr "このページを使用"
+
+# strftime() formatted
+msgid "ident.expiry"
+msgstr "期限 %Y-%m-%d"
+
+# Shows where a local file is using the Finder.
+msgid "menu.reveal.macos"
+msgstr "Finder で表示"
+
+#, c-format
+msgid "dlg.confirm.bookmarks.delete"
+msgid_plural "dlg.confirm.bookmarks.delete.n"
+msgstr[0] "このフォルダー内すべての %u ブックマークを削除してよろしいですか？"
+
+#, c-format
+msgid "dlg.bookmarks.delete"
+msgid_plural "dlg.bookmarks.delete.n"
+msgstr[0] "%u ブックマークを削除"
+
+msgid "bookmark.tag.sub"
+msgstr "フィードを購読"
+
+# button in the mobile New Identity dialog
+msgid "dlg.certimport.pickfile"
+msgstr "証明書・鍵ファイルのインポート"
+
+msgid "hint.certimport.description"
+msgstr "説明"
+
+msgid "ident.stopuse"
+msgstr "このページの使用を停止"
+
+msgid "ident.fingerprint"
+msgstr "SHA-256 Fingerprint のコピー"
+
+msgid "sidebar.empty.unread"
+msgstr "未読エントリなし"
+
+# The %s format characters are used to highlight the word "Help" and must be used in the translation in same way as here.
+#, c-format
+msgid "ident.gotohelp"
+msgstr "TLSクライアント証明書の詳細については、%sヘルプ%s を参照してください。"
+
+#, c-format
+msgid "dlg.confirm.unsub"
+msgstr "フィード \"%s\" からの登録を解除してよろしいですか？"
+
+msgid "dlg.feed.ignoreweb"
+msgstr "次の HTTP(S) リンクを無視:"
+
+msgid "error.server.msg"
+msgstr "サーバーはメッセージ応答しました:"
+
+msgid "dlg.addfolder.prompt"
+msgstr "新しいフォルダ名を入力:"
+
+#, c-format
+msgid "error.unsupported.suggestsave"
+msgstr "ダウンロードフォルダへのファイルとして保存できます: %s を押すか、メニューから \"%s\"を選択します。"
+
+msgid "pageinfo.header.cached"
+msgstr "(キャッシュされたコンテンツ)"
+
+msgid "sidebar.action.show"
+msgstr "表示:"
+
+msgid "menu.input.setprompt"
+msgstr "このURLでは入力が必要だと仮定されます"
+
+# Usage: "(count) Unread" in the sidebar tab title, referring to feed entries.
+msgid "sidebar.unread"
+msgid_plural "sidebar.unread.n"
+msgstr[0] "未読"
+
+msgid "menu.opentab.background"
+msgstr "バックグラウンドタブで開く"
+
+msgid "prefs.swipe.page"
+msgstr "ページのスワイプ:"
+
+# Paste the line preceding the clicked link into the input prompt.
+msgid "menu.input.precedingline"
+msgstr "前行の貼り付け"
+
+msgid "dlg.ident.delete"
+msgstr "身分証明とファイルを削除"
+
+msgid "heading.unsub"
+msgstr "購読解除"
+
+msgid "pageinfo.cert.status"
+msgstr "証明書の状態:"
+
+msgid "pageinfo.cert.ca.verified"
+msgstr "CAによって検証済"
+
+msgid "sitespec.palette"
+msgstr "テーマパレットシード:"
+
+msgid "keys.menubar.focus"
+msgstr "メニューバーのフォーカス"
+
+msgid "keys.identmenu"
+msgstr "身分証明メニューを開く"
+
+#, c-format
+msgid "dlg.input.prompt"
+msgstr "%s の入力:"
+
+msgid "dlg.input.linebreak"
+msgstr "改行"
+
+msgid "keys.input.precedingline"
+msgstr "入力プロンプト: 前行の貼り付け"
+
+msgid "dlg.save.incomplete"
+msgstr "ページの内容はまだダウンロード中です。"
+
+#, fuzzy
+msgid "error.gone"
+msgstr "閉鎖"
+
+#, c-format
+msgid "dlg.import.add"
+msgid_plural "dlg.import.add.n"
+msgstr[0] "%s %d ヶ所のブックマークを追加"
+
+msgid "reload.never"
+msgstr "なし"
+
+msgid "heading.certimport.dropped"
+msgstr "ファイル削除済"
+
+msgid "dlg.certimport.notes"
+msgstr "メモ:"
+
+msgid "menu.forgeturl"
+msgstr "URLを削除"
+
+msgid "bookmark.export.format.sub"
+msgstr "このページは \"Gemini Pagesへの購読\" コンパニオン仕様に従ってフォーマットされています。"
+
+msgid "bookmark.export.format.linklines"
+msgstr "各リンクはブックマークを表します。"
+
+# Interpret as "Results from identitites..."
+msgid "heading.lookup.identities"
+msgstr "身分証明"
+
+msgid "upload.id"
+msgstr "身分証明:"
+
+msgid "heading.upload.id"
+msgstr "資格"
+
+msgid "hint.upload.token.long"
+msgstr "トークン — サーバーの指示を参照してください"
+
+msgid "heading.newident.date.bad"
+msgstr "日付が無効です"
+
+msgid "dlg.newident.date.past"
+msgstr "有効期限は将来でなければなりません。"
+
+msgid "dlg.newident.date.example"
+msgstr ""
+"\"有効な\" 日付を確認してください。例:\n"
+"• 2030\n"
+"• 2025-06-30\n"
+"• 2021-12-31 23:59:59"
+
+msgid "heading.subscribe"
+msgstr "ページを購読"
+
+#, fuzzy
+msgid "dlg.feed.type.gemini"
+msgstr "YYYY-MM-DD リンク"
+
+msgid "hint.dlg.bookmark.notes"
+msgstr "フリーフォームプライベートメモ"
+
+# tab button
+msgid "heading.prefs.general"
+msgstr "一般"
+
+msgid "heading.prefs.paragraph"
+msgstr "段落"
+
+msgid "heading.prefs.snip"
+msgstr "スニペット"
+
+msgid "prefs.hoverlink"
+msgstr "ホバーでURLを表示:"
+
+msgid "prefs.bookmarks.addbottom"
+msgstr "ブックマークの下へ追加:"
+
+# User preference that controls whether image data embedded in Data URLs gets automatically displayed when a page is loaded.
+msgid "prefs.dataurl.openimages"
+msgstr "データURLで画像を開く:"
+
+msgid "prefs.imageloadscroll"
+msgstr "スクロールキーで次の画像読込："
+
+msgid "prefs.doctheme.name.colorfuldark"
+msgstr "カラフルダーク"
+
+msgid "prefs.evensplit"
+msgstr "タブを均等に分割:"
+
+msgid "prefs.hidetoolbarscroll"
+msgstr "スクロール時ツールバー非表示:"
+
+msgid "heading.prefs.toolbaractions"
+msgstr "ツールバーアクション"
+
+msgid "prefs.retaintabs"
+msgstr "起動時にタブを復元:"
+
+msgid "prefs.uiscale"
+msgstr "UIスケールファクター:"
+
+msgid "prefs.returnkey.accept"
+msgstr "承認"
+
+msgid "prefs.retainwindow"
+msgstr "ウィンドウ位置の保存:"
+
+msgid "prefs.sideicon"
+msgstr "左端Capsuleアイコン:"
+
+msgid "prefs.doctheme.name.colorfullight"
+msgstr "カラフルライト"
+
+msgid "prefs.doctheme.name.sepia"
+msgstr "セピア"
+
+msgid "prefs.doctheme.name.oceanic"
+msgstr "海洋"
+
+msgid "prefs.saturation"
+msgstr "彩度:"
+
+msgid "prefs.imagestyle"
+msgstr "画像の色付け:"
+
+msgid "prefs.gopher.gemstyle"
+msgstr "自動検出Gopherメニュースタイル:"
+
+msgid "prefs.linespacing"
+msgstr "行間隔:"
+
+# Interpretation: (Bold links) on dark (background).
+msgid "prefs.boldlink.dark"
+msgstr "ダーク"
+
+msgid "prefs.font.warnmissing"
+msgstr "フォント文字種の警告:"
+
+#, c-format
+msgid "archive.summary"
+msgid_plural "archive.summary.n"
+msgstr[0] "このアーカイブには %u アイテム含まれ、圧縮サイズは %.1f MB です。"
+
+msgid "keys.link.homerow"
+msgstr "ホーム・矢印キーを介してリンクを開く"
+
+msgid "keys.subscribe"
+msgstr "ページの購読"
+
+msgid "keys.hoverurl"
+msgstr "ホバーでURL表示の切り替え"
+
+msgid "keys.feeds.showall"
+msgstr "サイドバー: すべてのフィードエントリーを表示"
+
+msgid "heading.newident"
+msgstr "新しい身分証明"
+
+msgid "error.badresource.msg"
+msgstr "要求されたリソースは存在しません。"
+
+msgid "error.unsupported.media"
+msgstr "サポートされていないコンテンツタイプ"
+
+msgid "error.certexpired"
+msgstr "証明書の期限が切れています"
+
+msgid "error.slowdown"
+msgstr "減速ダウン"
+
+msgid "gempub.meta.author"
+msgstr "著者"
+
+msgid "keys.link.homerow.newtab"
+msgstr "ホーム・矢印キーを用いて新しいタブでリンクを開く"
+
+msgid "heading.save.incomplete"
+msgstr "ページ不完全"
+
+msgid "menu.sort.alpha"
+msgstr "AからZ順にソート"
+
+msgid "dlg.feed.sub"
+msgstr "購読"
+
+msgid "dlg.import.notnew"
+msgstr "このページの全リンクはすでにブックマークされています。"
+
+msgid "heading.prefs.certs"
+msgstr "証明書"
+
+msgid "menu.paste.snippet"
+msgstr "スニペットの貼り付け"
+
+msgid "menu.snippet.add"
+msgstr "Selectionからのスニペット…"
+
+msgid "error.badresource"
+msgstr "リソースが無効です"
+
+msgid "prefs.pinsplit"
+msgstr "分割表示のピン留め:"
+
+msgid "status.feeds"
+msgstr "フィードの更新"
+
+msgid "dlg.import.notfound"
+msgstr "このページにリンクはありません。"
+
+msgid "menu.page.visitlinks"
+msgstr "訪問されたすべてのリンクをマーク"
+
+msgid "prefs.doctheme.name.vibrantlight"
+msgstr "鮮やかなライト"
+
+msgid "error.badheader"
+msgstr "見出しが無効です"
+
+msgid "menu.identities"
+msgstr "身分証明の管理"
+
+msgid "menu.bookmark.addtofolder"
+msgstr "フォルダにブックマークを追加:"
+
+msgid "menu.bookmark.movetofolder"
+msgstr "ブックマークを次のフォルダへ移動:"
+
+msgid "sidebar.action.ident.new"
+msgstr "新規…"
+
+# Menu heading shown when customizing navbar button actions.
+msgid "menu.toolbar.setaction"
+msgstr "アクションの設定:"
+
+msgid "feeds.entry.markread"
+msgstr "既読とマーク"
+
+msgid "feeds.entry.markunread"
+msgstr "未読とマーク"
+
+msgid "feeds.markallread"
+msgstr "すべて既読とマーク"
+
+msgid "bookmark.tag.linksplit"
+msgstr "サイドでリンクを開く"
+
+msgid "link.snippet"
+msgstr "リンクからのスニペット…"
+
+msgid "bookmark.untag.sub"
+msgstr "フィードから購読解除"
+
+# The %s represents the name of an identity.
+#, c-format
+msgid "ident.switch"
+msgstr "%s 使用"
+
+# %s refers to name of an identity.
+#, c-format
+msgid "dlg.ident.notes"
+msgstr "%s に関するメモ:"
+
+msgid "sidebar.empty.idents"
+msgstr "身分証明なし"
+
+msgid "heading.sitespec"
+msgstr "サイト固有の設定"
+
+msgid "menu.input.unsetprompt"
+msgstr "このURLは入力が必要だと仮定されません"
+
+msgid "menu.input.restore"
+msgstr "以前の復元:"
+
+msgid "dlg.import.intofolder"
+msgstr "次のフォルダへ追加:"
+
+msgid "dlg.import.headings"
+msgstr "次の見出しからのサブフォルダ："
+
+msgid "reload.onceperday"
+msgstr "１日１回"
+
+msgid "link.download"
+msgstr "リンクされたファイルをダウンロード"
+
+msgid "dlg.certimport.notfound.page"
+msgstr "現在のページに証明書・鍵は見つかりません。"
+
+msgid "dlg.certimport.paste"
+msgstr "クリップボードから貼り付け"
+
+msgid "bookmark.export.format.folders"
+msgstr "フォルダー構造は、レベル2・3の見出しで定義されます。"
+
+# Interpret as "Results from snippets..."
+msgid "heading.lookup.snippets"
+msgstr "スニペット"
+
+#, c-format
+msgid "dlg.certwarn.mayberenewed"
+msgid_plural "dlg.certwarn.mayberenewed.n"
+msgstr[0] ""
+"受け取った証明書は最近更新された可能性があります。これは正しいドメイン用であり、期限切れになっていません。現在信頼されている証明書は %s で %d "
+"日に期限切れとなります。"
+
+msgid "dlg.certwarn.domain"
+msgstr "受け取った証明書は、間違ったドメイン (%d) 用です。これは、サーバー構成の問題かもしれません。"
+
+msgid "bookmark.export.saving"
+msgstr "このページを保存してエクスポートするか、クリップボードにコピーできます。"
+
+msgid "error.incompleteheader"
+msgstr "見出しが不完全です"
+
+msgid "error.certexpired.msg"
+msgstr "TLS証明書が期限切れになったため、サーバーへの接続がキャンセルされました。"
+
+msgid "gempub.cover.aboutbook"
+msgstr "この本について"
+
+msgid "bookmark.export.taginfo"
+msgstr ""
+"このリストでは、各見出しはブックマークタグを表します。タグ付きブックマークのみがリストされています。複数のタグを持つブックマークは、各タグの下で繰り返され"
+"ます。"
+
+msgid "bookmark.export.format.otherlines"
+msgstr ""
+"中点と引用は前のブックマークに関する追加情報のために予約されています。テキスト行と事前に書かれたテキストはコメントと見なされ、無視する必要があります。"
+
+msgid "heading.upload.error.file"
+msgstr "ファイルが無効です"
+
+msgid "upload.error.directory"
+msgstr "ディレクトリではなく個々のファイルのみをアップロードできます。"
+
+msgid "hint.upload.token"
+msgstr "サーバーの指示を参照してください"
+
+msgid "dlg.uploadport.msg"
+msgstr "このURLに使用するようにTitanサーバーポートを設定します。ポートはサイト固有の構成に保存されます。"
+
+msgid "dlg.translate.pre"
+msgstr "フォーマット済みをスキップ:"
+
+msgid "dlg.glyphfinder.help.empty"
+msgstr "ページを更新して、不足している文字種をもう一度確認してください。"
+
+msgid "dlg.newident.rsa.selfsign"
+msgstr "自己署名された2048ビットRSA証明書を作成します。"
+
+msgid "heading.newident.missing"
+msgstr "情報がありません"
+
+msgid "dlg.newindent.missing.commonname"
+msgstr "\"コモンネーム\" を指定する必要があります。"
+
+msgid "prefs.collapsepre"
+msgstr "フォーマット済の崩れ:"
+
+msgid "collapse.bydefault"
+msgstr "ページ読込時"
+
+msgid "prefs.time.24h"
+msgstr "24時間:"
+
+msgid "prefs.returnkey"
+msgstr "Returnキーの動作:"
+
+msgid "prefs.returnkey.linebreak"
+msgstr "改行"
+
+# Color of the text foreground, i.e., the characters.
+msgid "prefs.gemtext.ansi.fg"
+msgstr "前景色"
+
+msgid "archive.exit"
+msgstr "アーカイブの終了"
+
+# A "snippet query" is where the user types (for instance) "!w orange" in the navbar URL field to look up the word "orange" with the previously configured snippet "!w" that might expand into a Wikipedia search URL.
+msgid "keys.bang"
+msgstr "スニペットクエリを入力"
+
+msgid "prefs.expandline"
+msgstr "長い行の拡張:"
+
+msgid "prefs.redirect.allowscheme"
+msgstr "スキームを変更するリダイレクト:"
+
+#, c-format
+msgid "dir.summary"
+msgid_plural "dir.summary.n"
+msgstr[0] "このディレクトリには %u 項目存在します。"
+
+msgid "keys.bottom"
+msgstr "一番下へ移動"
+
+msgid "keys.link.modkey"
+msgstr "変更キーを介してリンクを開く"
+
+msgid "keys.split.item"
+msgstr "分割表示メニュー:"
+
+msgid "keys.feeds.showunread"
+msgstr "サイドバー: 未読フィードエントリーの表示"
+
+msgid "error.tls.msg"
+msgstr "サーバーとの通信に失敗しました。"
+
+msgid "error.badstatus.msg"
+msgstr "サーバーはGeminiプロトコル仕様にないステータスコードで応答しました。おそらくサーバーは誤動作しています。"
+
+msgid "error.proxyexpired.msg"
+msgstr "プロキシサーバーのTLS証明書が期限切れになったため、接続がキャンセルされました。"
+
+msgid "error.certverify"
+msgstr "サーバーが信頼されていません"
+
+msgid "error.openfile"
+msgstr "ファイルを開くことができませんでした"
+
+msgid "error.unsupported.media.msg"
+msgstr "受信したコンテンツはこのアプリケーションでは表示できません。"
+
+msgid "error.proxy.msg"
+msgstr ""
+"サーバーがリモートホストとのトランザクションを正常に完了できなかったため、プロキシリクエストは失敗しました。おそらくネットワーク接続に問題があります。"
+
+msgid "error.unsupported.protocol.msg"
+msgstr "要求されたプロトコルはこのアプリケーションによってサポートされていません。"
+
+msgid "error.permanent.msg"
+msgstr "要求は失敗しました。将来も失敗を繰り返します。"
+
+msgid "error.badrequest.msg"
+msgstr "サーバーは要求を理解していません。"
+
+msgid "error.cert.invalid.msg"
+msgstr "提供されたクライアント証明書は期限切れまたは無効です。"
+
+msgid "gempub.cover.viewlocal"
+msgstr "このGempubの本は、ローカルで保存された後に見ることができます。"
+
+msgid "gempub.cover.untitled"
+msgstr "タイトルなしの本"
+
+msgid "gempub.cover.image"
+msgstr "カバー画像"
+
+msgid "gempub.meta.pub"
+msgstr "公開日"
+
+#, c-format
+msgid "fontpack.enable"
+msgstr "\"%s\" を有効にする"
+
+#, c-format
+msgid "fontpack.delete"
+msgstr "\"%s\" を永続的に削除"
+
+msgid "error.badheader.msg"
+msgstr ""
+"受信されたヘッダーはGeminiプロトコル仕様に準拠していません。おそらくサーバーが誤動作しているかGeminiではないサーバーに連絡しようとしました。"
+
+msgid "truetype.help"
+msgstr "Lagrange はユーザーフォントディレクトリにコピーされたすべての個々の TrueType ファイルをロードしようとします。"
+
+msgid "heading.dismiss.warning"
+msgstr "警告を無視しますか？"
+
+#, c-format
+msgid "dlg.dismiss.ansi"
+msgstr "端子エミュレーション %s についての警告を永久に無視しますか？"
+
+msgid "sniped.help"
+msgstr "名前が ! から始まるスニペット (例: \"!w\" ) はURLフィールドでクエリショートカットとして使用できます。"
+
+msgid "heading.snip.new"
+msgstr "新しいスニペット"
+
+msgid "heading.snip.edit"
+msgstr "スニペットの編集"
+
+msgid "snip.accept"
+msgstr "スニペットの保存"
+
+# Keyboard shortcut for the terminal. Should be very short or abbreviated.
+msgid "term.menu"
+msgstr "コンテキストメニュー"
+
+# Keyboard shortcut for the terminal. Should be very short or abbreviated.
+msgid "term.hover"
+msgstr "リンクのフォーカス"
+
+msgid "dlg.translate.unavail"
+msgstr "サービスは利用できません"
+
+msgid "dlg.translate.fail"
+msgstr "リクエストが失敗しました"
+
+# A language choice in the Translation dialog.
+msgid "lang.auto"
+msgstr "自動検出"
+
+msgid "error.incompleteheader.msg"
+msgstr "サーバーの応答には完全な見出しが含まれていませんでした。おそらくサーバーが誤動作しているかGeminiではなくサーバーに連絡しようとしました。"
+
+msgid "error.badredirect.msg"
+msgstr "サーバーはリダイレクトで応答しましたが有効な宛先URLを提供しませんでした。おそらくサーバーは誤動作しています。"
+
+msgid "status.query"
+msgstr "クエリを検索"
+
+msgid "error.schemeredirect"
+msgstr "スキームを変えるリダイレクト"
+
+msgid "dlg.glyphfinder.missing"
+msgstr "次の文字を表示できませんでした。"
+
+msgid "error.schemeredirect.msg"
+msgstr ""
+"サーバーは発信URLのスキームとは異なるスキームのURLにリダイレクトしようとしました。ここにリンクがありますので必要に応じて手動で開くことができます。"
+
+msgid "glyphfinder.results"
+msgstr "次のフォントパックは、欠落している文字種の1つ以上を提供します:"
+
+msgid "dlg.newident.until"
+msgstr "有効期限:"
+
+msgid "error.manyredirects.msg"
+msgstr "リダイレクトループの可能性があります。次のリダイレクトされたURLは手動で続行する事ができます。"
+
+msgid "error.tls"
+msgstr "ネットワーク・TLS障害"
+
+msgid "error.proxyexpired"
+msgstr "プロキシ証明書の期限が切れています"
+
+msgid "error.certverify.msg"
+msgstr ""
+"TLS証明書が信頼できるものと一致しないため、サーバーへの接続がキャンセルされました。サーバーが証明書の変更を発表したかどうかを確認してください。"
+"そうでない場合は悪意のあるサードパーティが到達しようとしたサーバーを装っている可能性があります\n"
+"\n"
+"証明書はページ情報に信頼されているとマークできます。"
+
+msgid "error.proxyverify.msg"
+msgstr ""
+"プロキシサーバーのTLS証明書が私たちが信頼するものと一致しないため、接続がキャンセルされました\n"
+"\n"
+"プロキシサーバーの証明書は、ページ情報に信頼されているとマークできます。"
+
+msgid "error.temporary"
+msgstr "一時的に失敗しています"
+
+msgid "error.temporary.msg"
+msgstr "リクエストは失敗しましたが、後ほど再試行で成功する可能性があります。"
+
+msgid "error.unavail.msg"
+msgstr "サーバーは過負荷またはメンテナンスのために利用できません。後でもう一度確認してください。"
+
+msgid "error.cgi.msg"
+msgstr "サーバー上の動的なコンテンツ生成中の障害。これはサーバーサイドソフトウェアの誤動作による可能性があります。"
+
+msgid "error.permanent"
+msgstr "永続的な障害"
+
+msgid "error.proxyrefusal"
+msgstr "プロキシリクエストは拒否されました"
+
+msgid "error.proxyrefusal.msg"
+msgstr "リクエストはサーバーが提供していないドメインのリソースに対するものであり、サーバーはプロキシリクエストを受け入れません。"
+
+msgid "error.cert.auth.msg"
+msgstr "提供されたクライアント証明書は有効ですが、要求されたリソースへのアクセスを許可されていません。"
+
+msgid "error.cert.invalid"
+msgstr "証明書が無効です"
+
+msgid "error.ansi.msg"
+msgstr ""
+"このページは正しく表示されない場合があります。 ANSIエスケープシーケンスを使用してテキストをスタイルします。テキストは部分的にのみサポートされています"
+"。ターミナルエミュレーターを使用して表示することができます。"
+
+msgid "error.glyphs"
+msgstr "文字種の不足"
+
+msgid "error.showutf8"
+msgstr "UTF-8の自動検出"
+
+msgid "error.showutf8.msg"
+msgstr "このページのメディアタイプは認識されませんでしたが、UTF-8エンコードテキストとして有効です。"
+
+msgid "gempub.cover.view"
+msgstr "Gempubコンテンツの表示"
+
+msgid "gempub.meta.revdate"
+msgstr "改訂日"
+
+msgid "fontpack.export"
+msgstr "テンプレートのフォントパックを表示"
+
+msgid "fontpack.help"
+msgstr ""
+"Lagrange フォントパックは一連のフォントファイルと関連する構成パラメーターを含む zip "
+"アーカイブです。インストールするとフォントはドキュメントコンテンツとUIに使用できます。有効なフォントは 設定 -フォント で選択できます。"
+
+msgid "sniped.new"
+msgstr "新しいスニペット"
+
+msgid "dlg.glyphfinder.help"
+msgstr ""
+"これらのキャラクターに文字種を提供するフォントの Skyjake.fi フォントライブラリを検索したり、新しい TrueType "
+"フォントを手動でインストールしたりすることができます。"
+
+# Only shown in a message box when CCing self fails.
+msgid "misfin.cc"
+msgstr "自分にコピーを送信"
+
+# Only shown in a message box when verifying the recipient fails.
+msgid "misfin.verify"
+msgstr "受信者の検証"
+
+msgid "misfin.redirect"
+msgstr "受信者はメッセージを別のアドレスに送信することを要求します。"
+
+msgid "misfin.failure"
+msgstr "メッセージの送信中にエラーが発生しました。"
+
+msgid "misfin.needcert"
+msgstr "Misfin証明書を提供して、自分自身の身分証明をする必要があります。"
+
+msgid "misfin.unauth"
+msgstr "この受信者にメッセージを送信することは許可されていません。"
+
+msgid "misfin.badcert"
+msgstr "Misfin証明書は無効です。"
+
+msgid "misfin.changed"
+msgstr "Misfin証明書は受信者が期待する証明書と一致しません。"
+
+msgid "misfin.unknown"
+msgstr "サーバーとの通信に失敗しました。"
+
+msgid "dlg.cert.fingerprint.pubkey"
+msgstr "SHA-256 公開鍵のコピー"
+
+msgid "dlg.cert.fingerprint.full"
+msgstr "SHA-256 証明書のコピー"
+
+msgid "import.userdata.dupfolder"
+msgstr "重複を無視"
+
+msgid "bookmark.export.count"
+msgid_plural "bookmark.export.count.n"
+msgstr[0] "%d ブックマークあります。"
+
+msgid "misfin.self.copy"
+msgstr "自分へコピーを送信"
+
+msgid "upload.from"
+msgstr "送信元:"
+
+msgid "upload.to"
+msgstr "送信先:"
+
+msgid "upload.file.drophere"
+msgstr "ファイルパスを入力するかウィンドウにファイルをドラッグアンドドロップします"
