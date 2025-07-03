@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-01-21 09:41+0000\n"
-"PO-Revision-Date: 2025-07-03 00:44+0000\n"
+"PO-Revision-Date: 2025-07-04 07:49+0000\n"
 "Last-Translator: BALLOON | FU-SEN <balloonakafusen+weblate@gmail.com>\n"
 "Language-Team: Japanese <http://weblate.skyjake.fi/projects/lagrange/ui/ja/>"
 "\n"
@@ -183,7 +183,7 @@ msgid "menu.zoom.in"
 msgstr "拡大"
 
 msgid "menu.zoom.reset"
-msgstr "拡大縮小をリセット"
+msgstr "拡大・縮小のリセット"
 
 msgid "macos.menu.bookmarks.list"
 msgstr "すべてのリスト"
@@ -778,7 +778,7 @@ msgid "dlg.bookmark.icon"
 msgstr "アイコン:"
 
 msgid "keys.zoom.reset"
-msgstr "拡大縮小のリセット"
+msgstr "拡大・縮小のリセット"
 
 msgid "dlg.feed.save"
 msgstr "設定の保存"
@@ -1562,7 +1562,7 @@ msgid "prefs.quoteicon.icon"
 msgstr "\" アイコン"
 
 msgid "prefs.biglede"
-msgstr "段落の頭を大きく:"
+msgstr "先頭の段落を大きく表示:"
 
 msgid "prefs.memorysize"
 msgstr "メモリのサイズ:"
@@ -1604,7 +1604,7 @@ msgid "sidebar.identities"
 msgstr "身分証明"
 
 msgid "toolbar.outline"
-msgstr "ページ概要"
+msgstr "ページの目次"
 
 # Interpretation: (Bold links) on light (background).
 msgid "prefs.boldlink.light"
@@ -1661,7 +1661,7 @@ msgid "menu.page.import"
 msgstr "リンクをブックマークとしてインポート…"
 
 msgid "sidebar.outline"
-msgstr "概要"
+msgstr "目次"
 
 msgid "sidebar.action.feeds.showall"
 msgstr "すべて"
@@ -1690,7 +1690,7 @@ msgstr "もう片方でリンクを開く"
 
 # Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.outline"
-msgstr "ページ概要を表示"
+msgstr "ページの目次を表示"
 
 msgid "dlg.autoreload"
 msgstr "このタブの自動更新間隔を選択します。"
