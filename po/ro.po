@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
-"PO-Revision-Date: 2025-07-01 19:23+0000\n"
+"PO-Revision-Date: 2025-07-07 06:44+0000\n"
 "Last-Translator: Sava Alexandru Stefan <savaalexandrustefan@gmail.com>\n"
 "Language-Team: Romanian <http://weblate.skyjake.fi/projects/lagrange/ui/ro/>"
 "\n"
@@ -473,3 +473,62 @@ msgstr "Fragment din selecție…"
 # keep this short (3x1 horiz layout)
 msgid "menu.delete"
 msgstr "Șterge"
+
+# keep this short (3x1 horiz layout)
+msgid "menu.undo"
+msgstr "Anulează"
+
+msgid "menu.select.clear"
+msgstr "Șterge selecția"
+
+# Used in the Edit menu on macOS. Note: could be replaced with menu.page.copyurl.
+msgid "menu.copy.pagelink"
+msgstr "Copiază link-ul paginii"
+
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
+msgid "menu.show.bookmarks"
+msgstr "Arată Marcajele"
+
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
+msgid "menu.show.feeds"
+msgstr "Arată fluxuri"
+
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
+msgid "menu.show.history"
+msgstr "Arată Istoric"
+
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
+msgid "menu.show.identities"
+msgstr "Arată Identități"
+
+# Active identity toolbar menu.
+msgid "menu.hide.identities"
+msgstr "Ascunde Identități"
+
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
+msgid "menu.show.outline"
+msgstr "Arată Conturul Paginii"
+
+msgid "menu.back"
+msgstr "Înapoi"
+
+msgid "menu.forward"
+msgstr "Înainte"
+
+msgid "menu.parent"
+msgstr "Către Pagina Părinte"
+
+msgid "menu.root"
+msgstr "Către Prima Pagină"
+
+msgid "menu.home"
+msgstr "Acasă"
+
+msgid "menu.reload"
+msgstr "Reîncarcă Pagina"
+
+msgid "menu.autoreload"
+msgstr "Setează Reîncărcarea Automată…"
+
+msgid "menu.page.bookmark"
+msgstr "Marchează Pagina…"
