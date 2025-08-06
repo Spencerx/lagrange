@@ -779,7 +779,7 @@ void setUrl_GmRequest(iGmRequest *d, const iString *url) {
        characters? Could be a server-side issue, e.g., if they're using a URL parser meant for
        the web. */
     /* Encode everything except already-percent encoded characters. */
-    iString *enc = urlEncodeExclude_String(&d->url, "%" URL_RESERVED_CHARS);
+    iString *enc = urlEncodeExclude_String(&d->url, URL_ENCODE_EXCLUDE_CHARS);
     /* Normalize empty paths to /. */ {
         iUrl parts;
         init_Url(&parts, enc);
