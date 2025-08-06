@@ -1253,8 +1253,12 @@ void submit_GmRequest(iGmRequest *d) {
     }
     else {
         /* Normal Gemini request. */
-        setContent_TlsRequest(d->req,
-                              utf8_String(collectNewFormat_String("%s\r\n", cstr_String(&d->url))));
+        iString content;
+        init_String(&content);
+        format_String(&content, "%s\r\n", cstr_String(&d->url));
+        truncate_Block(&content.chars, 1024 /* maximum permitted URI length */ + 2 /* \r\n */);
+        setContent_TlsRequest(d->req, utf8_String(&content));
+        deinit_String(&content);
     }
     submit_TlsRequest(d->req);
 }
