@@ -3689,7 +3689,7 @@ iWidget *makePreferences_Widget(void) {
         }
     }
     /* Appearance. */ {
-        setId_Widget(appendTwoColumnTabPage_Widget(tabs, palette_Icon " ${heading.prefs.appearance}", red_ColorId, '2', &headings, &values),
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs, eye_Icon " ${heading.prefs.appearance}", red_ColorId, '2', &headings, &values),
                      "prefs.page.appearance");
 //        makeTwoColumnHeading_("${heading.prefs.uitheme}", headings, values);
         if (isTerminal_Platform()) {
@@ -3748,22 +3748,18 @@ iWidget *makePreferences_Widget(void) {
             addPrefsInputWithHeading_(headings, values, "prefs.uiscale", iClob(new_InputWidget(5)));
             addDialogToggle_Widget(headings, values, "${prefs.retainwindow}", "prefs.retainwindow");
             addDialogPadding_(headings, values);
-            addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.ui}")));
-            addFontButtons_(values, "ui");
-            addDialogToggle_Widget(headings, values, "${prefs.font.smooth}", "prefs.font.smooth");
-            addDialogPadding_(headings, values);
             addDialogToggle_Widget(headings, values, "${prefs.editor.highlight}", "prefs.editor.highlight");
         }
     }
-    /* Page style. */ {
+    /* Page theme. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
-                                                   fonts_Icon " ${heading.prefs.style}",
+                                                   palette_Icon " ${heading.prefs.theme}",
                                                    orange_ColorId,
                                                    '3',
                                                    &headings,
                                                    &values),
-                     "prefs.page.style");
-        makeTwoColumnHeading_("${heading.prefs.colors}", headings, values);
+                     "prefs.page.theme");
+        //makeTwoColumnHeading_("${heading.prefs.colors}", headings, values);
         for (int i = 0; i < 2; ++i) {
             const iBool isDark = (i == 0);
             const char *mode = isDark ? "dark" : "light";
@@ -3786,15 +3782,34 @@ iWidget *makePreferences_Widget(void) {
         }
         addChildFlags_Widget(values, iClob(sats), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
         /* Colorize images. */
+        addDialogPadding_(headings, values);
         addDialogDropMenu_(headings,
                            values,
                            "${prefs.imagestyle}",
                            imgStyleItems,
                            iInvalidSize,
                            "prefs.imagestyle");
+        addDialogPadding_(headings, values);
+        addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.quoteicon}")));
+        iWidget *quote = new_Widget(); {
+            addRadioButton_(
+                quote, "prefs.quoteicon.1", "${prefs.quoteicon.icon}", "quoteicon.set arg:1");
+            addRadioButton_(
+                quote, "prefs.quoteicon.0", "${prefs.quoteicon.line}", "quoteicon.set arg:0");
+        }
+        addChildFlags_Widget(
+            values, iClob(quote), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
+    }
+    /* Fonts. */ {
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs,
+                                                   fonts_Icon " ${heading.prefs.fonts}",
+                                                   orange_ColorId,
+                                                   '4',
+                                                   &headings,
+                                                   &values),
+                     "prefs.page.fonts");
         /* Text settings. */
         if (!isTerminal_Platform()) {
-            makeTwoColumnHeading_("${heading.prefs.fonts}", headings, values);
             addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.heading}")));
             addFontButtons_(values, "heading");
             addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.body}")));
@@ -3818,12 +3833,20 @@ iWidget *makePreferences_Widget(void) {
                                                 "prefs.boldlink.dark",
                                                 "prefs.boldlink.light" },
                               3);
+        addDialogToggle_Widget(headings, values, "${prefs.quote.italic}", "prefs.quote.italic");
+        if (!isTerminal_Platform()) {
+            addDialogPadding_(headings, values);
+            addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.ui}")));
+            addFontButtons_(values, "ui");
+            addDialogPadding_(headings, values);
+            addDialogToggle_Widget(headings, values, "${prefs.font.smooth}", "prefs.font.smooth");
+        }
     }
     /* Page layout. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    pageLayout_Icon " ${heading.prefs.layout}",
                                                    orange_ColorId,
-                                                   '4',
+                                                   '5',
                                                    &headings,
                                                    &values),
                      "prefs.page.layout");
@@ -3844,21 +3867,15 @@ iWidget *makePreferences_Widget(void) {
         addChildFlags_Widget(values, iClob(widths), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
         addPrefsInputWithHeading_(headings, values, "prefs.linespacing", iClob(new_InputWidget(5)));
         addPrefsInputWithHeading_(headings, values, "prefs.tabwidth", iClob(new_InputWidget(5)));
-#if defined (LAGRANGE_ENABLE_HARFBUZZ)
+        #if defined (LAGRANGE_ENABLE_HARFBUZZ)
         addDialogToggle_Widget(headings, values, "${prefs.justify}", "prefs.justify");
-#endif
+        #endif
         addDialogToggle_Widget(headings, values, "${prefs.biglede}", "prefs.biglede");
         addDialogToggle_Widget(headings, values, "${prefs.plaintext.wrap}", "prefs.plaintext.wrap");
         addDialogPadding_(headings, values);
         addDialogToggle_Widget(headings, values, "${prefs.expandline}", "prefs.expandline");
         addDialogToggle_Widget(headings, values, "${prefs.centershort}", "prefs.centershort");
         addDialogPadding_(headings, values);
-        addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.quoteicon}")));
-        iWidget *quote = new_Widget(); {
-            addRadioButton_(quote, "prefs.quoteicon.1", "${prefs.quoteicon.icon}", "quoteicon.set arg:1");
-            addRadioButton_(quote, "prefs.quoteicon.0", "${prefs.quoteicon.line}", "quoteicon.set arg:0");
-        }
-        addChildFlags_Widget(values, iClob(quote), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
         //addDialogPadding_(headings, values);
         addDialogToggle_Widget(headings, values, "${prefs.sideicon}", "prefs.sideicon");
         addDialogDropMenu_(headings, values, "${prefs.collapsepre}", collapseItems, iInvalidSize,
@@ -3866,7 +3883,7 @@ iWidget *makePreferences_Widget(void) {
     }
     /* Content. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs, photo_Icon " ${heading.prefs.content}",
-                                                   green_ColorId, '5', &headings, &values),
+                                                   green_ColorId, '6', &headings, &values),
                      "prefs.page.content");
         /* Cache size. */ {
             iInputWidget *cache = new_InputWidget(4);
@@ -3907,7 +3924,7 @@ iWidget *makePreferences_Widget(void) {
         addDialogToggle_Widget(headings, values, "${prefs.font.warnmissing}", "prefs.font.warnmissing");
     }
     /* User Interface. */ {
-        setId_Widget(appendTwoColumnTabPage_Widget(tabs, computer_Icon " ${heading.prefs.interface}", cyan_ColorId, '6', &headings, &values),
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs, computer_Icon " ${heading.prefs.interface}", cyan_ColorId, '7', &headings, &values),
                      "prefs.page.ui");
         addDialogToggle_Widget(headings, values, "${prefs.hoverlink}", "prefs.hoverlink");
         addDialogToggle_Widget(headings, values, "${prefs.bookmarks.addbottom}", "prefs.bookmarks.addbottom");
@@ -3927,7 +3944,7 @@ iWidget *makePreferences_Widget(void) {
         if (!isTerminal_Platform()) {
             addDialogToggle_Widget(headings, values, "${prefs.blink}", "prefs.blink");
         }
-//        makeTwoColumnHeading_("${heading.prefs.scrolling}", headings, values);
+        //        makeTwoColumnHeading_("${heading.prefs.scrolling}", headings, values);
         addDialogToggle_Widget(headings, values, "${prefs.smoothscroll}", "prefs.smoothscroll");
         /* Scroll speeds. */ {
             for (int type = 0; type < max_ScrollType; type++) {
@@ -3956,19 +3973,19 @@ iWidget *makePreferences_Widget(void) {
                                       iClob(sniped),
                                       clipboard_Icon " ${heading.prefs.snip}",
                                       cyan_ColorId,
-                                      '7',
+                                      '8',
                                       KMOD_PRIMARY);
     }
     /* Keybindings. */ {
         iBindingsWidget *bind = new_BindingsWidget();
         appendFramelessTabPage_Widget(tabs, iClob(bind), keyboard_Icon " ${heading.prefs.keys}",
-                                      cyan_ColorId, '8', KMOD_PRIMARY);
+                                      cyan_ColorId, '9', KMOD_PRIMARY);
     }
     /* Network. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    network_Icon " ${heading.prefs.network}",
                                                    blue_ColorId,
-                                                   '9',
+                                                   '0',
                                                    &headings,
                                                    &values),
                      "prefs.page.network");

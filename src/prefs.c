@@ -82,6 +82,7 @@ void init_Prefs(iPrefs *d) {
     d->detachedPrefs                          = iTrue;
     d->pinSplit                               = 1;
     d->feedInterval                           = fourHours_FeedInterval;
+    d->italicQuote                            = iTrue;
     d->time24h                                = iTrue;
     d->returnKey                              = default_ReturnKeyBehavior;
     d->retainTabs                             = iTrue;

@@ -77,6 +77,7 @@ enum iPrefsBool {
     editorSyntaxHighlighting_PrefsBool,
 
     /* Document presentation */
+    italicQuote_PrefsBool,
     sideIcon_PrefsBool,
     time24h_PrefsBool,
 
@@ -159,6 +160,7 @@ struct Impl_Prefs {
             iBool editorSyntaxHighlighting;
 
             /* Document presentation */
+            iBool italicQuote;
             iBool sideIcon;
             iBool time24h;
 
