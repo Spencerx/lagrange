@@ -9,8 +9,13 @@
 ## 1.19
 
 New features:
+* Setting for showing quote text in italics.
+
 Changes and enhancements:
+* Reorganized settings: the Fonts tab has returned, and there is now a Theme tab for page theming.
+
 Fixes:
+* Quote line indicator on empty quote lines.
 
 ## 1.18.7
 * Revised handling of reserved URI characters according to RFC 3986. The previous behavior did not fully conform to the standard.

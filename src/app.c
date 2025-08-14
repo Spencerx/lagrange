@@ -379,6 +379,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         { "prefs.mono.gemini", &d->prefs.monospaceGemini },
         { "prefs.mono.gopher", &d->prefs.monospaceGopher },
         { "prefs.plaintext.wrap", &d->prefs.plainTextWrap },
+        { "prefs.quote.italic", &d->prefs.italicQuote },
         { "prefs.redirect.allowscheme", &d->prefs.allowSchemeChangingRedirect },
         { "prefs.retaintabs", &d->prefs.retainTabs },
         { "prefs.sideicon", &d->prefs.sideIcon },
@@ -3789,6 +3790,17 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         d->prefs.pageSwipe = arg_Command(cmd) != 0;
         return iTrue;
     }
+    else if (equal_Command(cmd, "prefs.quote.italic.changed")) {
+        const iBool isSet = arg_Command(cmd) != 0;
+        if (d->prefs.italicQuote != isSet) {
+            d->prefs.italicQuote = isSet;
+            if (!isFrozen) {
+                postCommand_App("font.changed");
+                postCommand_App("window.unfreeze");
+            }
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "prefs.font.smooth.changed")) {
         if (!isFrozen) {
             setFreezeDraw_MainWindow(get_MainWindow(), iTrue);
@@ -4952,6 +4964,7 @@ iBool handleCommand_App(const char *cmd) {
         updateDropdownSelection_LabelWidget(findChild_Widget(dlg, "prefs.collapsepre"),
                                             format_CStr(" arg:%d", d->prefs.collapsePre));
         setToggle_Widget(findChild_Widget(dlg, "prefs.time.24h"), d->prefs.time24h);
+        setToggle_Widget(findChild_Widget(dlg, "prefs.quote.italic"), d->prefs.italicQuote);
         updateDropdownSelection_LabelWidget(
             findChild_Widget(dlg, "prefs.returnkey"),
             format_CStr("returnkey.set arg:%d", d->prefs.returnKey));

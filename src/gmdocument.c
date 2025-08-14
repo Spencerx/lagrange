@@ -232,7 +232,9 @@ static void initTheme_GmDocument_(iGmDocument *d) {
     theme->fonts[text_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, contentRegular_FontSize);
     theme->fonts[bullet_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, contentRegular_FontSize);
     theme->fonts[preformatted_GmLineType] = preformatted_FontId;
-    theme->fonts[quote_GmLineType] = isMono ? monospaceParagraph_FontId : quote_FontId;
+    theme->fonts[quote_GmLineType] = isMono               ? monospaceParagraph_FontId
+                                     : prefs->italicQuote ? quote_FontId
+                                                          : paragraph_FontId;
     theme->fonts[heading1_GmLineType] = FONT_ID(headingFont, bold_FontStyle, contentHuge_FontSize);
     theme->fonts[heading2_GmLineType] = FONT_ID(headingFont, regular_FontStyle, contentLarge_FontSize);
     theme->fonts[heading3_GmLineType] = FONT_ID(headingFont, bold_FontStyle, contentBig_FontSize);
