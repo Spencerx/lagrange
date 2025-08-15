@@ -13,6 +13,7 @@ New features:
 
 Changes and enhancements:
 * Reorganized settings: the Fonts tab has returned, and there is now a Theme tab for page theme settings.
+* X11: Restore windows into their previous workspaces.
 
 Fixes:
 * Quote line indicator was misplaced on empty quote lines.
