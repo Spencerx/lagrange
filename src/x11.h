@@ -29,3 +29,9 @@ iBool   isXSession_X11                  (void);
 void    setDarkWindowTheme_SDLWindow    (SDL_Window *, iBool setDark);
 void    handleCommand_X11               (const char *cmd);
 
+iBool getWindowDesktop_X11(SDL_Window *win, unsigned long *out);
+void  setWindowDesktop_X11(SDL_Window *win, unsigned long desk);
+void  setWindowDesktopPropOnly_X11(SDL_Window *win, unsigned long desk);
+iBool getCurrentDesktop_X11(SDL_Window *refWin, unsigned long *out);
+
+
