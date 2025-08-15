@@ -273,20 +273,18 @@ static iString *serializePrefs_App_(const iApp *d) {
             y = win->place.normalRect.pos.y;
             w = win->place.normalRect.size.x;
             h = win->place.normalRect.size.y;
-
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
-                        int deskOut = win->place.desktop;
-                        if (deskOut < 0) {
-                            unsigned long dk;
-                            if (getWindowDesktop_X11(win->base.win, &dk)) {
-                                deskOut = (int) dk;
-                            }
-                        }
-                        if (deskOut >= 0) {  // Only save if we have a valid desktop
-                            appendFormat_String(str, "window.desktop index:%zu desk:%d\n", winIndex, deskOut);
-                        }
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+            int deskOut = win->place.desktop;
+            if (deskOut < 0) {
+                unsigned long dk;
+                if (getWindowDesktop_X11(win->base.win, &dk)) {
+                    deskOut = (int) dk;
+                }
+            }
+            if (deskOut >= 0) {  /* only save if we have a valid desktop */
+                appendFormat_String(str, "window.desktop index:%zu desk:%d\n", winIndex, deskOut);
+            }
 #endif
-
             /* On macOS, maximization should be applied at creation time or the window will take
                a moment to animate to its maximized size. */
             const int winSnap = (isApple_Platform() || isMobile_Platform() ? 0 : snap_MainWindow(win));
@@ -725,19 +723,18 @@ static void loadPrefs_App_(iApp *d) {
 }
 
 static void savePrefs_App_(const iApp *d) {
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
-        {
-            // Update current workspace for all windows before saving
-            iConstForEach(PtrArray, it, &app_.mainWindows) {
-                const iMainWindow *win = it.ptr;
-                if (win && win->base.win) {
-                    unsigned long dk;
-                    if (getWindowDesktop_X11(win->base.win, &dk)) {
-                        ((iMainWindow *) win)->place.desktop = (int) dk;
-                    }
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+    /* Update current workspace for all windows before saving. */ {
+        iConstForEach(PtrArray, it, &app_.mainWindows) {
+            const iMainWindow *win = it.ptr;
+            if (win && win->base.win) {
+                unsigned long dk;
+                if (getWindowDesktop_X11(win->base.win, &dk)) {
+                    ((iMainWindow *) win)->place.desktop = (int) dk;
                 }
             }
         }
+    }
 #endif
     iString *cfg = serializePrefs_App_(d);
     iFile *f = new_File(prefsFileName_());
@@ -947,32 +944,29 @@ static iBool loadState_App_(iApp *d) {
 
             SDL_ShowWindow(win->base.win);
         }
-
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
-            // Set desktop properties after everything is loaded
-            iForEach(Array, j, currentTabs) {
-                iMainWindow *win = at_PtrArray(&d->mainWindows, index_ArrayIterator(&j));
-                const size_t idx = index_ArrayIterator(&j);
-
-                if (idx < size_Array(&d->initialWindowDesktops)) {
-                    const int *desk = (const int *) at_Array(&d->initialWindowDesktops, idx);
-                    if (desk && *desk >= 0) {
-                        win->place.desktop = *desk;
-                         postCommandf_App("~window.setdesktop window:%u arg:%d",
-                                        id_Window(as_Window(win)), *desk);
-                        }
-                    }
-
-                win->isDrawFrozen = iFalse;
-                win->base.isExposed = iTrue;
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+        /* Set desktop properties after everything is loaded. */
+        iForEach(Array, j, currentTabs) {
+            iMainWindow *win = at_PtrArray(&d->mainWindows, index_ArrayIterator(&j));
+            const size_t idx = index_ArrayIterator(&j);
+            if (idx < size_Array(&d->initialWindowDesktops)) {
+                const int *desk = (const int *) at_Array(&d->initialWindowDesktops, idx);
+                if (desk && *desk >= 0) {
+                    win->place.desktop = *desk;
+                     postCommandf_App("~window.setdesktop window:%u arg:%d",
+                                    id_Window(as_Window(win)), *desk);
+                }
             }
+            win->isDrawFrozen = iFalse;
+            win->base.isExposed = iTrue;
+        }
 #else
-            // On non-X11 platforms, just unfreeze normally
-            iForEach(Array, j, currentTabs) {
-                iMainWindow *win = at_PtrArray(&d->mainWindows, index_ArrayIterator(&j));
-                win->isDrawFrozen = iFalse;
-                win->base.isExposed = iTrue;
-            }
+        /* On non-X11 platforms, just unfreeze normally. */
+        iForEach(Array, j, currentTabs) {
+            iMainWindow *win = at_PtrArray(&d->mainWindows, index_ArrayIterator(&j));
+            win->isDrawFrozen = iFalse;
+            win->base.isExposed = iTrue;
+        }
 #endif
 
     if (currentWin) {
@@ -1486,18 +1480,16 @@ static void init_App_(iApp *d, int argc, char **argv) {
     load_Bookmarks(d->bookmarks, dataDir_App_());
     d->window = (iWindow *) new_MainWindow(*winRect0); /* first window is always created */
     addWindow_App(as_MainWindow(d->window));
-
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
-        int desk = -1;
-        if (size_Array(&d->initialWindowDesktops) > 0) {
-            desk = * (const int *) at_Array(&d->initialWindowDesktops, 0);
-        }
-        if (desk >= 0) {
-            iMainWindow *mw = as_MainWindow(d->window);
-            mw->place.desktop = desk;
-        }
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+    int desk = -1;
+    if (size_Array(&d->initialWindowDesktops) > 0) {
+        desk = *(const int *) at_Array(&d->initialWindowDesktops, 0);
+    }
+    if (desk >= 0) {
+        iMainWindow *mw = as_MainWindow(d->window);
+        mw->place.desktop = desk;
+    }
 #endif
-
     load_Visited(d->visited, dataDir_App_());
     load_MimeHooks(d->mimehooks, dataDir_App_());
     if (isFirstRun) {
@@ -1580,15 +1572,15 @@ static void init_App_(iApp *d, int argc, char **argv) {
     /* See if there is something to import from backup. */
     javaCommand_Android("backup.load");
 #endif
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
-     if (d->window) {
-         iMainWindow *mw = as_MainWindow(d->window);
-         if (mw->place.desktop >= 0) {
-             // Use a delayed command to set workspace after everything is ready
-             postCommandf_App("~window.setdesktop window:%u arg:%d",
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+    if (d->window) {
+        iMainWindow *mw = as_MainWindow(d->window);
+        if (mw->place.desktop >= 0) {
+            /* Use a delayed command to set workspace after everything is ready. */
+            postCommandf_App("~window.setdesktop window:%u arg:%d",
                              id_Window(d->window), mw->place.desktop);
-         }
-     }
+        }
+    }
 #endif
 }
 
@@ -3831,17 +3823,16 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "window.setdesktop")) {
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
-        const int desk = arg_Command(cmd);
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+        const int      desk  = arg_Command(cmd);
         const uint32_t winId = argLabel_Command(cmd, "window");
-
         if (desk >= 0) {
-            // Find the window by ID
+            /* Find the window by ID. */
             iConstForEach(PtrArray, i, &d->mainWindows) {
                 iMainWindow *win = i.ptr;
                 if (id_Window(as_Window(win)) == winId) {
                     win->place.desktop = desk;
-                    // Use the active desktop switching function
+                    /* Use the active desktop switching function. */
                     setWindowDesktop_X11(win->base.win, (unsigned long) desk);
                     break;
                 }

@@ -417,7 +417,7 @@ static void initCache_StbText_(iStbText *d) {
                               : get_Window()->pixelRatio < 2.5f ? 3
                                                                 : 2;
     rasterizedAll_GlyphFlag_ = makeRasterizedAll_GlyphFlag_(numOffsetSteps_Glyph_);
-#if !defined(NDEBUG)
+#if !defined (NDEBUG)
     printf("[Text] subpixel offsets: %d\n", numOffsetSteps_Glyph_);
 #endif
     const iInt2 cacheDims = init_I2(8 * numOffsetSteps_Glyph_, 40);

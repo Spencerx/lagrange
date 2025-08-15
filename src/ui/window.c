@@ -46,7 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #if defined (iPlatformAppleMobile)
 #   include "ios.h"
 #endif
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
 #  include "../x11.h"
 #endif
 
@@ -586,7 +586,7 @@ void create_Window_(iWindow *d, iRect rect, uint32_t flags) {
             exit(-4);
         }
     }
-#if defined(LAGRANGE_ENABLE_CUSTOM_FRAME)
+#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
     if (type_Window(d) == main_WindowType && prefs_App()->customFrame) {
         /* Register a handler for window hit testing (drag, resize). */
         SDL_SetWindowHitTest(d->win, hitTest_MainWindow_, d);
@@ -776,7 +776,7 @@ void init_MainWindow(iMainWindow *d, iRect rect) {
         SDL_RendererInfo info;
         SDL_GetRendererInfo(d->base.render, &info);
         isOpenGLRenderer_ = !iCmpStr(info.name, "opengl");
-#if !defined(NDEBUG) && !defined (iPlatformTerminal)
+#if !defined (NDEBUG) && !defined (iPlatformTerminal)
         printf("[window] max texture size: %d x %d\n",
                info.max_texture_width,
                info.max_texture_height);
@@ -1096,14 +1096,14 @@ static void savePlace_MainWindow_(iAny *mainWindow) {
         SDL_GetWindowPosition(d->base.win, &newPos.x, &newPos.y);
         d->place.normalRect.pos = newPos;
         iInt2 border = zero_I2();
-#if !defined(iPlatformApple) && !defined (iPlatformTerminal)
+#if !defined (iPlatformApple) && !defined (iPlatformTerminal)
         SDL_GetWindowBordersSize(d->base.win, &border.y, &border.x, NULL, NULL);
         iAssert(~SDL_GetWindowFlags(d->base.win) & SDL_WINDOW_MAXIMIZED);
 #endif
         d->place.normalRect.pos =
             max_I2(zero_I2(), sub_I2(d->place.normalRect.pos, border));
     }
-#if defined(LAGRANGE_ENABLE_X11_XLIB)
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
     unsigned long desk;
     if (getWindowDesktop_X11(d->base.win, &desk)) {
         d->place.desktop = (int) desk;
@@ -1136,7 +1136,7 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
         return iFalse;
     }
     switch (ev->event) {
-#if defined(iPlatformDesktop)
+#if defined (iPlatformDesktop)
         case SDL_WINDOWEVENT_EXPOSED:
             d->base.isExposed = iTrue;
             /* Since we are manually controlling when to redraw the window, we are responsible
@@ -1144,7 +1144,7 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
                circumstances (e.g., under openbox), not doing this would mean that the window
                is missing contents until other events trigger a refresh. */
             postRefresh_Window(d);
-#if defined(LAGRANGE_ENABLE_WINDOWPOS_FIX)
+#if defined (LAGRANGE_ENABLE_WINDOWPOS_FIX)
             if (d->place.initialPos.x >= 0) {
                 /* Must not move a maximized window. */
                 if (snap_MainWindow(d) == 0) {
@@ -1170,7 +1170,7 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
                 d->base.isMinimized = iTrue;
                 return iFalse;
             }
-#if defined(LAGRANGE_ENABLE_CUSTOM_FRAME)
+#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
             /* Set the snap position depending on where the mouse cursor is. */
             if (prefs_App()->customFrame) {
                 SDL_Rect usable;
@@ -2285,7 +2285,7 @@ iWindow *newPopup_Window(iInt2 screenPos, iWidget *rootWidget) {
     setRoot_Widget(rootWidget, root);
     setDrawBufferEnabled_Widget(rootWidget, iFalse);
     setForceSoftwareRender_App(oldSw);
-#if !defined(NDEBUG)
+#if !defined (NDEBUG)
     stop_PerfTimer(newPopup_Window);
 #endif
     return win;

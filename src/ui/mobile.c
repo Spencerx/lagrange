@@ -109,7 +109,7 @@ static void updatePanelSheetMetrics_(iWidget *sheet) {
     int      naviHeight = lineHeight_Text(labelFont_()) + 4 * gap_UI;
     if (isMobile_Platform()) {
         float left = 0.0f, right = 0.0f, top = 0.0f, bottom = 0.0f;
-#if defined(iPlatformAppleMobile)
+#if defined (iPlatformAppleMobile)
         safeAreaInsets_iOS(&left, &top, &right, &bottom);
 #endif
         if (isFullSizePanel_(sheet)) {

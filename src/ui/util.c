@@ -107,7 +107,7 @@ iInt2 coord_MouseWheelEvent(const SDL_MouseWheelEvent *ev) {
     iWindow *win = get_Window(); /* may not be the focus window */
 #if !defined (iPlatformTerminal)
     if (isDesktop_Platform()) {
-# if SDL_VERSION_ATLEAST(2, 26, 0) && !defined(iPlatformApple)
+# if SDL_VERSION_ATLEAST(2, 26, 0) && !defined (iPlatformApple)
         return coord_Window(win, ev->mouseX, ev->mouseY);
 # else
         /* We need to figure out where the mouse is in relation to the currently active window.

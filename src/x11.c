@@ -78,11 +78,11 @@ void setWindowDesktopPropOnly_X11(SDL_Window *win, unsigned long desk) {
 
     Atom NET_WM_DESKTOP = XInternAtom(dpy, "_NET_WM_DESKTOP", False);
     XChangeProperty(dpy, w, NET_WM_DESKTOP, XA_CARDINAL, 32,
-                    PropModeReplace, (unsigned char *)&desk, 1);
+                    PropModeReplace, (unsigned char *) &desk, 1);
 
     Atom WIN_WORKSPACE = XInternAtom(dpy, "_WIN_WORKSPACE", False);
     XChangeProperty(dpy, w, WIN_WORKSPACE, XA_CARDINAL, 32,
-                    PropModeReplace, (unsigned char *)&desk, 1);
+                    PropModeReplace, (unsigned char *) &desk, 1);
 
     XFlush(dpy);
 }
@@ -149,7 +149,7 @@ void setWindowDesktop_X11(SDL_Window *win, unsigned long desk) {
                SubstructureRedirectMask | SubstructureNotifyMask, &ev);
 
     XChangeProperty(dpy, w, NET_WM_DESKTOP, XA_CARDINAL, 32,
-                    PropModeReplace, (unsigned char *)&desk, 1);
+                    PropModeReplace, (unsigned char *) &desk, 1);
 
     XFlush(dpy);
 }
@@ -195,4 +195,3 @@ void handleCommand_X11(const char *cmd) {
         }
     }
 }
-
