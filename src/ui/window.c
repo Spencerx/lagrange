@@ -46,6 +46,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #if defined (iPlatformAppleMobile)
 #   include "ios.h"
 #endif
+#if defined(LAGRANGE_ENABLE_X11_XLIB)
+#  include "../x11.h"
+#endif
 
 #include <the_Foundation/file.h>
 #include <the_Foundation/path.h>
@@ -410,9 +413,9 @@ float displayDensity_Android(void);
 
 #if defined (iPlatformWindows)
 static void setenv(const char *name, const char *value, int overwrite) {
-    iUnused(overwrite);    
+    iUnused(overwrite);
     SetEnvironmentVariableW(
-        data_Block(collect_Block(toUtf16_String(collectNewCStr_String(name)))), 
+        data_Block(collect_Block(toUtf16_String(collectNewCStr_String(name)))),
         data_Block(collect_Block(toUtf16_String(collectNewCStr_String(value)))));
 }
 #endif
@@ -719,6 +722,9 @@ void init_MainWindow(iMainWindow *d, iRect rect) {
     theMainWindow_ = d;
     d->enableBackBuf = iFalse;
     uint32_t flags = 0;
+
+    d->place.desktop = -1; // init to unknown
+
 #if defined (iPlatformAppleDesktop)
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, shouldDefaultToMetalRenderer_MacOS() ? "metal" : "opengl");
     flags |= shouldDefaultToMetalRenderer_MacOS() ? SDL_WINDOW_METAL : SDL_WINDOW_OPENGL;
@@ -1097,6 +1103,12 @@ static void savePlace_MainWindow_(iAny *mainWindow) {
         d->place.normalRect.pos =
             max_I2(zero_I2(), sub_I2(d->place.normalRect.pos, border));
     }
+#if defined(LAGRANGE_ENABLE_X11_XLIB)
+    unsigned long desk;
+    if (getWindowDesktop_X11(d->base.win, &desk)) {
+        d->place.desktop = (int) desk;
+    }
+#endif
 }
 
 static void notifyHovered_Window_(iWindow *d) {
@@ -1711,7 +1723,7 @@ void draw_MainWindow(iMainWindow *d) {
         if (deviceType_App() == phone_AppDeviceType) {
             /* Page background extends to safe area, so fill it completely. */
             back = get_Color(tmBackground_ColorId);
-        }        
+        }
 #endif
         unsetClip_Paint(&p); /* update clip to full window */
         SDL_SetRenderDrawColor(w->render, back.r, back.g, back.b, 255);
