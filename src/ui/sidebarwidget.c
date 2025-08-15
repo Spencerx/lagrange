@@ -440,9 +440,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const iMenuItem menuItems[] = {
                 { openTab_Icon " ${menu.opentab}", 0, 0, "feed.entry.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "feed.entry.open newtab:2" },
-#if defined (iPlatformDesktop)
+    #if defined (iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "feed.entry.open newwindow:1" },
-#endif
+    #endif
                 { "---", 0, 0, NULL },
                 { circle_Icon " ${feeds.entry.markread}", 0, 0, "feed.entry.toggleread" },
                 { downArrow_Icon " ${feeds.entry.markbelowread}", 0, 0, "feed.entry.markread below:1" },
@@ -526,9 +526,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const iMenuItem menuItems[] = {
                 { openTab_Icon " ${menu.opentab}", 0, 0, "bookmark.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "bookmark.open newtab:2" },
-#if defined (iPlatformDesktop)
+    #if defined (iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "bookmark.open newwindow:1" },
-#endif
+    #endif
                 { "---", 0, 0, NULL },
                 { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
                 { copy_Icon " ${menu.dup}", 0, 0, "bookmark.dup" },
@@ -538,11 +538,11 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 { "", 0, 0, "bookmark.tag tag:homepage" },
                 { "", 0, 0, "bookmark.tag tag:remotesource" },
                 { "---", 0, 0, NULL },
-#if defined (iPlatformDesktop)
+    #if defined (iPlatformDesktop)
                 { uiTextCaution_ColorEscape "${bookmark.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
-#else
+    #else
                 { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
-#endif
+    #endif
                 { "---", 0, 0, NULL },
                 { folder_Icon " ${menu.newfolder}", 0, 0, "bookmark.addfolder" },
                 { upDownArrow_Icon " ${menu.sort.alpha}", 0, 0, "bookmark.sortfolder" },
@@ -562,11 +562,11 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                         { "---" },
                         { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
                         { "---" },
-#if defined (iPlatformDesktop)
+    #if defined (iPlatformDesktop)
                         { uiTextCaution_ColorEscape "${bookmark.folder.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
-#else
+    #else
                         { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
-#endif
+    #endif
                         { "---" } },
                     7);
                 if (isMobile_Platform()) {
@@ -631,9 +631,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const iMenuItem menuItems[] = {
                 { openTab_Icon " ${menu.opentab}", 0, 0, "history.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "history.open newtab:2" },
-#if defined (iPlatformDesktop)
+    #if defined (iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "history.open newwindow:1" },
-#endif
+    #endif
                 { "---" },
                 { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "history.addbookmark" },
                 { "${menu.copyurl}", 0, 0, "history.copy" },
@@ -852,9 +852,9 @@ static void updateSlidingSheetHeight_SidebarWidget_(iSidebarWidget *sidebar, iRo
         d->rect.size.y = newSize;
         arrange_Widget(d);
     }
-//    printf("[%p] %u: %d  animating %d\n", d, window_Widget(d)->frameTime,
-//           (flags_Widget(d) & visualOffset_WidgetFlag) != 0,
-//           newSize);
+    //    printf("[%p] %u: %d  animating %d\n", d, window_Widget(d)->frameTime,
+    //           (flags_Widget(d) & visualOffset_WidgetFlag) != 0,
+    //           newSize);
 }
 
 void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
