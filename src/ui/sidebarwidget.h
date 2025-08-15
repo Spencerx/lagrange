@@ -34,12 +34,12 @@ enum iSidebarMode {
     history_SidebarMode,
     identities_SidebarMode,
     documentOutline_SidebarMode,
+    siteStructure_SidebarMode,
     openDocuments_SidebarMode,
     subscriptions_SidebarMode,
-    siteStructure_SidebarMode,
-    siteNotes_SidebarMode,
     gempubIndex_SidebarMode,
     customPage_SidebarMode,
+    siteNotes_SidebarMode,
     max_SidebarMode
 };
 

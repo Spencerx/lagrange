@@ -92,11 +92,17 @@ iDefineObjectConstruction(SidebarItem)
 /*----------------------------------------------------------------------------------------------*/
 
 static const char *normalModeLabels_[max_SidebarMode] = {
-    book_Icon   " ${sidebar.bookmarks}",
-    star_Icon   " ${sidebar.feeds}",
-    clock_Icon  " ${sidebar.history}",
-    person_Icon " ${sidebar.identities}",
-    page_Icon   " ${sidebar.outline}",
+    book_Icon      " ${sidebar.bookmarks}",
+    star_Icon      " ${sidebar.feeds}",
+    clock_Icon     " ${sidebar.history}",
+    person_Icon    " ${sidebar.identities}",
+    page_Icon      " ${sidebar.outline}",
+    globe_Icon     " ${sidebar.structure}",
+    openTabBg_Icon " ${sidebar.documents}",
+    whiteStar_Icon " ${sidebar.subscriptions}",
+    book_Icon      " ${sidebar.gempub}",
+    file_Icon      " ${sidebar.page}",
+    edit_Icon      " ${sidebar.notes}",
 };
 
 static const char *tightModeLabels_[max_SidebarMode] = {
@@ -105,6 +111,12 @@ static const char *tightModeLabels_[max_SidebarMode] = {
     clock_Icon,
     person_Icon,
     page_Icon,
+    globe_Icon,
+    openTabBg_Icon,
+    whiteStar_Icon,
+    book_Icon,
+    file_Icon,
+    edit_Icon,
 };
 
 struct Impl_SidebarWidget {
@@ -300,7 +312,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
     d->folderMenu = NULL;
     iBool isEmpty = iFalse; /* show blank? */
     switch (d->mode) {
-        case feeds_SidebarMode: {
+        case feedEntries_SidebarMode: {
             const iString *docUrl = canonicalUrl_String(url_DocumentWidget(document_App()));
                                     /* TODO: internal URI normalization */
             iTime now;
@@ -675,7 +687,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
     /* Content for a blank tab. */
     if (isEmpty) {
         const int rightPad = (isTerminal_Platform() ? 5 : (3 * gap_UI));
-        if (d->mode == feeds_SidebarMode) {
+        if (d->mode == feedEntries_SidebarMode) {
             iWidget *div = makeVDiv_Widget();
             setPadding_Widget(div, 3 * gap_UI, 0, rightPad, 2 * gap_UI);
             addChildFlags_Widget(div, iClob(new_Widget()), expand_WidgetFlag); /* pad */
@@ -1056,7 +1068,7 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
             }
             break;
         }
-        case feeds_SidebarMode: {
+        case feedEntries_SidebarMode: {
             postCommandString_Root(
                 get_Root(),
                 feedEntryOpenCommand_String(
@@ -1133,7 +1145,7 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
         if (!button) continue;
         setAlignVisually_LabelWidget(button, isTight);
         setFlags_Widget(as_Widget(button), tight_WidgetFlag, isTight);
-        if (i == feeds_SidebarMode && d->numUnreadEntries) {
+        if (i == feedEntries_SidebarMode && d->numUnreadEntries) {
             updateText_LabelWidget(
                 button,
                 collectNewFormat_String("%s " uiTextAction_ColorEscape "%zu%s%s",
@@ -1548,12 +1560,12 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (equal_Command(cmd, "visited.changed")) {
             d->numUnreadEntries = numUnread_Feeds();
             checkModeButtonLayout_SidebarWidget_(d);
-            if (d->mode == history_SidebarMode || d->mode == feeds_SidebarMode) {
+            if (d->mode == history_SidebarMode || d->mode == feedEntries_SidebarMode) {
                 updateItems_SidebarWidget_(d);
             }
         }
         else if (equal_Command(cmd, "bookmarks.changed") && (d->mode == bookmarks_SidebarMode ||
-                                                             d->mode == feeds_SidebarMode)) {
+                                                             d->mode == feedEntries_SidebarMode)) {
             if (pointerLabel_Command(cmd, "nosidebar") != d) {
                 updateItems_SidebarWidget_(d);
                 if (hasLabel_Command(cmd, "added")) {
@@ -1860,7 +1872,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (equal_Command(cmd, "feeds.update.finished")) {
             d->numUnreadEntries = argLabel_Command(cmd, "unread");
             checkModeButtonLayout_SidebarWidget_(d);
-            if (d->mode == feeds_SidebarMode) {
+            if (d->mode == feedEntries_SidebarMode) {
                 updateItems_SidebarWidget_(d);
             }
         }
@@ -1869,7 +1881,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             updateItemsWithFlags_SidebarWidget_(d, iTrue);
             return iTrue;
         }
-        else if (equal_Command(cmd, "feeds.markallread") && d->mode == feeds_SidebarMode) {
+        else if (equal_Command(cmd, "feeds.markallread") && d->mode == feedEntries_SidebarMode) {
             if (argLabel_Command(cmd, "confirm")) {
                 /* This is used on mobile. */
                 iWidget *menu = makeMenu_Widget(w->root->widget, (iMenuItem[]){
@@ -1886,7 +1898,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             postCommand_App("visited.changed");
             return iTrue;
         }
-        else if (startsWith_CStr(cmd, "feed.entry.") && d->mode == feeds_SidebarMode) {
+        else if (startsWith_CStr(cmd, "feed.entry.") && d->mode == feedEntries_SidebarMode) {
             const iSidebarItem *item = d->contextItem;
             if (item) {
                 if (isCommand_Widget(w, ev, "feed.entry.open")) {
@@ -2133,7 +2145,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                                                 0);
                     }
                 }
-                else if (d->mode == feeds_SidebarMode && d->contextItem) {
+                else if (d->mode == feedEntries_SidebarMode && d->contextItem) {
                     const iBool isRead = d->contextItem->indent == 0;
                     setMenuItemLabel_Widget(d->menu,
                                             "feed.entry.toggleread",
@@ -2323,7 +2335,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         fillRect_Paint(p, itemRect, bg);
     }
     else if (d->listItem.isSelected &&
-             (sidebar->mode == feeds_SidebarMode || sidebar->mode == identities_SidebarMode)) {
+             (sidebar->mode == feedEntries_SidebarMode || sidebar->mode == identities_SidebarMode)) {
         bg = uiBackgroundUnfocusedSelection_ColorId;
         fillRect_Paint(p, itemRect, bg);
     }
@@ -2347,7 +2359,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                        fg,
                        range_String(&d->label));
     }
-    else if (sidebar->mode == feeds_SidebarMode) {
+    else if (sidebar->mode == feedEntries_SidebarMode) {
         const int fg = isHover ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
                                : uiText_ColorId;
         const int iconPad = 12 * gap_UI;
