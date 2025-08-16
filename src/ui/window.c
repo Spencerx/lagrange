@@ -116,7 +116,7 @@ static const iMenuItem editMenuItems_[] = {
     { "---" },
     { "${menu.copy.pagelink}", SDLK_c, KMOD_PRIMARY | KMOD_SHIFT, "document.copylink" },
     { "---" },
-    { "${macos.menu.find}", SDLK_f, KMOD_PRIMARY, "focus.set id:find.input" },
+    { "${macos.menu.find}", SDLK_f, KMOD_PRIMARY, "focus.set id:find.input id2:filter.bookmark.input" },
     { NULL }
 };
 

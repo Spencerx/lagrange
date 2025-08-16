@@ -579,6 +579,13 @@ iBool handleRootCommands_Widget(iWidget *root, const char *cmd) {
         return iFalse;
     }
     else if (equal_Command(cmd, "focus.set")) {
+        if (hasLabel_Command(cmd, "id2")) {
+            iWidget *override = findWidget_App(cstr_Command(cmd, "id2"));
+            if (isVisible_Widget(override) && !isFocused_Widget(override)) {
+                setFocus_Widget(override);
+                return iTrue;
+            }
+        }
         setFocus_Widget(findWidget_App(cstr_Command(cmd, "id")));
         return iTrue;
     }
@@ -1207,7 +1214,7 @@ static iBool handleNavBarCommands_(iWidget *navBar, const char *cmd) {
         setFocus_Widget(NULL);
         return iTrue;
     }
-    else if (equal_Command(cmd, "input.edited")) {
+    else if (equalArg_Command(cmd, "input.edited", "id", "url")) {
         iAnyObject *   url  = findChild_Widget(navBar, "url");
         const iString *text = rawText_InputWidget(url);
         const iBool    show = willPerformSearchQuery_(text);
@@ -2267,7 +2274,7 @@ void createUserInterface_Root(iRoot *d) {
     /* Global keyboard shortcuts. */ {
         addAction_Widget(root, SDLK_h, KMOD_PRIMARY | KMOD_SHIFT, "navigate.home");
         addAction_Widget(root, 'l', KMOD_PRIMARY, "navigate.focus");
-        addAction_Widget(root, 'f', KMOD_PRIMARY, "focus.set id:find.input");
+        addAction_Widget(root, 'f', KMOD_PRIMARY, "focus.set id:find.input id2:filter.bookmark.input");
         addAction_Widget(root, '1', leftSidebarTab_KeyModifier, "sidebar.mode arg:0 toggle:1");
         addAction_Widget(root, '2', leftSidebarTab_KeyModifier, "sidebar.mode arg:1 toggle:1");
         addAction_Widget(root, '3', leftSidebarTab_KeyModifier, "sidebar.mode arg:2 toggle:1");

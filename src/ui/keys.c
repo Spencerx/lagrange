@@ -224,7 +224,7 @@ static const struct { int id; iMenuItem bind; int flags; } defaultBindings_[] = 
     { 55, { "${keys.subscribe}",            subscribeToPage_KeyShortcut,    "feeds.subscribe"                   }, 0 },
     { 56, { "${keys.feeds.showall}",        SDLK_u, KMOD_SHIFT,             "feeds.mode arg:0"                  }, 0 },
     { 57, { "${keys.feeds.showunread}",     SDLK_u, 0,                      "feeds.mode arg:1"                  }, 0 },
-    { 60, { "${keys.findtext}",             'f', KMOD_PRIMARY,              "focus.set id:find.input"           }, 0 },
+    { 60, { "${keys.findtext}",             'f', KMOD_PRIMARY,              "focus.set id:find.input id2:filter.bookmark.input"           }, 0 },
     { 65, { "${LC:menu.viewformat.plain}",  SDLK_y, KMOD_PRIMARY,           "document.viewformat"               }, 0 },
     { 70, { "${keys.zoom.in}",              SDLK_EQUALS, KMOD_ZOOM,         "zoom.delta arg:10"                 }, 0 },
     { 71, { "${keys.zoom.out}",             SDLK_MINUS, KMOD_ZOOM,          "zoom.delta arg:-10"                }, 0 },
@@ -269,7 +269,7 @@ static const struct { int id; iMenuItem bind; int flags; } defaultBindings_[] = 
 #endif
     { 1004, { NULL, SDLK_F5, 0,                         "document.reload"               }, 0 },
     /* Media keys. */
-    { 1005, { NULL, SDLK_AC_SEARCH, 0,                  "focus.set id:find.input"       }, 0 },
+    { 1005, { NULL, SDLK_AC_SEARCH, 0,                  "focus.set id:find.input id2:filter.bookmark.input"       }, 0 },
     { 1006, { NULL, SDLK_AC_HOME, 0,                    "navigate.home"                 }, 0 },
     { 1007, { NULL, SDLK_AC_BACK, 0,                    "navigate.back"                 }, 0 },
     { 1008, { NULL, SDLK_AC_FORWARD, 0,                 "navigate.forward"              }, 0 },

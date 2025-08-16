@@ -296,11 +296,117 @@ static const iMenuItem bookmarkModeMenuItems_[] = {
     { reload_Icon " ${bookmarks.reload}", 0, 0, "bookmarks.reload.remote" }
 };
 
+static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
+    iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTree_Bookmark, NULL, NULL)) {
+        const iBookmark *bm = i.ptr;
+        if (isBookmarkFolded_SidebarWidget_(d, bm)) {
+            continue; /* inside a closed folder */
+        }
+        iSidebarItem *item = new_SidebarItem();
+        item->listItem.isDraggable = iTrue;
+        item->isBold = item->listItem.isDropTarget = isFolder_Bookmark(bm);
+        item->id = id_Bookmark(bm);
+        item->indent = depth_Bookmark(bm);
+        if (isFolder_Bookmark(bm)) {
+            item->icon = contains_IntSet(d->closedFolders, item->id) ? 0x27e9 : 0xfe40;
+        }
+        else {
+            item->icon = bm->icon;
+        }
+        set_String(&item->url, &bm->url);
+        set_String(&item->label, &bm->title);
+        /* Icons for special behaviors. */ {
+            if (bm->flags & subscribed_BookmarkFlag) {
+                appendChar_String(&item->meta, 0x2605);
+            }
+            if (bm->flags & homepage_BookmarkFlag) {
+                appendChar_String(&item->meta, 0x1f3e0);
+            }
+            if (bm->flags & remote_BookmarkFlag) {
+                item->listItem.isDraggable = iFalse;
+            }
+            if (bm->flags & remoteSource_BookmarkFlag) {
+                appendChar_String(&item->meta, 0x2913);
+                item->isBold = iTrue;
+            }
+            if (bm->flags & linkSplit_BookmarkFlag) {
+                appendChar_String(&item->meta, 0x25e7);
+            }
+            if (!isEmpty_String(&bm->identity)) {
+                appendCStr_String(&item->meta, person_Icon);
+            }
+        }
+        addItem_ListWidget(d->list, item);
+        iRelease(item);
+    }
+    const iMenuItem menuItems[] = {
+        { openTab_Icon " ${menu.opentab}", 0, 0, "bookmark.open newtab:1" },
+        { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "bookmark.open newtab:2" },
+    #if defined (iPlatformDesktop)
+        { openWindow_Icon " ${menu.openwindow}", 0, 0, "bookmark.open newwindow:1" },
+    #endif
+        { "---", 0, 0, NULL },
+        { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
+        { copy_Icon " ${menu.dup}", 0, 0, "bookmark.dup" },
+        { "${menu.copyurl}", 0, 0, "bookmark.copy" },
+        { "---", 0, 0, NULL },
+        { "", 0, 0, "bookmark.tag tag:subscribed" },
+        { "", 0, 0, "bookmark.tag tag:homepage" },
+        { "", 0, 0, "bookmark.tag tag:remotesource" },
+        { "---", 0, 0, NULL },
+    #if defined (iPlatformDesktop)
+        { uiTextCaution_ColorEscape "${bookmark.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
+    #else
+        { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
+    #endif
+        { "---", 0, 0, NULL },
+        { folder_Icon " ${menu.newfolder}", 0, 0, "bookmark.addfolder" },
+        { upDownArrow_Icon " ${menu.sort.alpha}", 0, 0, "bookmark.sortfolder" },
+        { "---", 0, 0, NULL },
+        { reload_Icon " ${bookmarks.reload}", 0, 0, "bookmarks.reload.remote" }
+    };
+    d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
+    d->modeMenu = makeMenu_Widget(
+        as_Widget(d), bookmarkModeMenuItems_, iElemCount(bookmarkModeMenuItems_));
+    /* Menu for a bookmark folder. */ {
+        iArray *items = new_Array(sizeof(iMenuItem));
+        pushBackN_Array(
+            items,
+            (iMenuItem[]){
+                { openTab_Icon " ${menu.folder.opentab}", 0, 0, "bookmark.open newtab:1" },
+                { openWindow_Icon " ${menu.openwindow}", 0, 0, "bookmark.open newwindow:1" },
+                { "---" },
+                { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
+                { "---" },
+        #if defined (iPlatformDesktop)
+                { uiTextCaution_ColorEscape "${bookmark.folder.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
+        #else
+                { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
+        #endif
+                { "---" } },
+            7);
+        if (isMobile_Platform()) {
+            remove_Array(items, 1); /* just one window */
+        }
+        pushBackN_Array(items, bookmarkModeMenuItems_, iElemCount(bookmarkModeMenuItems_));
+        d->folderMenu = makeMenu_Widget(as_Widget(d), constData_Array(items), size_Array(items));
+        delete_Array(items);
+    }
+}
+
+static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
+
+}
+
 static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepActions) {
     const iBool isMobile = (deviceType_App() != desktop_AppDeviceType);
     clear_ListWidget(d->list);
     releaseChildren_Widget(d->blank);
     if (!keepActions) {
+        if (focus_Widget() && hasParent_Widget(focus_Widget(), as_Widget(d))) {
+            /* Something inside this sidebar has input focus, so let it go first. */
+            setFocus_Widget(NULL);
+        }
         releaseChildren_Widget(d->actions);
     }
     d->actions->rect.size.y = 0;
@@ -452,9 +558,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const iMenuItem menuItems[] = {
                 { openTab_Icon " ${menu.opentab}", 0, 0, "feed.entry.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "feed.entry.open newtab:2" },
-    #if defined (iPlatformDesktop)
+            #if defined (iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "feed.entry.open newwindow:1" },
-    #endif
+            #endif
                 { "---", 0, 0, NULL },
                 { circle_Icon " ${feeds.entry.markread}", 0, 0, "feed.entry.toggleread" },
                 { downArrow_Icon " ${feeds.entry.markbelowread}", 0, 0, "feed.entry.markread below:1" },
@@ -493,104 +599,42 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
         }
         case bookmarks_SidebarMode: {
             iAssert(get_Root() == d->widget.root);
-            iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTree_Bookmark, NULL, NULL)) {
-                const iBookmark *bm = i.ptr;
-                if (isBookmarkFolded_SidebarWidget_(d, bm)) {
-                    continue; /* inside a closed folder */
-                }
-                iSidebarItem *item = new_SidebarItem();
-                item->listItem.isDraggable = iTrue;
-                item->isBold = item->listItem.isDropTarget = isFolder_Bookmark(bm);
-                item->id = id_Bookmark(bm);
-                item->indent = depth_Bookmark(bm);
-                if (isFolder_Bookmark(bm)) {
-                    item->icon = contains_IntSet(d->closedFolders, item->id) ? 0x27e9 : 0xfe40;
-                }
-                else {
-                    item->icon = bm->icon;
-                }
-                set_String(&item->url, &bm->url);
-                set_String(&item->label, &bm->title);
-                /* Icons for special behaviors. */ {
-                    if (bm->flags & subscribed_BookmarkFlag) {
-                        appendChar_String(&item->meta, 0x2605);
-                    }
-                    if (bm->flags & homepage_BookmarkFlag) {
-                        appendChar_String(&item->meta, 0x1f3e0);
-                    }
-                    if (bm->flags & remote_BookmarkFlag) {
-                        item->listItem.isDraggable = iFalse;
-                    }
-                    if (bm->flags & remoteSource_BookmarkFlag) {
-                        appendChar_String(&item->meta, 0x2913);
-                        item->isBold = iTrue;
-                    }
-                    if (bm->flags & linkSplit_BookmarkFlag) {
-                        appendChar_String(&item->meta, 0x25e7);
-                    }
-                    if (!isEmpty_String(&bm->identity)) {
-                        appendCStr_String(&item->meta, person_Icon);
-                    }
-                }
-                addItem_ListWidget(d->list, item);
-                iRelease(item);
+            iInputWidget *filter = findChild_Widget(d->actions, "filter.bookmark.input");
+            if (!isEmpty_String(text_InputWidget(filter))) {
+                updateFilteredBookmarkItems_SidebarWidget_(d);
             }
-            const iMenuItem menuItems[] = {
-                { openTab_Icon " ${menu.opentab}", 0, 0, "bookmark.open newtab:1" },
-                { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "bookmark.open newtab:2" },
-    #if defined (iPlatformDesktop)
-                { openWindow_Icon " ${menu.openwindow}", 0, 0, "bookmark.open newwindow:1" },
-    #endif
-                { "---", 0, 0, NULL },
-                { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
-                { copy_Icon " ${menu.dup}", 0, 0, "bookmark.dup" },
-                { "${menu.copyurl}", 0, 0, "bookmark.copy" },
-                { "---", 0, 0, NULL },
-                { "", 0, 0, "bookmark.tag tag:subscribed" },
-                { "", 0, 0, "bookmark.tag tag:homepage" },
-                { "", 0, 0, "bookmark.tag tag:remotesource" },
-                { "---", 0, 0, NULL },
-    #if defined (iPlatformDesktop)
-                { uiTextCaution_ColorEscape "${bookmark.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
-    #else
-                { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
-    #endif
-                { "---", 0, 0, NULL },
-                { folder_Icon " ${menu.newfolder}", 0, 0, "bookmark.addfolder" },
-                { upDownArrow_Icon " ${menu.sort.alpha}", 0, 0, "bookmark.sortfolder" },
-                { "---", 0, 0, NULL },
-                { reload_Icon " ${bookmarks.reload}", 0, 0, "bookmarks.reload.remote" }
-            };
-            d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
-            d->modeMenu = makeMenu_Widget(
-                as_Widget(d), bookmarkModeMenuItems_, iElemCount(bookmarkModeMenuItems_));
-            /* Menu for a bookmark folder. */ {
-                iArray *items = new_Array(sizeof(iMenuItem));
-                pushBackN_Array(
-                    items,
-                    (iMenuItem[]){
-                        { openTab_Icon " ${menu.folder.opentab}", 0, 0, "bookmark.open newtab:1" },
-                        { openWindow_Icon " ${menu.openwindow}", 0, 0, "bookmark.open newwindow:1" },
-                        { "---" },
-                        { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
-                        { "---" },
-    #if defined (iPlatformDesktop)
-                        { uiTextCaution_ColorEscape "${bookmark.folder.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
-    #else
-                        { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
-    #endif
-                        { "---" } },
-                    7);
-                if (isMobile_Platform()) {
-                    remove_Array(items, 1); /* just one window */
-                }
-                pushBackN_Array(items, bookmarkModeMenuItems_, iElemCount(bookmarkModeMenuItems_));
-                d->folderMenu = makeMenu_Widget(as_Widget(d), constData_Array(items), size_Array(items));
-                delete_Array(items);
+            else {
+                updateBookmarkItems_SidebarWidget_(d);
             }
-            if (isMobile) {
-                addActionButton_SidebarWidget_(d, "${sidebar.action.bookmarks.newfolder}",
-                                               "bookmarks.addfolder", !d->isEditing ? hidden_WidgetFlag : 0);
+            if (keepActions) break;
+            if (!isMobile) {
+                /* Filter/search field. */
+                /* TODO: Where to put this on mobile? */
+                iLabelWidget *magnifier =
+                    addChildFlags_Widget(d->actions,
+                                        iClob(new_LabelWidget(magnifyingGlass_Icon, NULL)),
+                                        frameless_WidgetFlag | noBackground_WidgetFlag);
+                /*setCommand_LabelWidget(
+                    magnifier, collectNewCStr_String("focus.set id:filter.bookmark.input"));*/
+                iInputWidget *filter = new_InputWidget(0);
+                setId_Widget(as_Widget(filter), "filter.bookmark.input");
+                setHint_InputWidget(filter, "${hint.filter.bookmark}");
+                setSelectAllOnFocus_InputWidget(filter, iTrue);
+                setNotifyEdits_InputWidget(filter, iTrue);
+                setLineBreaksEnabled_InputWidget(filter, iFalse);
+                addChildFlags_Widget(
+                    d->actions, iClob(filter), expand_WidgetFlag | frameless_WidgetFlag);
+                addChildFlags_Widget(d->actions,
+                                    iClob(newIcon_LabelWidget(
+                                        close_Icon, SDLK_ESCAPE, 0, "filter.bookmark.clear")),
+                                    noBackground_WidgetFlag | frameless_WidgetFlag);
+            }
+            else {
+                /* On mobile, we need to show buttons for edit actions. */
+                addActionButton_SidebarWidget_(d,
+                                               "${sidebar.action.bookmarks.newfolder}",
+                                               "bookmarks.addfolder",
+                                               !d->isEditing ? hidden_WidgetFlag : 0);
                 addChildFlags_Widget(d->actions, iClob(new_Widget()), expand_WidgetFlag);
                 addActionButton_SidebarWidget_(d,
                     d->isEditing ? "${sidebar.close}" : "${sidebar.action.bookmarks.edit}",
@@ -643,9 +687,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const iMenuItem menuItems[] = {
                 { openTab_Icon " ${menu.opentab}", 0, 0, "history.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "history.open newtab:2" },
-    #if defined (iPlatformDesktop)
+            #if defined (iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "history.open newwindow:1" },
-    #endif
+            #endif
                 { "---" },
                 { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "history.addbookmark" },
                 { "${menu.copyurl}", 0, 0, "history.copy" },
@@ -662,8 +706,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 }, 1);
             if (isMobile) {
                 addChildFlags_Widget(d->actions, iClob(new_Widget()), expand_WidgetFlag);
-                iLabelWidget *btn = addActionButton_SidebarWidget_(d, "${sidebar.action.history.clear}",
-                                                                   "history.clear confirm:1", 0);
+                iLabelWidget *btn = addActionButton_SidebarWidget_(
+                    d, "${sidebar.action.history.clear}", "history.clear confirm:1", 0);
             }
             break;
         }
@@ -671,8 +715,10 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             isEmpty = !updateItems_CertListWidget(d->certList);
             /* Actions. */
             if (!isEmpty) {
-                addActionButton_SidebarWidget_(d, add_Icon " ${sidebar.action.ident.new}", "ident.new", 0);
-                addActionButton_SidebarWidget_(d, "${sidebar.action.ident.import}", "ident.import", 0);
+                addActionButton_SidebarWidget_(
+                    d, add_Icon " ${sidebar.action.ident.new}", "ident.new", 0);
+                addActionButton_SidebarWidget_(
+                    d, "${sidebar.action.ident.import}", "ident.import", 0);
             }
             break;
         }
@@ -1574,6 +1620,12 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                     scrollToItem_ListWidget(d->list, addedIndex, 200);
                 }
             }
+        }
+        else if (d->mode == bookmarks_SidebarMode &&
+                 hasParent_Widget(constAs_Widget(pointer_Command(cmd)), w) &&
+                 equalArg_Command(cmd, "input.edited", "id", "filter.bookmark.input")) {
+            updateItemsWithFlags_SidebarWidget_(d, iTrue);
+            return iTrue;
         }
         else if (equal_Command(cmd, "idents.changed") && d->mode == identities_SidebarMode) {
             updateItems_SidebarWidget_(d);
