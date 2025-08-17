@@ -802,6 +802,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 { barRightArrow_Icon " ${menu.closetab.below}", 0, 0, "opendocs.close toright:1" },
                 { "${menu.closetab.other}", 0, 0, "opendocs.close toleft:1 toright:1" },
                 { "---" },
+                { "${menu.movetab.split}", 0, 0, "opendocs.swap" },
+                { "${menu.movetab.newwindow}", 0, 0, "opendocs.swap newwindow:1" },
+                { "---" },
                 { copy_Icon " ${menu.duptab}", 0, 0, "opendocs.dup" },
                 { "${menu.copyurl}", 0, 0, "opendocs.copyurl" },
                 { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "opendocs.bookmark" },
@@ -2226,6 +2229,14 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 makeBookmarkCreation_Widget(&item->url,
                                             bookmarkTitle_DocumentWidget(doc),
                                             siteIcon_GmDocument(document_DocumentWidget(doc)));
+            }
+            return iTrue;
+        }
+        else if (isCommand_Widget(w, ev, "opendocs.swap")) {
+            const iSidebarItem *item = d->contextItem;
+            if (item) {
+                postCommandf_App("tabs.switch id:%s", cstr_String(&item->meta));
+                postCommandf_App("tabs.swap newwindow:%d", argLabel_Command(cmd, "newwindow"));
             }
             return iTrue;
         }

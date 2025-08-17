@@ -2272,7 +2272,7 @@ void createUserInterface_Root(iRoot *d) {
         setId_Widget(toolsMenu, "toolsmenu");
     }
     /* Global keyboard shortcuts. */ {
-        addAction_Widget(root, SDLK_h, KMOD_PRIMARY | KMOD_SHIFT, "navigate.home");
+        addAction_Widget(root, 'h', KMOD_PRIMARY | KMOD_SHIFT, "navigate.home");
         addAction_Widget(root, 'l', KMOD_PRIMARY, "navigate.focus");
         addAction_Widget(root, 'f', KMOD_PRIMARY, "focus.set id:find.input id2:filter.bookmark.input");
         addAction_Widget(root, '1', leftSidebarTab_KeyModifier, "sidebar.mode arg:0 toggle:1");
@@ -2280,12 +2280,20 @@ void createUserInterface_Root(iRoot *d) {
         addAction_Widget(root, '3', leftSidebarTab_KeyModifier, "sidebar.mode arg:2 toggle:1");
         addAction_Widget(root, '4', leftSidebarTab_KeyModifier, "sidebar.mode arg:3 toggle:1");
         addAction_Widget(root, '5', leftSidebarTab_KeyModifier, "sidebar.mode arg:4 toggle:1");
+        addAction_Widget(root, '6', leftSidebarTab_KeyModifier, "sidebar.mode arg:5 toggle:1");
+        addAction_Widget(root, '7', leftSidebarTab_KeyModifier, "sidebar.mode arg:6 toggle:1");
+        addAction_Widget(root, '8', leftSidebarTab_KeyModifier, "sidebar.mode arg:7 toggle:1");
+        addAction_Widget(root, '9', leftSidebarTab_KeyModifier, "sidebar.mode arg:8 toggle:1");
         addAction_Widget(root, '1', rightSidebarTab_KeyModifier, "sidebar2.mode arg:0 toggle:1");
         addAction_Widget(root, '2', rightSidebarTab_KeyModifier, "sidebar2.mode arg:1 toggle:1");
         addAction_Widget(root, '3', rightSidebarTab_KeyModifier, "sidebar2.mode arg:2 toggle:1");
         addAction_Widget(root, '4', rightSidebarTab_KeyModifier, "sidebar2.mode arg:3 toggle:1");
         addAction_Widget(root, '5', rightSidebarTab_KeyModifier, "sidebar2.mode arg:4 toggle:1");
-        addAction_Widget(root, SDLK_j, KMOD_PRIMARY, "splitmenu.open");
+        addAction_Widget(root, '6', rightSidebarTab_KeyModifier, "sidebar2.mode arg:5 toggle:1");
+        addAction_Widget(root, '7', rightSidebarTab_KeyModifier, "sidebar2.mode arg:6 toggle:1");
+        addAction_Widget(root, '8', rightSidebarTab_KeyModifier, "sidebar2.mode arg:7 toggle:1");
+        addAction_Widget(root, '9', rightSidebarTab_KeyModifier, "sidebar2.mode arg:8 toggle:1");
+        addAction_Widget(root, 'j', KMOD_PRIMARY, "splitmenu.open");
         addAction_Widget(root, SDLK_F10, 0, "menubar.focus");
     }
     updateMetrics_Root(d);

@@ -5495,7 +5495,10 @@ void setUrlFlags_DocumentWidget(iDocumentWidget *d, const iString *url, int setU
                  setUrlFlags & preventInlining_DocumentWidgetSetUrlFlag);
     iChangeFlags(d->flags, waitForIdle_DocumentWidgetFlag,
                  setUrlFlags & waitForOtherDocumentsToIdle_DocumentWidgetSetUrlFag);
-    d->flags |= goBackOnStop_DocumentWidgetFlag | unseen_DocumentWidgetFlag;
+    d->flags |= goBackOnStop_DocumentWidgetFlag;
+    if (document_App() != d) {
+        d->flags |= unseen_DocumentWidgetFlag;
+    }
     setLinkNumberMode_DocumentWidget_(d, iFalse);
     setUrl_DocumentWidget_(d, urlFragmentStripped_String(url));
     if (setIdent) {
