@@ -296,6 +296,31 @@ static const iMenuItem bookmarkModeMenuItems_[] = {
     { reload_Icon " ${bookmarks.reload}", 0, 0, "bookmarks.reload.remote" }
 };
 
+static void setupFromBookmark_SidebarItem_(iSidebarItem *d, const iBookmark *bm) {
+    d->id = id_Bookmark(bm);
+    d->indent = depth_Bookmark(bm);
+    d->icon = bm->icon;
+    set_String(&d->url, &bm->url);
+    set_String(&d->label, &bm->title);
+    /* Icons for special behaviors. */
+    if (bm->flags & subscribed_BookmarkFlag) {
+        appendChar_String(&d->meta, 0x2605);
+    }
+    if (bm->flags & homepage_BookmarkFlag) {
+        appendChar_String(&d->meta, 0x1f3e0);
+    }
+    if (bm->flags & remoteSource_BookmarkFlag) {
+        appendChar_String(&d->meta, 0x2913);
+        d->isBold = iTrue;
+    }
+    if (bm->flags & linkSplit_BookmarkFlag) {
+        appendChar_String(&d->meta, 0x25e7);
+    }
+    if (!isEmpty_String(&bm->identity)) {
+        appendCStr_String(&d->meta, person_Icon);
+    }
+}
+
 static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
     iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTree_Bookmark, NULL, NULL)) {
         const iBookmark *bm = i.ptr;
@@ -303,38 +328,14 @@ static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
             continue; /* inside a closed folder */
         }
         iSidebarItem *item = new_SidebarItem();
+        setupFromBookmark_SidebarItem_(item, bm);
         item->listItem.isDraggable = iTrue;
         item->isBold = item->listItem.isDropTarget = isFolder_Bookmark(bm);
-        item->id = id_Bookmark(bm);
-        item->indent = depth_Bookmark(bm);
         if (isFolder_Bookmark(bm)) {
             item->icon = contains_IntSet(d->closedFolders, item->id) ? 0x27e9 : 0xfe40;
         }
-        else {
-            item->icon = bm->icon;
-        }
-        set_String(&item->url, &bm->url);
-        set_String(&item->label, &bm->title);
-        /* Icons for special behaviors. */ {
-            if (bm->flags & subscribed_BookmarkFlag) {
-                appendChar_String(&item->meta, 0x2605);
-            }
-            if (bm->flags & homepage_BookmarkFlag) {
-                appendChar_String(&item->meta, 0x1f3e0);
-            }
-            if (bm->flags & remote_BookmarkFlag) {
-                item->listItem.isDraggable = iFalse;
-            }
-            if (bm->flags & remoteSource_BookmarkFlag) {
-                appendChar_String(&item->meta, 0x2913);
-                item->isBold = iTrue;
-            }
-            if (bm->flags & linkSplit_BookmarkFlag) {
-                appendChar_String(&item->meta, 0x25e7);
-            }
-            if (!isEmpty_String(&bm->identity)) {
-                appendCStr_String(&item->meta, person_Icon);
-            }
+        if (bm->flags & remote_BookmarkFlag) {
+            item->listItem.isDraggable = iFalse;
         }
         addItem_ListWidget(d->list, item);
         iRelease(item);
@@ -394,8 +395,47 @@ static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
     }
 }
 
-static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
+static iBool filterBookmark_String_(void *context, const iBookmark *bm) {
+    const iString *term = context;
+    size_t pos;
+    if (isFolder_Bookmark(bm)) return iFalse;
+    if (startsWith_String(term, ".")) {
+        /* Starting with period means a special tag. */
+        const uint32_t flag = fromSpecialTag_BookmarkFlag(cstr_String(term));
+        if (flag) {
+            return (bm->flags & flag) != 0;
+        }
+    }
+    if (indexOfCStrSc_String(&bm->title, cstr_String(term), &iCaseInsensitive) != iInvalidPos) {
+        return iTrue;
+    }
+    if (indexOfCStrSc_String(&bm->url, cstr_String(term), &iCaseInsensitive) != iInvalidPos) {
+        return iTrue;
+    }
+    /* Check each tag separately. */
+    iRangecc tag = iNullRange;
+    while (nextSplit_Rangecc(range_String(&bm->tags), " ", &tag)) {
+        if (lastIndexOfCStr_Rangecc(tag, cstr_String(term)) != iInvalidPos) {
+            return iTrue;
+        }
+    }
+    return iFalse;
+}
 
+static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
+    const iWidget      *w           = constAs_Widget(d);
+    const iInputWidget *filterInput = findChild_Widget(w, "filter.bookmark.input");
+    iString            *term        = lower_String(text_InputWidget(filterInput));
+    iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTitleAscending_Bookmark,
+                                              filterBookmark_String_, term)) {
+        const iBookmark *bm = i.ptr;
+        iSidebarItem *item = new_SidebarItem();
+        setupFromBookmark_SidebarItem_(item, bm);
+        item->indent = 0;
+        addItem_ListWidget(d->list, item);
+        iRelease(item);
+    }
+    delete_String(term);
 }
 
 static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepActions) {
@@ -612,10 +652,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 /* TODO: Where to put this on mobile? */
                 iLabelWidget *magnifier =
                     addChildFlags_Widget(d->actions,
-                                        iClob(new_LabelWidget(magnifyingGlass_Icon, NULL)),
-                                        frameless_WidgetFlag | noBackground_WidgetFlag);
-                /*setCommand_LabelWidget(
-                    magnifier, collectNewCStr_String("focus.set id:filter.bookmark.input"));*/
+                                         iClob(new_LabelWidget(magnifyingGlass_Icon, NULL)),
+                                         frameless_WidgetFlag | noBackground_WidgetFlag);
                 iInputWidget *filter = new_InputWidget(0);
                 setId_Widget(as_Widget(filter), "filter.bookmark.input");
                 setHint_InputWidget(filter, "${hint.filter.bookmark}");
@@ -624,10 +662,10 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 setLineBreaksEnabled_InputWidget(filter, iFalse);
                 addChildFlags_Widget(
                     d->actions, iClob(filter), expand_WidgetFlag | frameless_WidgetFlag);
-                addChildFlags_Widget(d->actions,
-                                    iClob(newIcon_LabelWidget(
-                                        close_Icon, SDLK_ESCAPE, 0, "filter.bookmark.clear")),
-                                    noBackground_WidgetFlag | frameless_WidgetFlag);
+                addChildFlags_Widget(
+                    d->actions,
+                    iClob(newIcon_LabelWidget(close_Icon, SDLK_ESCAPE, 0, "filter.bookmark.clear")),
+                    noBackground_WidgetFlag | frameless_WidgetFlag);
             }
             else {
                 /* On mobile, we need to show buttons for edit actions. */
