@@ -388,7 +388,13 @@ static size_t resolveDragDestination_ListWidget_(const iListWidget *d, iInt2 dst
     size_t           index = itemIndex_ListWidget(d, dstPos);
     const iListItem *item  = constItem_ListWidget(d, index);
     if (!item) {
-        index = (dstPos.y < mid_Rect(bounds_Widget(constAs_Widget(d))).y ? 0 : (numItems_ListWidget(d) - 1));
+        const iWidget *w            = constAs_Widget(d);
+        const int      widgetHeight = height_Rect(bounds_Widget(w));
+        const int      visHeight    = iMin(numItems_ListWidget(d) * d->itemHeight, widgetHeight);
+        /* Clamp to first/last item. */
+        index =
+            (dstPos.y < top_Rect(bounds_Widget(w)) + visHeight / 2 ? 0
+                                                                   : (numItems_ListWidget(d) - 1));
         item = constItem_ListWidget(d, index);
     }
     const iRect   rect = itemRect_ListWidget(d, index);
@@ -780,6 +786,7 @@ static void draw_ListWidget_(const iListWidget *d) {
     draw_VisBuf(d->visBuf, addY_I2(topLeft_Rect(bounds), -scrollY), ySpan_Rect(bounds));
     const iBool isMobile = (deviceType_App() != desktop_AppDeviceType);
     const iInt2 mousePos = mouseCoord_Window(get_Window(), isMobile ? SDL_TOUCH_MOUSEID : 0);
+    /* The dragged item is drawn independently of the rest. */
     if (d->dragItem != iInvalidPos && (isMobile || contains_Rect(bounds, mousePos))) {
         iInt2 pos = add_I2(mousePos, d->dragOrigin);
         const iListItem *item = constAt_PtrArray(&d->items, d->dragItem);

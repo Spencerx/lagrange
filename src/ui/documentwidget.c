@@ -1824,7 +1824,8 @@ static void updateFromCachedResponse_DocumentWidget_(iDocumentWidget *d, float n
     postProcessRequestContent_DocumentWidget_(d, iTrue);
     resetScrollPosition_DocumentView(d->view, d->initNormScrollY);
     cacheDocumentGlyphs_DocumentWidget_(d);
-    d->flags &= ~(urlChanged_DocumentWidgetFlag | drawDownloadCounter_DocumentWidgetFlag);
+    d->flags &= ~(urlChanged_DocumentWidgetFlag | drawDownloadCounter_DocumentWidgetFlag |
+                  unseen_DocumentWidgetFlag);
     postCommandf_Root(
         as_Widget(d)->root, "document.changed doc:%p url:%s", d, cstr_String(d->mod.url));
 }

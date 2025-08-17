@@ -791,6 +791,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 item->isBold = isUnseen_DocumentWidget(doc);
                 item->indent = isVisible_Widget(doc) ? 1 : 0;
                 addItem_ListWidget(d->list, item);
+                item->listItem.isDraggable = iTrue;
                 iRelease(item);
             }
             /* We can provide both tab and page related items in the menu. */
@@ -1825,7 +1826,16 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
             else if (d->mode == openDocuments_SidebarMode) {
                 /* Reorder tabs. */
-
+                const int           srcIndex = argU32Label_Command(cmd, "arg");
+                const iSidebarItem *item     = constItem_ListWidget(d->list, srcIndex);
+                /* Dragging onto is the same as dragging before. */
+                const int dstIndex =
+                    hasLabel_Command(cmd, "onto")     ? argU32Label_Command(cmd, "onto")
+                    : hasLabel_Command(cmd, "before") ? argU32Label_Command(cmd, "before")
+                                                      : argU32Label_Command(cmd, "after");
+                /* Must be the current tab to move. */
+                postCommandf_App("tabs.switch id:%s", cstr_String(&item->meta));
+                postCommandf_App("tabs.move arg:%d", dstIndex - srcIndex);
             }
             return iTrue;
         }
