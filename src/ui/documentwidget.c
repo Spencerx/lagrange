@@ -241,6 +241,7 @@ enum iDocumentWidgetFlag {
                                                             tabs to finished their requests */
     pendingRedirect_DocumentWidgetFlag       = iBit(29), /* a redirect has been issued */
     goBackOnStop_DocumentWidgetFlag          = iBit(30),
+    unseen_DocumentWidgetFlag                = iBit(31), /* user has not seen the contents */
 };
 
 enum iDocumentLinkOrdinalMode {
@@ -388,6 +389,10 @@ iBool isShowingLinkNumbers_DocumentWidget(const iDocumentWidget *d) {
 
 iBool isBlank_DocumentWidget(const iDocumentWidget *d) {
     return (d->flags & drawDownloadCounter_DocumentWidgetFlag) == 0;
+}
+
+iBool isUnseen_DocumentWidget(const iDocumentWidget *d) {
+    return (d->flags & unseen_DocumentWidgetFlag) != 0;
 }
 
 iBool isHoverAllowed_DocumentWidget(const iDocumentWidget *d) {
@@ -2922,6 +2927,7 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
             updateFetchProgress_DocumentWidget_(d);
             updateHover_Window(window_Widget(w));
             set_String(&w->root->tabInsertId, id_Widget(w)); /* insert next to current tab */
+            iChangeFlags(d->flags, unseen_DocumentWidgetFlag, iFalse); /* has been seen now */
         }
         showOrHideInputPrompt_DocumentWidget_(d);
         init_Anim(&d->view->sideOpacity, 0);
@@ -5488,7 +5494,7 @@ void setUrlFlags_DocumentWidget(iDocumentWidget *d, const iString *url, int setU
                  setUrlFlags & preventInlining_DocumentWidgetSetUrlFlag);
     iChangeFlags(d->flags, waitForIdle_DocumentWidgetFlag,
                  setUrlFlags & waitForOtherDocumentsToIdle_DocumentWidgetSetUrlFag);
-    d->flags |= goBackOnStop_DocumentWidgetFlag;
+    d->flags |= goBackOnStop_DocumentWidgetFlag | unseen_DocumentWidgetFlag;
     setLinkNumberMode_DocumentWidget_(d, iFalse);
     setUrl_DocumentWidget_(d, urlFragmentStripped_String(url));
     if (setIdent) {

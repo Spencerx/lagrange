@@ -787,22 +787,23 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 }
                 set_String(&item->url, url_DocumentWidget(doc));
                 set_String(&item->meta, id_Widget(constAs_Widget(doc)));
-                item->icon = siteIcon_GmDocument(document_DocumentWidget(doc));
-                item->isBold = isVisible_Widget(doc);
+                item->icon   = siteIcon_GmDocument(document_DocumentWidget(doc));
+                item->isBold = isUnseen_DocumentWidget(doc);
+                item->indent = isVisible_Widget(doc) ? 1 : 0;
                 addItem_ListWidget(d->list, item);
                 iRelease(item);
             }
             /* We can provide both tab and page related items in the menu. */
             const iMenuItem menuItems[] = {
-                { copy_Icon " ${menu.duptab}", 0, 0, "opendocs.dup" },
-                { "${menu.copyurl}", 0, 0, "opendocs.copyurl" },
-                { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "opendocs.bookmark" },
-                { "---" },
                 { close_Icon " ${menu.closetab}", 0, 0, "opendocs.close" },
                 { "---" },
                 { barLeftArrow_Icon " ${menu.closetab.above}", 0, 0, "opendocs.close toleft:1" },
                 { barRightArrow_Icon " ${menu.closetab.below}", 0, 0, "opendocs.close toright:1" },
                 { "${menu.closetab.other}", 0, 0, "opendocs.close toleft:1 toright:1" },
+                { "---" },
+                { copy_Icon " ${menu.duptab}", 0, 0, "opendocs.dup" },
+                { "${menu.copyurl}", 0, 0, "opendocs.copyurl" },
+                { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "opendocs.bookmark" },
             };
             d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             break;
@@ -888,7 +889,7 @@ static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     /* Note: identity item height is defined by CertListWidget */
 #if !defined (iPlatformTerminal)
     const float heights[max_SidebarMode] = {
-        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f
+        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.333f, 1.333f, 1.2f, 1.2f, 1.2f, 1.2f
     };
 #else
     const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
@@ -2773,9 +2774,14 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
     }
     else if (sidebar->mode == openDocuments_SidebarMode) {
         const int fg = isPressing  ? uiTextPressed_ColorId
-                       : d->isBold ? uiTextStrong_ColorId
+                       : d->isBold ? uiTextStrong_ColorId /* unseen */
+                       : d->indent ? uiTextStrong_ColorId /* active */
                        : isHover   ? uiTextFramelessHover_ColorId
                                    : uiText_ColorId;
+
+        if (d->indent && !isPressing) {
+            fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
+        }
 
         const iInt2 textPos = add_I2(topLeft_Rect(itemRect),
                                      init_I2(3 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
