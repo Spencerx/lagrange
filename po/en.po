@@ -738,6 +738,9 @@ msgstr "Delete Bookmark Folder"
 msgid "bookmarks.reload"
 msgstr "Refresh Remote Sources"
 
+msgid "hint.filter.bookmark"
+msgstr "filter bookmarks"
+
 msgid "ident.using"
 msgstr "Using on this page"
 

@@ -9,6 +9,7 @@
 ## 1.19
 
 New features:
+* Bookmarks sidebar has a filter field. It looks through bookmark titles, URLs, and tags. Built-in tags like ".subscribed" can be used to find bookmarks with special behavior (see Help section 1.4.4).
 * Setting for showing quote text in italics.
 
 Changes and enhancements:

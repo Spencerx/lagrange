@@ -145,6 +145,7 @@ struct Impl_SidebarWidget {
     iSidebarItem *    contextItem;  /* list item accessed in the context menu */
     size_t            contextIndex; /* index of list item accessed in the context menu */
     iIntSet *         closedFolders; /* otherwise open */
+    iString           bookmarkFilter;
 };
 
 iDefineObjectConstructionArgs(SidebarWidget, (enum iSidebarSide side), side)
@@ -423,9 +424,8 @@ static iBool filterBookmark_String_(void *context, const iBookmark *bm) {
 }
 
 static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
-    const iWidget      *w           = constAs_Widget(d);
-    const iInputWidget *filterInput = findChild_Widget(w, "filter.bookmark.input");
-    iString            *term        = lower_String(text_InputWidget(filterInput));
+    const iWidget *w    = constAs_Widget(d);
+    iString       *term = lower_String(&d->bookmarkFilter);
     iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTitleAscending_Bookmark,
                                               filterBookmark_String_, term)) {
         const iBookmark *bm = i.ptr;
@@ -639,14 +639,15 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
         }
         case bookmarks_SidebarMode: {
             iAssert(get_Root() == d->widget.root);
-            iInputWidget *filter = findChild_Widget(d->actions, "filter.bookmark.input");
-            if (!isEmpty_String(text_InputWidget(filter))) {
+            if (!isEmpty_String(&d->bookmarkFilter)) {
                 updateFilteredBookmarkItems_SidebarWidget_(d);
             }
             else {
                 updateBookmarkItems_SidebarWidget_(d);
             }
-            if (keepActions) break;
+            if (keepActions) {
+                break;
+            }
             if (!isMobile) {
                 /* Filter/search field. */
                 /* TODO: Where to put this on mobile? */
@@ -655,17 +656,23 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                                          iClob(new_LabelWidget(magnifyingGlass_Icon, NULL)),
                                          frameless_WidgetFlag | noBackground_WidgetFlag);
                 iInputWidget *filter = new_InputWidget(0);
+                setText_InputWidget(filter, &d->bookmarkFilter);
                 setId_Widget(as_Widget(filter), "filter.bookmark.input");
                 setHint_InputWidget(filter, "${hint.filter.bookmark}");
+                setEatEscape_InputWidget(filter, iFalse);
                 setSelectAllOnFocus_InputWidget(filter, iTrue);
                 setNotifyEdits_InputWidget(filter, iTrue);
                 setLineBreaksEnabled_InputWidget(filter, iFalse);
                 addChildFlags_Widget(
                     d->actions, iClob(filter), expand_WidgetFlag | frameless_WidgetFlag);
-                addChildFlags_Widget(
-                    d->actions,
-                    iClob(newIcon_LabelWidget(close_Icon, SDLK_ESCAPE, 0, "filter.bookmark.clear")),
-                    noBackground_WidgetFlag | frameless_WidgetFlag);
+                setId_Widget(
+                    addChildFlags_Widget(
+                        d->actions,
+                        iClob(newIcon_LabelWidget(
+                            close_Icon, SDLK_ESCAPE, 0, "filter.bookmark.clear")),
+                        noBackground_WidgetFlag | frameless_WidgetFlag |
+                            (isEmpty_String(&d->bookmarkFilter) ? disabled_WidgetFlag : 0)),
+                    "filter.bookmark.clear");
             }
             else {
                 /* On mobile, we need to show buttons for edit actions. */
@@ -994,6 +1001,7 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     d->certList      = NULL;
     d->actions       = NULL;
     d->closedFolders = new_IntSet();
+    init_String(&d->bookmarkFilter);
     /* On a phone, the right sidebar is not used. */
     const iBool isPhone = (deviceType_App() == phone_AppDeviceType);
     if (isPhone) {
@@ -1101,8 +1109,9 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
 }
 
 void deinit_SidebarWidget(iSidebarWidget *d) {
-    deinit_String(&d->cmdPrefix);
+    deinit_String(&d->bookmarkFilter);
     delete_IntSet(d->closedFolders);
+    deinit_String(&d->cmdPrefix);
 }
 
 iBool setButtonFont_SidebarWidget(iSidebarWidget *d, int font) {
@@ -1662,7 +1671,21 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (d->mode == bookmarks_SidebarMode &&
                  hasParent_Widget(constAs_Widget(pointer_Command(cmd)), w) &&
                  equalArg_Command(cmd, "input.edited", "id", "filter.bookmark.input")) {
+            set_String(&d->bookmarkFilter, text_InputWidget(pointer_Command(cmd)));
+            setFlags_Widget(findChild_Widget(d->actions, "filter.bookmark.clear"),
+                            disabled_WidgetFlag,
+                            isEmpty_String(&d->bookmarkFilter));
             updateItemsWithFlags_SidebarWidget_(d, iTrue);
+            return iTrue;
+        }
+        else if (d->mode == bookmarks_SidebarMode &&
+                 equalWidget_Command(cmd, w, "filter.bookmark.clear")) {
+            iInputWidget *filter = findChild_Widget(w, "filter.bookmark.input");
+            setTextCStr_InputWidget(filter, "");
+            setFlags_Widget(pointer_Command(cmd), disabled_WidgetFlag, iTrue);
+            clear_String(&d->bookmarkFilter);
+            updateItemsWithFlags_SidebarWidget_(d, iTrue);
+            setFocus_Widget(as_Widget(filter));
             return iTrue;
         }
         else if (equal_Command(cmd, "idents.changed") && d->mode == identities_SidebarMode) {
