@@ -322,6 +322,33 @@ static void setupFromBookmark_SidebarItem_(iSidebarItem *d, const iBookmark *bm)
     }
 }
 
+static const iMenuItem bookmarkMenuItems_[] = {
+    { openTab_Icon " ${menu.opentab}", 0, 0, "bookmark.open newtab:1" },
+    { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "bookmark.open newtab:2" },
+#if defined (iPlatformDesktop)
+    { openWindow_Icon " ${menu.openwindow}", 0, 0, "bookmark.open newwindow:1" },
+#endif
+    { "---", 0, 0, NULL },
+    { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
+    { copy_Icon " ${menu.dup}", 0, 0, "bookmark.dup" },
+    { "${menu.copyurl}", 0, 0, "bookmark.copy" },
+    { "---", 0, 0, NULL },
+    { "", 0, 0, "bookmark.tag tag:subscribed" },
+    { "", 0, 0, "bookmark.tag tag:homepage" },
+    { "", 0, 0, "bookmark.tag tag:remotesource" },
+    { "---", 0, 0, NULL },
+#if defined (iPlatformDesktop)
+    { uiTextCaution_ColorEscape "${bookmark.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
+#else
+    { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
+#endif
+    { "---", 0, 0, NULL },
+    { folder_Icon " ${menu.newfolder}", 0, 0, "bookmark.addfolder" },
+    { upDownArrow_Icon " ${menu.sort.alpha}", 0, 0, "bookmark.sortfolder" },
+    { "---", 0, 0, NULL },
+    { reload_Icon " ${bookmarks.reload}", 0, 0, "bookmarks.reload.remote" }
+};
+
 static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
     iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTree_Bookmark, NULL, NULL)) {
         const iBookmark *bm = i.ptr;
@@ -341,35 +368,7 @@ static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
         addItem_ListWidget(d->list, item);
         iRelease(item);
     }
-    const iMenuItem menuItems[] = {
-        { openTab_Icon " ${menu.opentab}", 0, 0, "bookmark.open newtab:1" },
-        { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "bookmark.open newtab:2" },
-    #if defined (iPlatformDesktop)
-        { openWindow_Icon " ${menu.openwindow}", 0, 0, "bookmark.open newwindow:1" },
-    #endif
-        { "---", 0, 0, NULL },
-        { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
-        { copy_Icon " ${menu.dup}", 0, 0, "bookmark.dup" },
-        { "${menu.copyurl}", 0, 0, "bookmark.copy" },
-        { "---", 0, 0, NULL },
-        { "", 0, 0, "bookmark.tag tag:subscribed" },
-        { "", 0, 0, "bookmark.tag tag:homepage" },
-        { "", 0, 0, "bookmark.tag tag:remotesource" },
-        { "---", 0, 0, NULL },
-    #if defined (iPlatformDesktop)
-        { uiTextCaution_ColorEscape "${bookmark.delete}", SDLK_BACKSPACE, 0, "bookmark.delete" },
-    #else
-        { delete_Icon " " uiTextCaution_ColorEscape "${bookmark.delete}", 0, 0, "bookmark.delete" },
-    #endif
-        { "---", 0, 0, NULL },
-        { folder_Icon " ${menu.newfolder}", 0, 0, "bookmark.addfolder" },
-        { upDownArrow_Icon " ${menu.sort.alpha}", 0, 0, "bookmark.sortfolder" },
-        { "---", 0, 0, NULL },
-        { reload_Icon " ${bookmarks.reload}", 0, 0, "bookmarks.reload.remote" }
-    };
-    d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
-    d->modeMenu = makeMenu_Widget(
-        as_Widget(d), bookmarkModeMenuItems_, iElemCount(bookmarkModeMenuItems_));
+    d->menu = makeMenu_Widget(as_Widget(d), bookmarkMenuItems_, iElemCount(bookmarkMenuItems_));
     /* Menu for a bookmark folder. */ {
         iArray *items = new_Array(sizeof(iMenuItem));
         pushBackN_Array(
@@ -436,6 +435,10 @@ static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
         iRelease(item);
     }
     delete_String(term);
+    d->menu = makeMenu_Widget(as_Widget(d),
+                              bookmarkMenuItems_,
+                              iElemCount(bookmarkMenuItems_) -
+                                  5 /* only items related to the individual bookmark */);
 }
 
 static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepActions) {
@@ -639,12 +642,15 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
         }
         case bookmarks_SidebarMode: {
             iAssert(get_Root() == d->widget.root);
+            trim_String(&d->bookmarkFilter);
             if (!isEmpty_String(&d->bookmarkFilter)) {
                 updateFilteredBookmarkItems_SidebarWidget_(d);
             }
             else {
                 updateBookmarkItems_SidebarWidget_(d);
             }
+            d->modeMenu = makeMenu_Widget(
+                as_Widget(d), bookmarkModeMenuItems_, iElemCount(bookmarkModeMenuItems_));
             if (keepActions) {
                 break;
             }
