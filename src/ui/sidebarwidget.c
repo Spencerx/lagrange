@@ -792,6 +792,19 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 addItem_ListWidget(d->list, item);
                 iRelease(item);
             }
+            /* We can provide both tab and page related items in the menu. */
+            const iMenuItem menuItems[] = {
+                { copy_Icon " ${menu.duptab}", 0, 0, "opendocs.dup" },
+                { "${menu.copyurl}", 0, 0, "opendocs.copyurl" },
+                { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "opendocs.bookmark" },
+                { "---" },
+                { close_Icon " ${menu.closetab}", 0, 0, "opendocs.close" },
+                { "---" },
+                { barLeftArrow_Icon " ${menu.closetab.above}", 0, 0, "opendocs.close toleft:1" },
+                { barRightArrow_Icon " ${menu.closetab.below}", 0, 0, "opendocs.close toright:1" },
+                { "${menu.closetab.other}", 0, 0, "opendocs.close toleft:1 toright:1" },
+            };
+            d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             break;
         }
         default:
@@ -1679,6 +1692,11 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             updateItems_SidebarWidget_(d);
             scrollOffset_ListWidget(d->list, 0);
         }
+        else if (d->mode == openDocuments_SidebarMode &&
+                 equal_Command(cmd, "document.openurls.changed")) {
+            updateItems_SidebarWidget_(d);
+            return iFalse;
+        }
         else if (equal_Command(cmd, "sidebar.update")) {
             d->numUnreadEntries = numUnread_Feeds();
             checkModeButtonLayout_SidebarWidget_(d);
@@ -1789,19 +1807,24 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
         }
         else if (isCommand_Widget(w, ev, "list.dragged")) {
-            iAssert(d->mode == bookmarks_SidebarMode);
-            if (hasLabel_Command(cmd, "onto")) {
-                /* Dragged onto a folder. */
-                bookmarkMovedOntoFolder_SidebarWidget_(d,
-                                                       argU32Label_Command(cmd, "arg"),
-                                                       argU32Label_Command(cmd, "onto"));
+            if (d->mode == bookmarks_SidebarMode) {
+                if (hasLabel_Command(cmd, "onto")) {
+                    /* Dragged onto a folder. */
+                    bookmarkMovedOntoFolder_SidebarWidget_(d,
+                                                        argU32Label_Command(cmd, "arg"),
+                                                        argU32Label_Command(cmd, "onto"));
+                }
+                else {
+                    const iBool isBefore = hasLabel_Command(cmd, "before");
+                    bookmarkMoved_SidebarWidget_(d,
+                                                argU32Label_Command(cmd, "arg"),
+                                                argU32Label_Command(cmd, isBefore ? "before" : "after"),
+                                                isBefore);
+                }
             }
-            else {
-                const iBool isBefore = hasLabel_Command(cmd, "before");
-                bookmarkMoved_SidebarWidget_(d,
-                                             argU32Label_Command(cmd, "arg"),
-                                             argU32Label_Command(cmd, isBefore ? "before" : "after"),
-                                             isBefore);
+            else if (d->mode == openDocuments_SidebarMode) {
+                /* Reorder tabs. */
+
             }
             return iTrue;
         }
@@ -2184,6 +2207,47 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
             return iTrue;
         }
+        else if (isCommand_Widget(w, ev, "opendocs.bookmark")) {
+            const iSidebarItem *item = d->contextItem;
+            if (item && !isEmpty_String(&item->url)) {
+                const iDocumentWidget *doc = findWidget_App(cstr_String(&item->meta));
+                if (!doc) return iTrue; /* something's stale? */
+                makeBookmarkCreation_Widget(&item->url,
+                                            bookmarkTitle_DocumentWidget(doc),
+                                            siteIcon_GmDocument(document_DocumentWidget(doc)));
+            }
+            return iTrue;
+        }
+        else if (isCommand_Widget(w, ev, "opendocs.dup")) {
+            const iSidebarItem *item = d->contextItem;
+            if (item) {
+                postCommandf_App("tabs.switch id:%s", cstr_String(&item->meta));
+                postCommand_App("tabs.new duplicate:1");
+            }
+            return iTrue;
+        }
+        else if (isCommand_Widget(w, ev, "opendocs.copyurl")) {
+            const iSidebarItem *item = d->contextItem;
+            if (item) {
+                SDL_SetClipboardText(cstr_String(&item->url));
+            }
+            return iTrue;
+        }
+        else if (isCommand_Widget(w, ev, "opendocs.close")) {
+            const iSidebarItem *item = d->contextItem;
+            if (item) {
+                const int              toLeft  = argLabel_Command(cmd, "toleft");
+                const int              toRight = argLabel_Command(cmd, "toright");
+                const iDocumentWidget *doc     = findWidget_App(cstr_String(&item->meta));
+                if (!doc) return iTrue;
+                // postCommandf_App("tabs.switch id:%s", cstr_String(&item->meta));
+                postCommandf_App("tabs.close id:%s toleft:%d toright:%d",
+                                 cstr_String(&item->meta),
+                                 toLeft,
+                                 toRight);
+            }
+            return iTrue;
+        }
         else if (isEdgeSwipable_SidebarWidget_(d) && hasAffinity_Touch(w) &&
                  equal_Command(cmd, "edgeswipe.moved") &&
                  argLabel_Command(cmd, "edge") && !isVisible_Widget(w)) {
@@ -2226,7 +2290,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             return iTrue;
         }
 #endif
-    }
+        }
     if (ev->type == SDL_MOUSEMOTION &&
         (!isVisible_Widget(d->menu) && !isVisible_Widget(d->modeMenu))) {
         const iInt2 mouse = init_I2(ev->motion.x, ev->motion.y);

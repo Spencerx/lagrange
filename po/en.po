@@ -182,6 +182,12 @@ msgstr "Close Tabs To Left"
 msgid "menu.closetab.right"
 msgstr "Close Tabs To Right"
 
+msgid "menu.closetab.above"
+msgstr "Close Tabs Above"
+
+msgid "menu.closetab.below"
+msgstr "Close Tabs Below"
+
 msgid "menu.duptab"
 msgstr "Duplicate Tab"
 
