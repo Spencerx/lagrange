@@ -773,6 +773,27 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             }
             break;
         }
+        case openDocuments_SidebarMode: {
+            iWidget *w = as_Widget(d);
+            iConstForEach(ObjectList, i, listDocuments_App(w->root)) {
+                const iDocumentWidget *doc = i.object;
+                iSidebarItem *item = new_SidebarItem();
+                set_String(&item->label, title_GmDocument(document_DocumentWidget(doc)));
+                if (isEmpty_String(&item->label)) {
+                    set_String(&item->label, url_DocumentWidget(doc));
+                }
+                if (isEmpty_String(&item->label)) {
+                    setCStr_String(&item->label, "\u2014");
+                }
+                set_String(&item->url, url_DocumentWidget(doc));
+                set_String(&item->meta, id_Widget(constAs_Widget(doc)));
+                item->icon = siteIcon_GmDocument(document_DocumentWidget(doc));
+                item->isBold = isVisible_Widget(doc);
+                addItem_ListWidget(d->list, item);
+                iRelease(item);
+            }
+            break;
+        }
         default:
             break;
     }
@@ -853,9 +874,11 @@ static size_t findItem_SidebarWidget_(const iSidebarWidget *d, int id) {
 static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     /* Note: identity item height is defined by CertListWidget */
 #if !defined (iPlatformTerminal)
-    const float heights[max_SidebarMode] = { 1.333f, 2.333f, 1.333f, 0, 1.2f };
+    const float heights[max_SidebarMode] = {
+        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f
+    };
 #else
-    const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1 };
+    const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
 #endif
     if (d->list) {
         setItemHeight_ListWidget(d->list, heights[d->mode] * lineHeight_Text(d->itemFonts[0]));
@@ -1214,6 +1237,11 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
                                   cstr_String(&item->url));
                 setFocus_Widget(NULL);
             }
+            break;
+        }
+        case openDocuments_SidebarMode: {
+            iWidget *tabs = findWidget_Root("doctabs");
+            showTabPage_Widget(tabs, findChild_Widget(tabs, cstr_String(&item->meta)));
             break;
         }
         default:
@@ -2678,6 +2706,29 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             }
         }
         iEndCollect();
+    }
+    else if (sidebar->mode == openDocuments_SidebarMode) {
+        const int fg = isPressing  ? uiTextPressed_ColorId
+                       : d->isBold ? uiTextStrong_ColorId
+                       : isHover   ? uiTextFramelessHover_ColorId
+                                   : uiText_ColorId;
+
+        const iInt2 textPos = add_I2(topLeft_Rect(itemRect),
+                                     init_I2(3 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
+
+        iString label;
+        init_String(&label);
+        set_String(&label, &d->label);
+        const iRangecc host = urlHost_String(&d->url);
+        appendFormat_String(&label,
+                            " %s%s%s",
+                            escape_Color(isPressing ? uiTextPressed_ColorId
+                                         : isHover  ? uiTextFramelessHover_ColorId
+                                                    : uiAnnotation_ColorId),
+                            !isEmpty_Range(&host) ? "\u2014 " : "",
+                            cstr_Rangecc(host));
+        drawRange_Text(font, textPos, fg, range_String(&label));
+        deinit_String(&label);
     }
     if (isListFocus && isHover && constCursorItem_ListWidget(list) == d && !isTerminal_Platform()) {
         /* Visualize the keyboard cursor. */
