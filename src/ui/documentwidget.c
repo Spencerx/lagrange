@@ -292,7 +292,8 @@ struct Impl_DocumentWidget {
     enum iGmStatusCode sourceStatus;
     iString        sourceHeader;
     iString        sourceMime;
-    iBlock         sourceContent; /* original content as received, for saving; set on request finish */
+    iBlock         sourceContent; /* original content as received, for saving;
+                                     set on request finish */
     iTime          sourceTime;
     iGempub *      sourceGempub; /* NULL unless the page is Gempub content */
     iBanner *      banner;
@@ -302,8 +303,6 @@ struct Impl_DocumentWidget {
     iDocumentView *view;
     iLinkInfo *    linkInfo;
     iAnim          swipeOffset; /* applies to both views */
-//    uint32_t       swipeSampleAt;
-//    float          swipeSample;
     iDocumentView *swipeView;   /* outgoing old view */
     iBanner *      swipeBanner; /* used by swipeView only */
 
