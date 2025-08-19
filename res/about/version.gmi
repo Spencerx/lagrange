@@ -18,6 +18,7 @@ Changes and enhancements:
 * X11: Restore windows into their previous workspaces. (Courtesy of @norayr.)
 
 Fixes:
+* Scrollbars had poor contrast in light mode.
 * Quote line indicator was misplaced on empty quote lines.
 
 ## 1.18.7
