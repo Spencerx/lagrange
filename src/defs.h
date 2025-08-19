@@ -318,6 +318,7 @@ iLocalDef int acceptKeyMod_ReturnKeyBehavior(int behavior) {
 #define pageLayout_Icon     page_Icon //"\u21b9" //"\U0001F5B9"
 #define fonts_Icon          "\U0001f5da"
 #define eye_Icon            "\U0001f441"
+#define hierarchy_Icon      "\u22f0"
 
 #if defined (iPlatformTerminal)
 #   undef page_Icon

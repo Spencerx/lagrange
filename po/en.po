@@ -537,6 +537,24 @@ msgstr "Identities"
 msgid "sidebar.outline"
 msgstr "Outline"
 
+msgid "sidebar.structure"
+msgstr "Structure"
+
+msgid "sidebar.documents"
+msgstr "Tabs"
+
+msgid "sidebar.subscriptions"
+msgstr "Subs"
+
+msgid "sidebar.gempub"
+msgstr "Gempub"
+
+msgid "sidebar.page"
+msgstr "Custom"
+
+msgid "sidebar.notes"
+msgstr "Notes"
+
 msgid "sidebar.action.bookmarks.newfolder"
 msgstr "New Folder"
 
