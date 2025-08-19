@@ -790,6 +790,10 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 item->icon   = siteIcon_GmDocument(document_DocumentWidget(doc));
                 item->isBold = isUnseen_DocumentWidget(doc);
                 item->indent = isVisible_Widget(doc) ? 1 : 0;
+                item->id = (isRequestOngoing_DocumentWidget(doc) ? 1 : 0);
+                if (numActivePlayers_Media(constMedia_GmDocument(document_DocumentWidget(doc)))) {
+                    item->id |= 2;
+                }
                 addItem_ListWidget(d->list, item);
                 item->listItem.isDraggable = iTrue;
                 iRelease(item);
@@ -1744,6 +1748,14 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             updateItemsWithFlags_SidebarWidget_(d, iTrue);
             setFocus_Widget(as_Widget(filter));
             return iTrue;
+        }
+        else if (d->mode == openDocuments_SidebarMode &&
+                 (equal_Command(cmd, "document.request.started") ||
+                  equal_Command(cmd, "document.request.finished"))) {
+            /* TODO: There are no notifications for audio player starting/stopping.
+               These would be useful for updating the active-player status icons. */
+            updateItemsWithFlags_SidebarWidget_(d, iTrue);
+            return iFalse;
         }
         else if (equal_Command(cmd, "idents.changed") && d->mode == identities_SidebarMode) {
             updateItems_SidebarWidget_(d);
@@ -2796,7 +2808,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                        : isHover   ? uiTextFramelessHover_ColorId
                                    : uiText_ColorId;
 
-        if (d->indent && !isPressing) {
+        if (d->indent && !isPressing && !isHover) {
             fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
         }
 
@@ -2809,13 +2821,28 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         const iRangecc host = urlHost_String(&d->url);
         appendFormat_String(&label,
                             " %s%s%s",
-                            escape_Color(isPressing ? uiTextPressed_ColorId
-                                         : isHover  ? uiTextFramelessHover_ColorId
-                                                    : uiAnnotation_ColorId),
+                            escape_Color(isPressing  ? uiTextPressed_ColorId
+                                         : isHover   ? uiTextFramelessHover_ColorId
+                                         : d->isBold ? uiAnnotation_ColorId
+                                         : d->indent ? uiAnnotation_ColorId
+                                                     : uiTextShortcut_ColorId),
                             !isEmpty_Range(&host) ? "\u2014 " : "",
                             cstr_Rangecc(host));
         drawRange_Text(font, textPos, fg, range_String(&label));
         deinit_String(&label);
+        /* Status icons appear on the right. */
+        const int metaIconWidth = 7.0f * gap_UI * aspect_UI + blankWidth;
+        iInt2     metaIconPos   = init_I2(right_Rect(itemRect) - metaIconWidth + 0.5f * gap_UI * aspect_UI, textPos.y);
+        iRect     metaIconRect  = initCorners_Rect(addX_I2(topRight_Rect(itemRect), -metaIconWidth),
+                                              bottomRight_Rect(itemRect));
+        if (d->id) { /* used for status flags */
+            fillRect_Paint(p, metaIconRect, d->indent && !isPressing && !isHover ?
+                uiBackgroundUnfocusedSelection_ColorId : bg);
+            draw_Text(font,
+                      metaIconPos,
+                      uiTextAction_ColorId,
+                      d->id & 2 ? "\U0001f50a" /* high volume */ : reload_Icon);
+        }
     }
     if (isListFocus && isHover && constCursorItem_ListWidget(list) == d && !isTerminal_Platform()) {
         /* Visualize the keyboard cursor. */

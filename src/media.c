@@ -599,6 +599,19 @@ void pauseAllPlayers_Media(const iMedia *d, iBool setPaused) {
 #endif
 }
 
+size_t numActivePlayers_Media(const iMedia *d) {
+    size_t n = 0;
+#if defined (LAGRANGE_ENABLE_AUDIO)
+    for (size_t i = 0; i < size_PtrArray(&d->items[audio_MediaType]); ++i) {
+        const iGmAudio *audio = constAt_PtrArray(&d->items[audio_MediaType], i);
+        if (audio->player && isStarted_Player(audio->player) && !isPaused_Player(audio->player)) {
+            n++;
+        }
+    }
+#endif
+    return n;
+}
+
 void downloadStats_Media(const iMedia *d, iMediaId downloadId, const iString **path_out,
                          float *bytesPerSecond_out, iBool *isFinished_out) {
     iAssert(downloadId.type == download_MediaType);

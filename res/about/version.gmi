@@ -9,6 +9,7 @@
 ## 1.19
 
 New features:
+* Sidebar tab for listing all open tabs ("vertical tabs"). The list indicates which tabs have not been seen yet. Drag-and-drop can be used to reorder tabs. There are status icons for page loading and audio playback.
 * Bookmarks sidebar has a filter field. It looks through bookmark titles, URLs, and tags. Built-in tags like ".subscribed" can be used to find bookmarks with special behavior (see Help section 1.4.4).
 * Setting for showing quote text in italics.
 
