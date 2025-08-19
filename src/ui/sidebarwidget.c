@@ -2551,11 +2551,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             (isFocused_Widget(list) && constCursorItem_ListWidget(list) == d) ||
             isDragging;
     const int scrollBarWidth = scrollBarWidth_ListWidget(list);
-#if defined (iPlatformApple)
-    const int blankWidth     = 0;
-#else
-    const int blankWidth     = scrollBarWidth;
-#endif
+    const int blankWidth     = isApple_Platform() ? 0 : scrollBarWidth;
     const int itemHeight     = height_Rect(itemRect);
     const int iconColor      = isHover ? (isPressing ? uiTextPressed_ColorId : uiIconHover_ColorId)
                                        : uiIcon_ColorId;
