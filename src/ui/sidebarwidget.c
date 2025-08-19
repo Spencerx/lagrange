@@ -1730,8 +1730,8 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
         }
         else if (d->mode == bookmarks_SidebarMode &&
-                 hasParent_Widget(constAs_Widget(pointer_Command(cmd)), w) &&
-                 equalArg_Command(cmd, "input.edited", "id", "filter.bookmark.input")) {
+                 equalArg_Command(cmd, "input.edited", "id", "filter.bookmark.input") &&
+                 hasParent_Widget(constAs_Widget(pointer_Command(cmd)), w)) {
             set_String(&d->bookmarkFilter, text_InputWidget(pointer_Command(cmd)));
             setFlags_Widget(findChild_Widget(d->actions, "filter.bookmark.clear"),
                             disabled_WidgetFlag,
