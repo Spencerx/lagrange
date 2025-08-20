@@ -62,6 +62,8 @@ struct Impl_SidebarItem {
     iString   label;
     iString   meta;
     iString   url;
+    int       count;
+    iTime     ts;
 };
 
 void init_SidebarItem(iSidebarItem *d) {
@@ -73,6 +75,8 @@ void init_SidebarItem(iSidebarItem *d) {
     init_String(&d->label);
     init_String(&d->meta);
     init_String(&d->url);
+    d->count = 0;
+    iZap(d->ts);
 }
 
 void deinit_SidebarItem(iSidebarItem *d) {
@@ -422,6 +426,11 @@ static iBool filterBookmark_String_(void *context, const iBookmark *bm) {
     return iFalse;
 }
 
+static iBool isSubscribed_Bookmark_(void *context, const iBookmark *bm) {
+    iUnused(context);
+    return (!isFolder_Bookmark(bm) && bm->flags & subscribed_BookmarkFlag) != 0;
+}
+
 static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
     const iWidget *w    = constAs_Widget(d);
     iString       *term = lower_String(&d->bookmarkFilter);
@@ -463,7 +472,6 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
     switch (d->mode) {
         case feedEntries_SidebarMode: {
             const iString *docUrl = canonicalUrl_String(url_DocumentWidget(document_App()));
-                                    /* TODO: internal URI normalization */
             iTime now;
             iDate on;
             initCurrent_Time(&now);
@@ -482,11 +490,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 if (secondsSince_Time(&now, &entry->posted) < -24 * 60 * 60) {
                     continue;
                 }
-                /* Exclude entries that are too old for Visited to keep track of. */
-                if (secondsSince_Time(&now, &entry->discovered) > maxAge_Visited) {
-                    break; /* the rest are even older */
-                }
-                const iBool isOpen = equal_String(docUrl, &entry->url);
+                const iBool isOpen   = equal_String(docUrl, &entry->url);
                 const iBool isUnread = isUnread_FeedEntry(entry);
                 if (d->feedsMode == unread_FeedsMode && !isUnread && !isOpen) {
                     continue;
@@ -624,6 +628,47 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     { check_Icon " ${feeds.markallread}", SDLK_a, KMOD_SHIFT, "feeds.markallread" },
                     { reload_Icon " ${feeds.refresh}", refreshFeeds_KeyShortcut, "feeds.refresh" } },
                 2);
+            break;
+        }
+        case subscriptions_SidebarMode: {
+            iPtrArray *items = new_PtrArray();
+            struct Impl_FeedItem {
+                iHashNode node;
+                iSidebarItem *item;
+            };
+            iDeclareType(FeedItem);
+            iHash hash;
+            init_Hash(&hash);
+            /* Make an item for each subscribed page. */
+            iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTitleAscending_Bookmark,
+                                                      isSubscribed_Bookmark_, NULL)) {
+                const iBookmark *bm   = i.ptr;
+                iSidebarItem    *item = new_SidebarItem();
+                item->id              = id_Bookmark(bm);
+                set_String(&item->label, &bm->title);
+                set_String(&item->url, &bm->url);
+                addItem_ListWidget(d->list, item);
+                iRelease(item); /* list owns it */
+                pushBack_PtrArray(items, item);
+                /* Build a lookup hash from feeds to items. */
+                iFeedItem *mapping = iMalloc(FeedItem);
+                mapping->node.key  = item->id;
+                mapping->item      = item;
+                insert_Hash(&hash, &mapping->node);
+            }
+            /* Go through the entries and collect statistics.
+               TODO: Do this while refreshing feeds... */
+            iConstForEach(PtrArray, e, listFeedEntries_SidebarWidget_(d)) {
+                const iFeedEntry *entry = e.ptr;
+                iSidebarItem *item = ((iFeedItem *) value_Hash(&hash, entry->bookmarkId))->item;
+                item->count++;
+            }
+            delete_PtrArray(items);
+            iForEach(Hash, h, &hash) {
+                free(remove_HashIterator(&h));
+            }
+            iAssert(isEmpty_Hash(&hash));
+            deinit_Hash(&hash);
             break;
         }
         case documentOutline_SidebarMode: {
@@ -897,7 +942,7 @@ static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     /* Note: identity item height is defined by CertListWidget */
 #if !defined (iPlatformTerminal)
     const float heights[max_SidebarMode] = {
-        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.333f, 1.333f, 1.2f, 1.2f, 1.2f, 1.2f
+        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.333f, 1.333f, 2.333f, 1.2f, 1.2f, 1.2f
     };
 #else
     const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
@@ -2807,14 +2852,11 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                        : d->indent ? uiTextStrong_ColorId /* active */
                        : isHover   ? uiTextFramelessHover_ColorId
                                    : uiText_ColorId;
-
         if (d->indent && !isPressing && !isHover) {
             fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
         }
-
         const iInt2 textPos = add_I2(topLeft_Rect(itemRect),
                                      init_I2(3 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
-
         iString label;
         init_String(&label);
         set_String(&label, &d->label);
@@ -2841,8 +2883,13 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             draw_Text(font,
                       metaIconPos,
                       uiTextAction_ColorId,
-                      d->id & 2 ? "\U0001f50a" /* high volume */ : reload_Icon);
+                      d->id & 2 ? "\U0001f50a" /* audio speaker, high volume */ : reload_Icon);
         }
+    }
+    else if (sidebar->mode == subscriptions_SidebarMode) {
+        const int fg = uiText_ColorId;
+        draw_Text(font, topLeft_Rect(itemRect), fg, "%s\n%d entries",
+            cstr_String(&d->label), d->count);
     }
     if (isListFocus && isHover && constCursorItem_ListWidget(list) == d && !isTerminal_Platform()) {
         /* Visualize the keyboard cursor. */
