@@ -604,7 +604,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 { "${menu.copyurl}", 0, 0, "feed.entry.copy" },
                 { "---", 0, 0, NULL },
                 { page_Icon " ${feeds.entry.openfeed}", 0, 0, "feed.entry.openfeed" },
-                { edit_Icon " ${feeds.edit}", 0, 0, "feed.entry.edit" },
+                { edit_Icon " ${menu.feed.edit}", 0, 0, "feed.entry.edit" },
                 { whiteStar_Icon " " uiTextCaution_ColorEscape "${feeds.unsubscribe}",
                   0,
                   0,
@@ -693,6 +693,24 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             }
             iAssert(isEmpty_Hash(&hash));
             deinit_Hash(&hash);
+            /* The context menus. */
+            const iMenuItem menuItems[] = {
+                { openTab_Icon " ${menu.opentab}", 0, 0, "sub.open newtab:1" },
+                { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "sub.open newtab:2" },
+#if defined(iPlatformDesktop)
+                { openWindow_Icon " ${menu.openwindow}", 0, 0, "sub.open newwindow:1" },
+#endif
+                { "---", 0, 0, NULL },
+                { edit_Icon " ${menu.feed.edit}", 0, 0, "sub.edit" },
+                { "${menu.sub.edit}", 0, 0, "bookmark.edit" },
+                { whiteStar_Icon " " uiTextCaution_ColorEscape "${feeds.unsubscribe}",
+                  0,
+                  0,
+                  "sub.unsubscribe" },
+                { "---", 0, 0, NULL },
+                { reload_Icon " ${feeds.refresh}", refreshFeeds_KeyShortcut, "feeds.refresh" }
+            };
+            d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             break;
         }
         case documentOutline_SidebarMode: {
@@ -1289,6 +1307,14 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
             setFocus_Widget(NULL);
             break;
         }
+        case subscriptions_SidebarMode: {
+            postCommandf_Root(get_Root(),
+                              "open newtab:%d url:%s",
+                              mouseTabMode ? mouseTabMode : openTabMode_Sym(modState_Keys()),
+                              cstr_String(&item->url));
+            setFocus_Widget(NULL);
+            break;
+        }
         case bookmarks_SidebarMode:
             /* Bookmark folder folding is toggled when clicking. */
             if (isEmpty_String(&item->url) /* is a folder */) {
@@ -1699,6 +1725,28 @@ static iBool isFolder_(void *context, const iBookmark *bm) {
     return isFolder_Bookmark(bm);
 }
 
+static void handleFeedUnsubscribeCommand_SidebarWidget_(iSidebarWidget *d, const char *cmd,
+                                                        iBookmark *feedBookmark) {
+    if (arg_Command(cmd) /* was confirmed? */) {
+        feedBookmark->flags &= ~subscribed_BookmarkFlag;
+        removeEntries_Feeds(id_Bookmark(feedBookmark));
+        updateItems_SidebarWidget_(d);
+    }
+    else {
+        /* Ask for confirmation first. */
+        makeQuestion_Widget(
+            uiTextCaution_ColorEscape "${heading.unsub}",
+            format_CStr(cstr_Lang("dlg.confirm.unsub"), cstr_String(&feedBookmark->title)),
+            (iMenuItem[]) {
+                { "${cancel}", 0, 0, NULL },
+                { uiTextCaution_ColorEscape "${dlg.unsub}",
+                  0,
+                  0,
+                  format_CStr("!%s arg:1 ptr:%p", cstr_Rangecc(name_Command(cmd)), d) } },
+            2);
+    }
+}
+
 static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev) {
     iWidget *w = as_Widget(d);
     /* Handle commands. */
@@ -1787,8 +1835,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 updateItems_SidebarWidget_(d);
             }
         }
-        else if (equal_Command(cmd, "bookmarks.changed") && (d->mode == bookmarks_SidebarMode ||
-                                                             d->mode == feedEntries_SidebarMode)) {
+        else if (equal_Command(cmd, "bookmarks.changed") &&
+                 (d->mode == bookmarks_SidebarMode || d->mode == feedEntries_SidebarMode ||
+                  d->mode == subscriptions_SidebarMode)) {
             if (pointerLabel_Command(cmd, "nosidebar") != d) {
                 updateItems_SidebarWidget_(d);
                 if (hasLabel_Command(cmd, "added")) {
@@ -1988,8 +2037,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         }
         else if (isCommand_Widget(w, ev, "bookmark.edit")) {
             const iSidebarItem *item = d->contextItem;
-            const int argId = argLabel_Command(cmd, "id");
-            if ((d->mode == bookmarks_SidebarMode && item) || argId) {
+            const int           argId = argLabel_Command(cmd, "id");
+            if (((d->mode == bookmarks_SidebarMode || d->mode == subscriptions_SidebarMode) &&
+                 item) || argId) {
                 iBookmark *bm  = get_Bookmarks(bookmarks_App(), argId ? argId : item->id);
                 const char *dlgId = format_CStr("bmed.%u", id_Bookmark(bm));
                 if (findWidget_Root(dlgId)) {
@@ -2137,7 +2187,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (equal_Command(cmd, "feeds.update.finished")) {
             d->numUnreadEntries = argLabel_Command(cmd, "unread");
             checkModeButtonLayout_SidebarWidget_(d);
-            if (d->mode == feedEntries_SidebarMode) {
+            if (d->mode == feedEntries_SidebarMode || d->mode == subscriptions_SidebarMode) {
                 updateItems_SidebarWidget_(d);
             }
         }
@@ -2224,26 +2274,30 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                         return iTrue;
                     }
                     if (isCommand_Widget(w, ev, "feed.entry.unsubscribe")) {
-                        if (arg_Command(cmd)) {
-                            feedBookmark->flags &= ~subscribed_BookmarkFlag;
-                            removeEntries_Feeds(id_Bookmark(feedBookmark));
-                            updateItems_SidebarWidget_(d);
-                        }
-                        else {
-                            makeQuestion_Widget(
-                                uiTextCaution_ColorEscape "${heading.unsub}",
-                                format_CStr(cstr_Lang("dlg.confirm.unsub"),
-                                            cstr_String(&feedBookmark->title)),
-                                (iMenuItem[]){
-                                    { "${cancel}", 0, 0, NULL },
-                                    { uiTextCaution_ColorEscape "${dlg.unsub}",
-                                      0,
-                                      0,
-                                      format_CStr("!feed.entry.unsubscribe arg:1 ptr:%p", d) } },
-                                2);
-                        }
+                        handleFeedUnsubscribeCommand_SidebarWidget_(d, cmd, feedBookmark);
                         return iTrue;
                     }
+                }
+            }
+        }
+        else if (startsWith_CStr(cmd, "sub.") && d->mode == subscriptions_SidebarMode) {
+            const iSidebarItem *item = d->contextItem;
+            if (item) {
+                if (isCommand_Widget(w, ev, "sub.open")) {
+                    postCommandf_App("open newwindow:%d newtab:%d url:%s",
+                        argLabel_Command(cmd, "newwindow"),
+                        argLabel_Command(cmd, "newtab"),
+                        cstr_String(&item->url));
+                    return iTrue;
+                }
+                else if (isCommand_Widget(w, ev, "sub.edit")) {
+                    makeFeedSettings_Widget(item->id);
+                    return iTrue;
+                }
+                else if (isCommand_Widget(w, ev, "sub.unsubscribe")) {
+                    handleFeedUnsubscribeCommand_SidebarWidget_(
+                        d, cmd, get_Bookmarks(bookmarks_App(), item->id));
+                    return iTrue;
                 }
             }
         }

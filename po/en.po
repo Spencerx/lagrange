@@ -592,6 +592,12 @@ msgstr[1] "Unread"
 msgid "sidebar.sub.empty"
 msgstr "Empty feed"
 
+msgid "menu.feed.edit"
+msgstr "Feed Settings…"
+
+msgid "menu.sub.edit"
+msgstr "Edit Bookmark…"
+
 msgid "toolbar.outline"
 msgstr "Page Outline"
 
