@@ -589,6 +589,9 @@ msgid_plural "sidebar.unread.n"
 msgstr[0] "Unread"
 msgstr[1] "Unread"
 
+msgid "sidebar.sub.empty"
+msgstr "Empty feed"
+
 msgid "toolbar.outline"
 msgstr "Page Outline"
 
@@ -629,6 +632,11 @@ msgid "num.fonts"
 msgid_plural "num.fonts.n"
 msgstr[0] "%u font"
 msgstr[1] "%u fonts"
+
+msgid "num.entries"
+msgid_plural "num.entries.n"
+msgstr[0] "%u entry"
+msgstr[1] "%u entries"
 
 # strftime() formatted. Should be split evenly on two lines with a newline character.
 msgid "page.timestamp"

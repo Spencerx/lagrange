@@ -631,7 +631,6 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             break;
         }
         case subscriptions_SidebarMode: {
-            iPtrArray *items = new_PtrArray();
             struct Impl_FeedItem {
                 iHashNode node;
                 iSidebarItem *item;
@@ -640,6 +639,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             iHash hash;
             init_Hash(&hash);
             /* Make an item for each subscribed page. */
+            iPtrArray *items = new_PtrArray();
             iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), cmpTitleAscending_Bookmark,
                                                       isSubscribed_Bookmark_, NULL)) {
                 const iBookmark *bm   = i.ptr;
@@ -662,6 +662,28 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 const iFeedEntry *entry = e.ptr;
                 iSidebarItem *item = ((iFeedItem *) value_Hash(&hash, entry->bookmarkId))->item;
                 item->count++;
+                if (!isValid_Time(&item->ts) || cmp_Time(&entry->posted, &item->ts) > 0) {
+                    item->ts = entry->posted; /* latest timestamp */
+                }
+            }
+            /* Finalize the items. */
+            iDate on;
+            initCurrent_Date(&on);
+            iForEach(PtrArray, it, items) {
+                iSidebarItem *item = it.ptr;
+                if (isValid_Time(&item->ts)) {
+                    iDate lastUpdate;
+                    init_Date(&lastUpdate, &item->ts);
+                    iString *str = format_Date(&lastUpdate,
+                                               on.year == lastUpdate.year ? " \u2014 %b %d"
+                                                                          : " \u2014 %b %d, %Y");
+                    set_String(&item->meta, str);
+                    delete_String(str);
+                }
+                else {
+                    setCStr_String(&item->meta, uiTextAction_ColorEscape warning_Icon " ");
+                    appendCStr_String(&item->meta, cstr_Lang("sidebar.sub.empty"));
+                }
             }
             delete_PtrArray(items);
             iForEach(Hash, h, &hash) {
@@ -2887,9 +2909,23 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         }
     }
     else if (sidebar->mode == subscriptions_SidebarMode) {
-        const int fg = uiText_ColorId;
-        draw_Text(font, topLeft_Rect(itemRect), fg, "%s\n%d entries",
-            cstr_String(&d->label), d->count);
+        const int fg1 = isPressing ? uiTextPressed_ColorId : uiTextStrong_ColorId;
+        const int fg2 = isPressing ? uiTextPressed_ColorId : uiText_ColorId;
+        iString   str;
+        const int font2 = uiLabel_FontId;
+        init_String(&str);
+        if (d->count > 0) {
+            setCStr_String(&str, formatCStr_Lang("num.entries.n", d->count));
+        }
+        append_String(&str, &d->meta);
+        iInt2 pos = add_I2(
+            topLeft_Rect(itemRect),
+            init_I2(3 * gap_UI,
+                    (height_Rect(itemRect) - lineHeight_Text(font) - lineHeight_Text(font2)) / 2));
+        drawRange_Text(font, pos, fg1, range_String(&d->label));
+        pos.y += lineHeight_Text(font);
+        drawRange_Text(font2, pos, fg2, range_String(&str));
+        deinit_String(&str);
     }
     if (isListFocus && isHover && constCursorItem_ListWidget(list) == d && !isTerminal_Platform()) {
         /* Visualize the keyboard cursor. */
