@@ -39,7 +39,6 @@ enum iSidebarMode {
     subscriptions_SidebarMode,
     gempubIndex_SidebarMode,
     customPage_SidebarMode,
-    siteNotes_SidebarMode,
     max_SidebarMode
 };
 

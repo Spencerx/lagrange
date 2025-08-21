@@ -552,9 +552,6 @@ msgstr "Gempub"
 msgid "sidebar.page"
 msgstr "Custom"
 
-msgid "sidebar.notes"
-msgstr "Notes"
-
 msgid "sidebar.action.bookmarks.newfolder"
 msgstr "New Folder"
 

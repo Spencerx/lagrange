@@ -89,24 +89,23 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
 
 iBeginDefineSubclass(SidebarItem, ListItem)
     .draw = (iAny *) draw_SidebarItem_,
-   iEndDefineSubclass(SidebarItem)
+iEndDefineSubclass(SidebarItem)
 
-       iDefineObjectConstruction(SidebarItem)
+iDefineObjectConstruction(SidebarItem);
 
-   /*----------------------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------------------------*/
 
-   static const char *normalModeLabels_[max_SidebarMode] = {
-       book_Icon " ${sidebar.bookmarks}",      star_Icon " ${sidebar.feeds}",
-       clock_Icon " ${sidebar.history}",       person_Icon " ${sidebar.identities}",
-       page_Icon " ${sidebar.outline}",        hierarchy_Icon " ${sidebar.structure}",
-       openTabBg_Icon " ${sidebar.documents}", whiteStar_Icon " ${sidebar.subscriptions}",
-       book_Icon " ${sidebar.gempub}",         file_Icon " ${sidebar.page}",
-       edit_Icon " ${sidebar.notes}",
-   };
+static const char *normalModeLabels_[max_SidebarMode] = {
+    book_Icon " ${sidebar.bookmarks}",      star_Icon " ${sidebar.feeds}",
+    clock_Icon " ${sidebar.history}",       person_Icon " ${sidebar.identities}",
+    page_Icon " ${sidebar.outline}",        hierarchy_Icon " ${sidebar.structure}",
+    openTabBg_Icon " ${sidebar.documents}", whiteStar_Icon " ${sidebar.subscriptions}",
+    book_Icon " ${sidebar.gempub}",         file_Icon " ${sidebar.page}",
+};
 
 static const char *tightModeLabels_[max_SidebarMode] = {
-    book_Icon,      star_Icon,      clock_Icon, person_Icon, page_Icon, hierarchy_Icon,
-    openTabBg_Icon, whiteStar_Icon, book_Icon,  file_Icon,   edit_Icon,
+    book_Icon,      star_Icon,      clock_Icon,     person_Icon, page_Icon,
+    hierarchy_Icon, openTabBg_Icon, whiteStar_Icon, book_Icon,   file_Icon,
 };
 
 struct Impl_SidebarWidget {
@@ -138,9 +137,9 @@ struct Impl_SidebarWidget {
     iString           bookmarkFilter;
 };
 
-iDefineObjectConstructionArgs(SidebarWidget, (enum iSidebarSide side), side)
+iDefineObjectConstructionArgs(SidebarWidget, (enum iSidebarSide side), side);
 
-    iLocalDef iListWidget *list_SidebarWidget_(iSidebarWidget *d) {
+iLocalDef iListWidget *list_SidebarWidget_(iSidebarWidget *d) {
     return d->mode == identities_SidebarMode ? (iListWidget *) d->certList : d->list;
 }
 
@@ -984,10 +983,10 @@ static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     /* Note: identity item height is defined by CertListWidget */
 #if !defined (iPlatformTerminal)
     const float heights[max_SidebarMode] = {
-        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.333f, 1.333f, 2.5f, 1.2f, 1.2f, 1.2f
+        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.333f, 1.333f, 2.5f, 1.2f, 1.2f
     };
 #else
-    const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
+    const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1, 1, 1, 1, 1, 1 };
 #endif
     if (d->list) {
         setItemHeight_ListWidget(d->list, heights[d->mode] * lineHeight_Text(d->itemFonts[0]));
