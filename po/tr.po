@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-22 20:15+0000\n"
-"PO-Revision-Date: 2024-12-04 15:38+0000\n"
+"PO-Revision-Date: 2025-08-22 07:46+0000\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <http://weblate.skyjake.fi/projects/lagrange/ui/tr/>\n"
 "Language: tr\n"
@@ -2881,3 +2881,47 @@ msgstr "İçerik"
 
 msgid "prefs.expandline"
 msgstr "Uzun satırlara genişlet:"
+
+msgid "menu.closetab.above"
+msgstr "Yukarıdaki sekmeleri kapat"
+
+msgid "menu.closetab.below"
+msgstr "Aşağıdaki sekmeleri kapat"
+
+msgid "sidebar.structure"
+msgstr "Yapı"
+
+msgid "sidebar.documents"
+msgstr "Sekmeler"
+
+msgid "sidebar.subscriptions"
+msgstr "Abonelikler"
+
+msgid "sidebar.gempub"
+msgstr "Gempub"
+
+msgid "sidebar.page"
+msgstr "Özel"
+
+msgid "sidebar.sub.empty"
+msgstr "Boş besleme"
+
+msgid "menu.feed.edit"
+msgstr "Besleme ayarları…"
+
+msgid "menu.sub.edit"
+msgstr "Yer imini düzenle…"
+
+msgid "num.entries"
+msgid_plural "num.entries.n"
+msgstr[0] "%u girdi"
+msgstr[1] "%u girdi"
+
+msgid "hint.filter.bookmark"
+msgstr "yer imlerini süz"
+
+msgid "heading.prefs.theme"
+msgstr "Tema"
+
+msgid "prefs.quote.italic"
+msgstr "Eğik alıntı metni:"
