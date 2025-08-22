@@ -686,6 +686,9 @@ msgstr "Mark All as Read"
 msgid "feeds.refresh"
 msgstr "Refresh Feeds"
 
+msgid "feeds.reset"
+msgstr "Reset Known Entries"
+
 msgid "feeds.atom.translated"
 msgstr "This Atom XML document has been automatically translated to a Gemini feed to allow subscribing to it."
 

@@ -11,6 +11,7 @@
 New features:
 * Sidebar tab for listing all open tabs ("vertical tabs"). The list indicates which tabs have not been seen yet. Drag-and-drop can be used to reorder tabs. There are status icons for page loading and audio playback.
 * Sidebar tab for managing feed subscriptions.
+* The Subscriptions sidebar context menu has "Reset Known Entries" for clearing the local cache of known entries. On next refresh, only the entries present in the source(s) are stored.
 * Bookmarks sidebar has a filter field. It looks through bookmark titles, URLs, and tags. Built-in tags like ".subscribed" can be used to find bookmarks with special behavior (see Help section 1.4.4).
 * Setting for showing quote text in italics.
 

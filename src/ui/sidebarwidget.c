@@ -707,7 +707,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                   0,
                   "sub.unsubscribe" },
                 { "---", 0, 0, NULL },
-                { reload_Icon " ${feeds.refresh}", refreshFeeds_KeyShortcut, "feeds.refresh" }
+                { reload_Icon " ${feeds.refresh}", refreshFeeds_KeyShortcut, "feeds.refresh" },
+                { "${feeds.reset}", 0, 0, "feeds.reset" },
             };
             d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             break;

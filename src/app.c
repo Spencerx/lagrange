@@ -4349,6 +4349,11 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         refresh_Feeds();
         return iTrue;
     }
+    else if (equal_Command(cmd, "feeds.reset")) {
+        resetKnownEntries_Feeds();
+        postCommand_App("feeds.update.finished"); /* not really, but we have zero entries now */
+        return iTrue;
+    }
     else if (equal_Command(cmd, "visited.changed")) {
         /* The visited file can grow large, so don't keep rewriting it after every navigation. */
         const uint32_t now = SDL_GetTicks();

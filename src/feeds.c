@@ -753,6 +753,15 @@ void deinit_Feeds(void) {
     deinit_SortedArray(&d->entries);
 }
 
+void resetKnownEntries_Feeds(void) {
+    iFeeds *d = &feeds_;
+    iString *saveDir = copy_String(&d->saveDir);
+    deinit_Feeds();
+    remove(cstrCollect_String(concatCStr_Path(saveDir, feedsFilename_Feeds_)));
+    init_Feeds(cstr_String(saveDir));
+    delete_String(saveDir);
+}
+
 void refresh_Feeds(void) {
     startWorker_Feeds_(&feeds_);
 }
