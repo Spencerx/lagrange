@@ -20,6 +20,7 @@ Changes and enhancements:
 * X11: Restore windows into their previous workspaces. (Courtesy of @norayr.)
 
 Fixes:
+* Reject Gemini responses that don't use an SP character (ASCII 32) as a separator.
 * Scrollbars had poor contrast in light mode.
 * Quote line indicator was misplaced on empty quote lines.
 
