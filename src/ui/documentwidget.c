@@ -2730,10 +2730,12 @@ static iBool handleSwipe_DocumentWidget_(iDocumentWidget *d, const char *cmd) {
         if (argLabel_Command(cmd, "side") == 2) {
             iChangeFlags(d->flags, swipeBegun_DocumentWidgetFlag, iFalse);
             if (argLabel_Command(cmd, "abort")) {
-                d->flags |= swipeAborted_DocumentWidgetFlag;
-                setValue_Anim(&d->swipeOffset, width_Widget(w), 100);
-                animate_DocumentWidget(d);
-                return iTrue;
+                if (d->swipeView) {
+                    d->flags |= swipeAborted_DocumentWidgetFlag;
+                    setValue_Anim(&d->swipeOffset, width_Widget(w), 100);
+                    animate_DocumentWidget(d);
+                    return iTrue;
+                }   
             }
             setFlags_Anim(&d->swipeOffset, easeOut_AnimFlag, iTrue);
             setValue_Anim(&d->swipeOffset, 0, 150);
@@ -4123,8 +4125,7 @@ iLocalDef int wheelSwipeSide_DocumentWidget_(const iDocumentWidget *d) {
 }
 
 static void finishWheelSwipe_DocumentWidget_(iDocumentWidget *d, iBool aborted) {
-    if (//d->flags & eitherWheelSwipe_DocumentWidgetFlag &&
-        d->wheelSwipeState == direct_WheelSwipeState) {
+    if (d->wheelSwipeState == direct_WheelSwipeState) {
         const int side = wheelSwipeSide_DocumentWidget_(d);
         int abort = aborted || ((side == 1 && d->swipeSpeed < 0) || (side == 2 && d->swipeSpeed > 0));
         if (iAbs(d->wheelSwipeDistance) < 4 * gap_UI) {
@@ -4557,9 +4558,6 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
     else if (ev->type == SDL_MOUSEWHEEL && isScrollableWithWheel_DocumentWidget_(d)) {
         const iInt2 mouseCoord = coord_MouseWheelEvent(&ev->wheel);
         if (isPerPixel_MouseWheelEvent(&ev->wheel)) {
-            /*if (d->wheelSwipeState != none_WheelSwipeState) {
-                finishWheelSwipe_DocumentWidget_(d, iTrue);
-            }*/
             const iInt2 wheel = init_I2(ev->wheel.x, ev->wheel.y);
             stop_Anim(&d->view->scrollY.pos);
             immediateScroll_DocumentView(view, -wheel.y);
@@ -4661,7 +4659,7 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                 }
                 else {
                     if (deviceType_App() == desktop_AppDeviceType) {
-                    if (!isEmpty_Range(&d->selectMark)) {
+                        if (!isEmpty_Range(&d->selectMark)) {
                             pushBackN_Array(
                                 &items,
                                 (iMenuItem[]){
