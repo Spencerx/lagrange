@@ -2076,7 +2076,7 @@ void draw_Widget(const iWidget *d) {
         iWidgetScrollInfo info;
         overflowScrollInfo_Widget(d, &info);
         const float opacity = value_Anim(&d->overflowScrollOpacity);
-        drawScrollIndicator_Widget(d, &info, uiBackgroundPressed_ColorId, opacity);
+        drawScrollIndicator_Widget(d, &info, uiTextAction_ColorId, opacity);
     }
 }
 
