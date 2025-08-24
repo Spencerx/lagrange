@@ -37,8 +37,8 @@ enum iSidebarMode {
     siteStructure_SidebarMode,
     openDocuments_SidebarMode,
     subscriptions_SidebarMode,
-    gempubIndex_SidebarMode,
-    customPage_SidebarMode,
+    /*gempubIndex_SidebarMode,*/
+    /*customPage_SidebarMode,*/
     max_SidebarMode
 };
 

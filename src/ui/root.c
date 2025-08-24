@@ -2283,7 +2283,6 @@ void createUserInterface_Root(iRoot *d) {
         addAction_Widget(root, '6', leftSidebarTab_KeyModifier, "sidebar.mode arg:5 toggle:1");
         addAction_Widget(root, '7', leftSidebarTab_KeyModifier, "sidebar.mode arg:6 toggle:1");
         addAction_Widget(root, '8', leftSidebarTab_KeyModifier, "sidebar.mode arg:7 toggle:1");
-        addAction_Widget(root, '9', leftSidebarTab_KeyModifier, "sidebar.mode arg:8 toggle:1");
         addAction_Widget(root, '1', rightSidebarTab_KeyModifier, "sidebar2.mode arg:0 toggle:1");
         addAction_Widget(root, '2', rightSidebarTab_KeyModifier, "sidebar2.mode arg:1 toggle:1");
         addAction_Widget(root, '3', rightSidebarTab_KeyModifier, "sidebar2.mode arg:2 toggle:1");
@@ -2292,7 +2291,6 @@ void createUserInterface_Root(iRoot *d) {
         addAction_Widget(root, '6', rightSidebarTab_KeyModifier, "sidebar2.mode arg:5 toggle:1");
         addAction_Widget(root, '7', rightSidebarTab_KeyModifier, "sidebar2.mode arg:6 toggle:1");
         addAction_Widget(root, '8', rightSidebarTab_KeyModifier, "sidebar2.mode arg:7 toggle:1");
-        addAction_Widget(root, '9', rightSidebarTab_KeyModifier, "sidebar2.mode arg:8 toggle:1");
         addAction_Widget(root, 'j', KMOD_PRIMARY, "splitmenu.open");
         addAction_Widget(root, SDLK_F10, 0, "menubar.focus");
     }
