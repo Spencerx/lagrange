@@ -2483,6 +2483,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
             if (constHoverItem_ListWidget(d->list) || isVisible_Widget(d->menu)) {
                 d->contextItem = hoverItem_ListWidget(d->list);
+                if (isMobile_Platform()) {
+                    setCursorItem_ListWidget(d->list, hoverItemIndex_ListWidget(d->list));
+                }
                 /* Context is drawn in hover state. */
                 if (d->contextIndex != iInvalidPos) {
                     invalidateItem_ListWidget(d->list, d->contextIndex);
@@ -2645,14 +2648,6 @@ static void draw_SidebarWidget_(const iSidebarWidget *d) {
     const iRect    bounds = bounds_Widget(w);
     iPaint p;
     init_Paint(&p);
-    /*
-    if (d->mode == documentOutline_SidebarMode) {
-        iDocumentWidget *doc = document_App();
-        if (doc) {
-            makePaletteGlobal_GmDocument(document_DocumentWidget(doc));
-        }
-    }
-    */
     if (!isPortraitPhone_App()) { /* this would erase page contents during transition on the phone */
         if (flags_Widget(w) & visualOffset_WidgetFlag &&
             flags_Widget(w) & horizontalOffset_WidgetFlag && isVisible_Widget(w)) {
