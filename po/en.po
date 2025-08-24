@@ -414,6 +414,15 @@ msgstr "Hide Identities"
 msgid "menu.show.outline"
 msgstr "Show Page Outline"
 
+msgid "menu.show.structure"
+msgstr "Show Structure"
+
+msgid "menu.show.subscriptions"
+msgstr "Show Subscriptions"
+
+msgid "menu.show.opendocs"
+msgstr "Show Tabs"
+
 msgid "menu.back"
 msgstr "Go Back"
 
