@@ -217,16 +217,14 @@ static iBool processEvent_ScrollWidget_(iScrollWidget *d, const SDL_Event *ev) {
         }
         else if (w->flags & ~touchDrag_WidgetFlag && ev->type == SDL_MOUSEBUTTONDOWN) {
             const SDL_MouseButtonEvent *mb = (const SDL_MouseButtonEvent *) ev;
-            if (mb->button == SDL_BUTTON_RIGHT) {
+            /* A long press on the scrollbar activates direct drag mode. */
+            if (contains_Widget(w, mouseCoord_SDLEvent(ev)) && mb->button == SDL_BUTTON_RIGHT) {
                 setFlags_Widget(w, touchDrag_WidgetFlag, iTrue);
                 transferAffinity_Touch(NULL, w);
                 return iTrue;
             }
         }
     }
-    /*if ((ev->type == SDL_MOUSEMOTION && ((const SDL_MouseMotionEvent *) ev)->which != SDL_TOUCH_MOUSEID) ||
-        ((ev->type == SDL_MOUSEBUTTONUP || ev->type == SDL_MOUSEBUTTONDOWN) &&
-        ((const SDL_MouseButtonEvent *) ev)->which != SDL_TOUCH_MOUSEID)) {*/
     if (isDesktop_Platform() || w->flags & touchDrag_WidgetFlag) {
         switch (processEvent_Click(&d->click, ev)) {
             case started_ClickResult:
