@@ -135,6 +135,8 @@ struct Impl_SidebarWidget {
     size_t            contextIndex;  /* index of list item accessed in the context menu */
     iIntSet          *closedFolders; /* otherwise open */
     iString           bookmarkFilter;
+    iStringSet       *structureUrls;
+    iString           structureHost;
 };
 
 iDefineObjectConstructionArgs(SidebarWidget, (enum iSidebarSide side), side);
@@ -208,6 +210,10 @@ int cmpTree_Bookmark(const iBookmark **a, const iBookmark **b) {
     const int cmp = iCmp(bm1->order, bm2->order);
     if (cmp) return cmp;
     return cmpStringCase_String(&bm1->title, &bm2->title);
+}
+
+static iBool hasUrlPrefix_Bookmark_(void *context, const iBookmark *bm) {
+    return startsWith_String(&bm->url, cstr_String(context));
 }
 
 static enum iFontId actionButtonFont_SidebarWidget_(const iSidebarWidget *d) {
@@ -727,6 +733,137 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             }
             break;
         }
+        case siteStructure_SidebarMode: {
+            const iString *docUrl = url_DocumentWidget(document_App());
+            /* We look for the protocol in addition to the domain. */
+            const iRangecc urlHost = urlHost_String(docUrl);
+            if (isEmpty_Range(&urlHost)) {
+                break;
+            }
+            const iRangecc host    = { constBegin_String(docUrl), urlHost.end };
+            iString       *hostStr = collect_String(newRange_String(host));
+            if (!endsWith_String(hostStr, "/")) {
+                appendCStr_String(hostStr, "/");
+            }
+            if (isEmpty_Range(&host)) break;
+            /* We keep the set of known URLs as long as the host remains the same.
+               This allows accumulating entries from unvisited links on pages. */
+            iStringSet *urls = d->structureUrls;
+            if (!equal_String(&d->structureHost, hostStr)) {
+                clear_StringSet(urls);
+                set_String(&d->structureHost, hostStr);
+            }
+            /* Look through everything we know at the moment: visited URLs, bookmarks,
+               feed entries, and links on the page. */
+            iConstForEach(PtrArray, i, listMatching_Visited(visited_App(), cstr_String(hostStr))) {
+                const iVisitedUrl *vis = i.ptr;
+                insert_StringSet(urls, &vis->url);
+            }
+            const iPtrArray *bookmarks =
+                list_Bookmarks(bookmarks_App(), NULL, hasUrlPrefix_Bookmark_, hostStr);
+            for (init_PtrArrayConstIterator(&i, bookmarks); i.value;
+                 next_PtrArrayConstIterator(&i)) {
+                insert_StringSet(urls, &((const iBookmark *) i.ptr)->url);
+            }
+            const iGmDocument *doc = document_DocumentWidget(document_App());
+            for (size_t j = 0; j < numLinks_GmDocument(doc); j++) {
+                const iString *linkUrl = linkUrl_GmDocument(doc, j);
+                if (startsWith_String(linkUrl, cstr_String(hostStr))) {
+                    insert_StringSet(urls, linkUrl);
+                }
+            }
+            /* The root item is always present. */
+            iSidebarItem *rootItem = new_SidebarItem();
+            setRange_String(&rootItem->url, host);
+            setRange_String(&rootItem->label, urlHost_String(docUrl));
+            rootItem->isBold = iTrue;
+            rootItem->id     = equal_String(&rootItem->url, docUrl);
+            size_t docItem   = rootItem->id ? 0 : iInvalidPos;
+            addItem_ListWidget(d->list, rootItem);
+            iRelease(rootItem);
+            iString label;
+            init_String(&label);
+            // iString *container = newRange_String(host);
+            // iRangecc previousPath = urlPath_String(hostStr);
+            // const iSidebarItem *lastItem = rootItem;
+            /* TODO: need a stack-based approach. Make container items as needed,
+               if they aren't populated already. The stack allows decrementing
+               multiple levels in one step. Containers should have a different color? */
+            struct Impl_Level {
+                iRangecc prefix;
+            };
+            iDeclareType(Level);
+            iArray stack;
+            init_Array(&stack, sizeof(iLevel));
+
+            iConstForEach(StringSet, u, urls) {
+                const iString *url = u.value;
+                /* Compare the structure of this URL compared to the current stack. */
+                iRangecc itemDir = urlPath_String(url);
+                size_t   dirEnd  = lastIndexOfCStr_Rangecc(itemDir, "/");
+                if (dirEnd == iInvalidPos) continue; /* must be root */
+                itemDir.end = itemDir.start + dirEnd;
+                if (dirEnd > 0 && isEmpty_Range(&itemDir)) {
+                    continue; /* must be root */
+                }
+                size_t   i      = 0;
+                iRangecc seg    = iNullRange;
+                iRangecc subDir = iNullRange;
+                while (nextSplit_Rangecc(itemDir, "/", &seg)) {
+                    subDir = (iRangecc) { itemDir.start, seg.end };
+                    if (i < size_Array(&stack) &&
+                        !equalRange_Rangecc(subDir, constValue_Array(&stack, i, iLevel).prefix)) {
+                        /* Only the parts before this are the same. */
+                        resize_Array(&stack, i);
+                    }
+                    if (i >= size_Array(&stack)) {
+                        /* The itemDir has more components than the stack. */
+                        iSidebarItem *parent = new_SidebarItem();
+                        setRange_String(&parent->url,
+                                        (iRangecc) { constBegin_String(url), subDir.end + 1 });
+                        setRange_String(&parent->label, seg);
+                        appendCStr_String(&parent->label, "/");
+                        parent->indent = (int) size_Array(&stack) + 1;
+                        if (equal_String(&parent->url, docUrl)) {
+                            docItem = numItems_ListWidget(d->list);
+                            parent->id = iTrue;
+                        }
+                        parent->isBold = (parent->indent == 1);
+                        addItem_ListWidget(d->list, parent);
+                        iRelease(parent);
+                        pushBack_Array(&stack, &(iLevel){ subDir });
+                    }
+                    i++;
+                }
+                if (i < size_Array(&stack)) {
+                    /* The prefix has become shorter. */
+                    resize_Array(&stack, i);
+                }
+
+                setRange_String(&label, (iRangecc){ itemDir.end + 1, constEnd_String(url) });
+                if (isEmpty_String(&label) || !cmp_String(&label, "/")) {
+                    /* The directory item was already created above. */
+                    continue;
+                }
+                iSidebarItem *item = new_SidebarItem();
+                set_String(&item->label, &label);
+                set_String(&item->url, url);
+                item->indent = (int) size_Array(&stack) + 1;
+                if (equal_String(url, docUrl)) {
+                    docItem = numItems_ListWidget(d->list);
+                    item->id = iTrue;
+                }
+                addItem_ListWidget(d->list, item);
+                iRelease(item);
+            }
+            setCursorItem_ListWidget(d->list, docItem);
+            if (docItem != iInvalidPos) {
+                scrollToItem_ListWidget(d->list, docItem, 300);
+            }
+            deinit_Array(&stack);
+            deinit_String(&label);
+            break;
+        }
         case bookmarks_SidebarMode: {
             iAssert(get_Root() == d->widget.root);
             trim_String(&d->bookmarkFilter);
@@ -984,7 +1121,7 @@ static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     /* Note: identity item height is defined by CertListWidget */
 #if !defined (iPlatformTerminal)
     const float heights[max_SidebarMode] = {
-        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.333f, 1.333f, 2.5f
+        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.2f, 1.333f, 2.5f
     };
 #else
     const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1, 1, 1, 1 };
@@ -1140,6 +1277,8 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     d->actions       = NULL;
     d->closedFolders = new_IntSet();
     init_String(&d->bookmarkFilter);
+    init_String(&d->structureHost);
+    d->structureUrls = new_StringSet();
     /* On a phone, the right sidebar is not used. */
     const iBool isPhone = (deviceType_App() == phone_AppDeviceType);
     if (isPhone) {
@@ -1247,6 +1386,8 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
 }
 
 void deinit_SidebarWidget(iSidebarWidget *d) {
+    iRelease(d->structureUrls);
+    deinit_String(&d->structureHost);
     deinit_String(&d->bookmarkFilter);
     delete_IntSet(d->closedFolders);
     deinit_String(&d->cmdPrefix);
@@ -1307,7 +1448,8 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
             setFocus_Widget(NULL);
             break;
         }
-        case subscriptions_SidebarMode: {
+        case subscriptions_SidebarMode:
+        case siteStructure_SidebarMode: {
             postCommandf_Root(get_Root(),
                               "open newtab:%d url:%s",
                               mouseTabMode ? mouseTabMode : openTabMode_Sym(modState_Keys()),
@@ -2918,6 +3060,20 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             }
         }
         iEndCollect();
+    }
+    else if (sidebar->mode == siteStructure_SidebarMode) {
+        const int fg = isHover ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
+                       : d->indent == 0 ? uiTextStrong_ColorId
+                       : endsWith_String(&d->label, "/")
+                           ? (d->indent <= 2 ? uiTextStrong_ColorId : uiTextAction_ColorId)
+                           : uiTextDim_ColorId;
+        if (d->id && !isHover && !isPressing) {
+            fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
+        }
+        const iInt2 pos = add_I2(
+            topLeft_Rect(itemRect),
+            init_I2(3 * gap_UI + d->indent * 5 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
+        drawRange_Text(font, pos, fg, range_String(&d->label));
     }
     else if (sidebar->mode == openDocuments_SidebarMode) {
         const int fg = isPressing  ? uiTextPressed_ColorId

@@ -871,6 +871,20 @@ const iPtrArray *listEntries_Feeds(void) {
     return list;
 }
 
+const iPtrArray *listMatchingEntries_Feeds(const char *urlPrefix) {
+    iFeeds *d = &feeds_;
+    lock_Mutex(d->mtx);
+    iPtrArray *list = collectNew_PtrArray();
+    iForEach(PtrArray, i, &d->entries.values) {
+        iFeedEntry *entry = i.ptr;
+        if (startsWith_String(&entry->url, urlPrefix)) {
+            pushBack_PtrArray(list, entry);
+        }
+    }
+    unlock_Mutex(d->mtx);
+    return list;
+}
+
 size_t numSubscribed_Feeds(void) {
     return size_PtrArray(listSubscriptions_());
 }
