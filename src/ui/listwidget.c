@@ -343,7 +343,7 @@ static iBool moveCursor_ListWidget_(iListWidget *d, int dir, uint32_t animSpan) 
 
 void setCursorItem_ListWidget(iListWidget *d, size_t index) {
     invalidateItem_ListWidget(d, d->cursorItem);
-    d->cursorItem = 0;
+    d->cursorItem = index;
     moveCursor_ListWidget_(d, 0, 0);
 }
 
