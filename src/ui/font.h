@@ -95,6 +95,7 @@ struct Impl_BaseFont {
     const iFontSpec *spec;
     const iFontFile *file;
     int              height;
+    int              baseline;
 };
 
 typedef void iAnyFont;
