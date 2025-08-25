@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-22 20:15+0000\n"
-"PO-Revision-Date: 2025-08-23 13:07+0000\n"
+"PO-Revision-Date: 2025-08-25 11:57+0000\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <http://weblate.skyjake.fi/projects/lagrange/ui/tr/>\n"
 "Language: tr\n"
@@ -2928,3 +2928,12 @@ msgstr "Eğik alıntı metni:"
 
 msgid "feeds.reset"
 msgstr "Bilinen girdileri sıfırla"
+
+msgid "menu.show.structure"
+msgstr "Yapıyı göster"
+
+msgid "menu.show.subscriptions"
+msgstr "Abonelikleri göster"
+
+msgid "menu.show.opendocs"
+msgstr "Sekmeleri göster"
