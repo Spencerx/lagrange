@@ -465,6 +465,10 @@ static iBool isUnfoldedStructurePath_SidebarWidget_(const iSidebarWidget *d, con
     path.end = path.start + slash + 1; /* keep the slash */
     iString sub;
     initRange_String(&sub, (iRangecc) { constBegin_String(url), path.end });
+    if (startsWith_String(activeDocumentUrl, cstr_String(&sub))) {
+        /* Everything upwards from current document should be unfolded temporarily. */
+        return iTrue;
+    }
     if (contains_StringSet(d->structureUnfolds, &sub)) {
         deinit_String(&sub);
         return iTrue;
@@ -802,6 +806,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 clear_StringSet(urls);
                 clear_StringSet(d->structureUnfolds);
                 set_String(&d->structureHost, hostStr);
+                scrollOffset_ListWidget(d->list, 0);
             }
             /* Look through everything we know at the moment: visited URLs, bookmarks,
                feed entries, and links on the page. */
@@ -894,9 +899,10 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     d, url, range_String(&label), &stack, docUrl, &docItem);
             }
             // setCursorItem_ListWidget(d->list, docItem);
-            // if (docItem != iInvalidPos) {
+            if (docItem != iInvalidPos && !keepActions) {
                 // scrollToItem_ListWidget(d->list, docItem, 500);
-            // }
+                postCommand_Widget(d->list, "sideitem.show arg:%u", docItem);
+            }
             deinit_Array(&stack);
             deinit_String(&label);
             /* Context menu. */
@@ -1521,12 +1527,11 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
                 }
                 insert_StringSet(d->structureUnfolds, itemUrl);
                 updateItemsWithFlags_SidebarWidget_(d, iTrue); /* `item` becomes invalid */
-                /* Move cursor to the unfolded parent. */
-                //setCursorItem_ListWidget(d->list, findItemUrl_SidebarWidget_(d, origUrl));
                 return;
-            } /* fall-through */
+            }
             /* Everything the user clicks is automatically unfolded. */
             insert_StringSet(d->structureUnfolds, &item->url);
+            /* fall-through */
         case subscriptions_SidebarMode: {
             postCommandf_Root(get_Root(),
                               "open newtab:%d url:%s",
@@ -2036,7 +2041,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
              startsWith_Rangecc(range_Command(cmd, "id"), "doc")) ||
             equal_Command(cmd, "document.changed")) {
             updateItems_SidebarWidget_(d);
-            scrollOffset_ListWidget(d->list, 0);
+            if (d->mode != siteStructure_SidebarMode) {
+                scrollOffset_ListWidget(d->list, 0);
+            }
         }
         else if (d->mode == openDocuments_SidebarMode &&
                  equal_Command(cmd, "document.openurls.changed")) {
@@ -2494,9 +2501,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             if (item) {
                 if (isCommand_Widget(w, ev, "sideitem.open")) {
                     postCommandf_App("open newwindow:%d newtab:%d url:%s",
-                        argLabel_Command(cmd, "newwindow"),
-                        argLabel_Command(cmd, "newtab"),
-                        cstr_String(&item->url));
+                                     argLabel_Command(cmd, "newwindow"),
+                                     argLabel_Command(cmd, "newtab"),
+                                     cstr_String(&item->url));
                     return iTrue;
                 }
                 else if (isCommand_Widget(w, ev, "sideitem.copy")) {
@@ -2505,6 +2512,11 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                                                          : &item->url));
                     return iTrue;
                 }
+            }
+            if (isCommand_Widget(w, ev, "sideitem.show")) {
+                const size_t pos = arg_Command(cmd);
+                scrollToItem_ListWidget(d->list, pos, 500);
+                return iTrue;
             }
         }
         else if (startsWith_CStr(cmd, "sub.") && d->mode == subscriptions_SidebarMode) {
