@@ -119,4 +119,8 @@ const iAnyObject *  constCursorItem_ListWidget  (const iListWidget *);
 
 iLocalDef iBool isEmpty_ListWidget(const iListWidget *d) { return numItems_ListWidget(d) == 0; }
 
+iLocalDef iAnyObject *backItem_ListWidget       (iListWidget *d) {
+    return item_ListWidget(d, numItems_ListWidget(d) - 1);
+}
+
 iBool   isMouseDown_ListWidget      (const iListWidget *);
