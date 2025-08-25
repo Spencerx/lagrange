@@ -137,7 +137,7 @@ struct Impl_SidebarWidget {
     iString           bookmarkFilter;
     iStringSet       *structureUrls;
     iString           structureHost;
-    iStringSet       *structureFolds;
+    iStringSet       *structureUnfolds;
 };
 
 iDefineObjectConstructionArgs(SidebarWidget, (enum iSidebarSide side), side);
@@ -450,19 +450,42 @@ static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
                                   5 /* only items related to the individual bookmark */);
 }
 
-static iSidebarItem *addStructureItem_SidebarWidget_(iSidebarWidget *d, iRangecc url,
+static iBool isUnfoldedStructurePath_SidebarWidget_(const iSidebarWidget *d, const iString *url,
+                                                    const iString *activeDocumentUrl) {
+    if (contains_StringSet(d->structureUnfolds, url)) {
+        return iTrue;
+    }
+    iUrl parts;
+    init_Url(&parts, url);
+    iRangecc path = parts.path;
+    if (endsWith_Rangecc(path, "/") && isEmpty_Range(&parts.query)) path.end--;
+    /* We need to know the parent directory. */
+    size_t slash = lastIndexOfCStr_Rangecc(path, "/");
+    if (slash == iInvalidPos || slash == 0) return iTrue;
+    path.end = path.start + slash + 1; /* keep the slash */
+    iString sub;
+    initRange_String(&sub, (iRangecc) { constBegin_String(url), path.end });
+    if (contains_StringSet(d->structureUnfolds, &sub)) {
+        deinit_String(&sub);
+        return iTrue;
+    }
+    deinit_String(&sub);
+    return iFalse;
+}
+
+static iSidebarItem *addStructureItem_SidebarWidget_(iSidebarWidget *d, const iString *url,
                                                      iRangecc label, iArray *stack,
                                                      const iString *activeDocumentUrl,
                                                      size_t        *highlightedItemPos_out) {
     const int itemIndent = (int) size_Array(stack) + 1;
-    if (/* !isInsideFold? */ itemIndent < 3) {
+    if (itemIndent == 1 || isUnfoldedStructurePath_SidebarWidget_(d, url, activeDocumentUrl)) {
         iSidebarItem *item = new_SidebarItem();
-        setRange_String(&item->url, url);
+        set_String(&item->url, url);
         setRange_String(&item->label, label);
         item->indent = itemIndent;
         if (equal_String(&item->url, activeDocumentUrl)) {
             *highlightedItemPos_out = numItems_ListWidget(d->list);
-            item->id = iTrue; /* makes it appear highlighted */
+            item->id                = iTrue; /* makes it appear highlighted */
         }
         addItem_ListWidget(d->list, item);
         iRelease(item);
@@ -777,7 +800,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             iStringSet *urls = d->structureUrls;
             if (!equal_String(&d->structureHost, hostStr)) {
                 clear_StringSet(urls);
-                clear_StringSet(d->structureFolds);
+                clear_StringSet(d->structureUnfolds);
                 set_String(&d->structureHost, hostStr);
             }
             /* Look through everything we know at the moment: visited URLs, bookmarks,
@@ -843,26 +866,16 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                         iSidebarItem *previousItem = backItem_ListWidget(d->list);
                         iRangecc parentUrlRange = { constBegin_String(url), subDir.end };
                         if (!equalRange_Rangecc(range_String(&previousItem->url), parentUrlRange)) {
+                            iString parentUrl;
                             parentUrlRange.end++; /* include the slash */
+                            initRange_String(&parentUrl, parentUrlRange);
                             iSidebarItem *parent = addStructureItem_SidebarWidget_(
-                                d, parentUrlRange, seg, &stack, docUrl, &docItem);
+                                d, &parentUrl, seg, &stack, docUrl, &docItem);
+                            deinit_String(&parentUrl);
                             if (parent) {
                                 appendCStr_String(&parent->label, "/");
                                 parent->isBold = (parent->indent == 1);
                             }
-#if 0
-                            iSidebarItem *parent = new_SidebarItem();
-                            setRange_String(&parent->url, parentUrlRange);
-                            setRange_String(&parent->label, seg);
-                            appendCStr_String(&parent->label, "/");
-                            parent->indent = (int) size_Array(&stack) + 1;
-                            if (equal_String(&parent->url, docUrl)) {
-                                docItem = numItems_ListWidget(d->list);
-                                parent->id = iTrue;
-                            }
-                            addItem_ListWidget(d->list, parent);
-                            iRelease(parent);
-#endif
                         }
                         pushBack_Array(&stack, &(iLevel){ subDir });
                     }
@@ -872,40 +885,18 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     /* The prefix has become shorter. */
                     resize_Array(&stack, i);
                 }
-
                 setRange_String(&label, (iRangecc){ itemDir.end + 1, constEnd_String(url) });
                 if (isEmpty_String(&label) || !cmp_String(&label, "/")) {
                     /* The directory item was already created above. */
                     continue;
                 }
-                addStructureItem_SidebarWidget_(d, range_String(url), range_String(&label),
-                    &stack, docUrl, &docItem);
-#if 0
-                const int itemIndent = (int) size_Array(&stack) + 1;
-                /* TODO: This item addition should use the same method as above the
-                   parent folders use. */
-                if (/* isInsideFold? */ itemIndent < 3) {
-                    iSidebarItem *item = new_SidebarItem();
-                    set_String(&item->label, &label);
-                    set_String(&item->url, url);
-                    item->indent = itemIndent;
-                    if (equal_String(url, docUrl)) {
-                        docItem = numItems_ListWidget(d->list);
-                        item->id = iTrue;
-                    }
-                    addItem_ListWidget(d->list, item);
-                    iRelease(item);
-                }
-                else {
-                    iSidebarItem *item = backItem_ListWidget(d->list);
-                    item->count++;
-                }
-#endif
+                addStructureItem_SidebarWidget_(
+                    d, url, range_String(&label), &stack, docUrl, &docItem);
             }
-            setCursorItem_ListWidget(d->list, docItem);
-            if (docItem != iInvalidPos) {
-                scrollToItem_ListWidget(d->list, docItem, 300);
-            }
+            // setCursorItem_ListWidget(d->list, docItem);
+            // if (docItem != iInvalidPos) {
+                // scrollToItem_ListWidget(d->list, docItem, 500);
+            // }
             deinit_Array(&stack);
             deinit_String(&label);
             /* Context menu. */
@@ -1175,6 +1166,17 @@ static size_t findItem_SidebarWidget_(const iSidebarWidget *d, int id) {
     return iInvalidPos;
 }
 
+static size_t findItemUrl_SidebarWidget_(const iSidebarWidget *d, const iString *url) {
+    /* O(n) performance! */
+    for (size_t i = 0; i < numItems_ListWidget(d->list); i++) {
+        const iSidebarItem *item = constItem_ListWidget(d->list, i);
+        if (equal_String(url, &item->url)) {
+            return i;
+        }
+    }
+    return iInvalidPos;
+}
+
 static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     /* Note: identity item height is defined by CertListWidget */
 #if !defined (iPlatformTerminal)
@@ -1337,7 +1339,7 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     init_String(&d->bookmarkFilter);
     init_String(&d->structureHost);
     d->structureUrls = new_StringSet();
-    d->structureFolds = new_StringSet();
+    d->structureUnfolds = new_StringSet();
     /* On a phone, the right sidebar is not used. */
     const iBool isPhone = (deviceType_App() == phone_AppDeviceType);
     if (isPhone) {
@@ -1445,7 +1447,7 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
 }
 
 void deinit_SidebarWidget(iSidebarWidget *d) {
-    iRelease(d->structureFolds);
+    iRelease(d->structureUnfolds);
     iRelease(d->structureUrls);
     deinit_String(&d->structureHost);
     deinit_String(&d->bookmarkFilter);
@@ -1508,8 +1510,24 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
             setFocus_Widget(NULL);
             break;
         }
-        case subscriptions_SidebarMode:
-        case siteStructure_SidebarMode: {
+        case siteStructure_SidebarMode:
+            if (item->indent > 0 && item->count > 0 &&
+                !contains_StringSet(d->structureUnfolds, &item->url)) {
+                /* This item with folded children will now unfold. */
+                iString *itemUrl = collect_String(copy_String(&item->url));
+                iString *origUrl = collect_String(copy_String(itemUrl));
+                if (!endsWith_String(itemUrl, "/")) {
+                    appendCStr_String(itemUrl, "/"); /* always must have a directory separator */
+                }
+                insert_StringSet(d->structureUnfolds, itemUrl);
+                updateItemsWithFlags_SidebarWidget_(d, iTrue); /* `item` becomes invalid */
+                /* Move cursor to the unfolded parent. */
+                //setCursorItem_ListWidget(d->list, findItemUrl_SidebarWidget_(d, origUrl));
+                return;
+            } /* fall-through */
+            /* Everything the user clicks is automatically unfolded. */
+            insert_StringSet(d->structureUnfolds, &item->url);
+        case subscriptions_SidebarMode: {
             postCommandf_Root(get_Root(),
                               "open newtab:%d url:%s",
                               mouseTabMode ? mouseTabMode : openTabMode_Sym(modState_Keys()),
@@ -3122,7 +3140,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                            : uiTextDim_ColorId;
         const int fg2 = isPressing ? uiTextPressed_ColorId
                         : isHover  ? uiTextFramelessHover_ColorId
-                                   : uiTextShortcut_ColorId;
+                                   : uiAnnotation_ColorId;
         if (d->id && !isHover && !isPressing) {
             fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
         }
@@ -3131,10 +3149,11 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             init_I2(3 * gap_UI + d->indent * 5 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
         const int span = measureRange_Text(font, range_String(&d->label)).advance.x;
         drawRange_Text(font, pos, fg, range_String(&d->label));
-        if (d->count > 1) {
+        if (d->count > 0 && d->indent > 0) {
             draw_Text(
                 uiLabel_FontId,
-                add_I2(pos, init_I2(span, ascent_Text(font) - ascent_Text(uiLabel_FontId))),
+                add_I2(pos,
+                       init_I2(span + gap_UI, ascent_Text(font) - ascent_Text(uiLabel_FontId))),
                 fg2,
                 " (%d)",
                 d->count);
