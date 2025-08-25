@@ -326,7 +326,7 @@ static const iMenuItem bookmarkMenuItems_[] = {
     { "---", 0, 0, NULL },
     { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
     { copy_Icon " ${menu.dup}", 0, 0, "bookmark.dup" },
-    { "${menu.copyurl}", 0, 0, "bookmark.copy" },
+    { "${menu.copyurl}", 0, 0, "sideitem.copy canon:1" },
     { "---", 0, 0, NULL },
     { "", 0, 0, "bookmark.tag tag:subscribed" },
     { "", 0, 0, "bookmark.tag tag:homepage" },
@@ -606,7 +606,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                   0,
                   "feed.entry.markread below:1" },
                 { bookmark_Icon " ${feeds.entry.bookmark}", 0, 0, "feed.entry.bookmark" },
-                { "${menu.copyurl}", 0, 0, "feed.entry.copy" },
+                { "${menu.copyurl}", 0, 0, "sideitem.copy" },
                 { "---", 0, 0, NULL },
                 { page_Icon " ${feeds.entry.openfeed}", 0, 0, "feed.entry.openfeed" },
                 { edit_Icon " ${menu.feed.edit}", 0, 0, "feed.entry.edit" },
@@ -700,10 +700,10 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             deinit_Hash(&hash);
             /* The context menus. */
             const iMenuItem menuItems[] = {
-                { openTab_Icon " ${menu.opentab}", 0, 0, "sub.open newtab:1" },
-                { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "sub.open newtab:2" },
+                { openTab_Icon " ${menu.opentab}", 0, 0, "sideitem.open newtab:1" },
+                { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "sideitem.open newtab:2" },
 #if defined(iPlatformDesktop)
-                { openWindow_Icon " ${menu.openwindow}", 0, 0, "sub.open newwindow:1" },
+                { openWindow_Icon " ${menu.openwindow}", 0, 0, "sideitem.open newwindow:1" },
 #endif
                 { "---", 0, 0, NULL },
                 { edit_Icon " ${menu.feed.edit}", 0, 0, "sub.edit" },
@@ -778,24 +778,19 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             setRange_String(&rootItem->label, urlHost_String(docUrl));
             rootItem->isBold = iTrue;
             rootItem->id     = equal_String(&rootItem->url, docUrl);
+            rootItem->count  = 1;
             size_t docItem   = rootItem->id ? 0 : iInvalidPos;
             addItem_ListWidget(d->list, rootItem);
             iRelease(rootItem);
             iString label;
             init_String(&label);
-            // iString *container = newRange_String(host);
-            // iRangecc previousPath = urlPath_String(hostStr);
-            // const iSidebarItem *lastItem = rootItem;
-            /* TODO: need a stack-based approach. Make container items as needed,
-               if they aren't populated already. The stack allows decrementing
-               multiple levels in one step. Containers should have a different color? */
+            /* Use a stack to keep track of the directory containment structure. */
             struct Impl_Level {
                 iRangecc prefix;
             };
             iDeclareType(Level);
             iArray stack;
             init_Array(&stack, sizeof(iLevel));
-
             iConstForEach(StringSet, u, urls) {
                 const iString *url = u.value;
                 /* Compare the structure of this URL compared to the current stack. */
@@ -818,19 +813,28 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     }
                     if (i >= size_Array(&stack)) {
                         /* The itemDir has more components than the stack. */
-                        iSidebarItem *parent = new_SidebarItem();
-                        setRange_String(&parent->url,
-                                        (iRangecc) { constBegin_String(url), subDir.end + 1 });
-                        setRange_String(&parent->label, seg);
-                        appendCStr_String(&parent->label, "/");
-                        parent->indent = (int) size_Array(&stack) + 1;
-                        if (equal_String(&parent->url, docUrl)) {
-                            docItem = numItems_ListWidget(d->list);
-                            parent->id = iTrue;
+                        iSidebarItem *previousItem =
+                            item_ListWidget(d->list, numItems_ListWidget(d->list) - 1);
+                        iRangecc parentUrlRange = { constBegin_String(url), subDir.end };
+                        if (!equalRange_Rangecc(range_String(&previousItem->url), parentUrlRange)) {
+                            parentUrlRange.end++; /* include the slash */
+                            iSidebarItem *parent = new_SidebarItem();
+                            setRange_String(&parent->url, parentUrlRange);
+                            setRange_String(&parent->label, seg);
+                            appendCStr_String(&parent->label, "/");
+                            parent->indent = (int) size_Array(&stack) + 1;
+                            if (equal_String(&parent->url, docUrl)) {
+                                docItem = numItems_ListWidget(d->list);
+                                parent->id = iTrue;
+                            }
+                            parent->isBold = (parent->indent == 1);
+                            parent->count = 1;
+                            addItem_ListWidget(d->list, parent);
+                            iRelease(parent);
                         }
-                        parent->isBold = (parent->indent == 1);
-                        addItem_ListWidget(d->list, parent);
-                        iRelease(parent);
+                        else {
+                            previousItem->count = 1;
+                        }
                         pushBack_Array(&stack, &(iLevel){ subDir });
                     }
                     i++;
@@ -862,6 +866,18 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             }
             deinit_Array(&stack);
             deinit_String(&label);
+            /* Context menu. */
+            const iMenuItem menuItems[] = {
+                { openTab_Icon " ${menu.opentab}", 0, 0, "sideitem.open newtab:1" },
+                { openTabBg_Icon " ${menu.opentab.background}",
+                  0, 0, "sideitem.open newtab:2" },
+#if defined(iPlatformDesktop)
+                { openWindow_Icon " ${menu.openwindow}", 0, 0, "sideitem.open newwindow:1" },
+            #endif
+                { "---" },
+                { "${menu.copyurl}", 0, 0, "sideitem.copy" },
+            };
+            d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             break;
         }
         case bookmarks_SidebarMode: {
@@ -967,7 +983,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             #endif
                 { "---" },
                 { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "history.addbookmark" },
-                { "${menu.copyurl}", 0, 0, "history.copy" },
+                { "${menu.copyurl}", 0, 0, "sideitem.copy canon:1" },
                 { "---", 0, 0, NULL },
                 { close_Icon " ${menu.forgeturl}", 0, 0, "history.delete" },
                 { "---", 0, 0, NULL },
@@ -1034,7 +1050,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 { "${menu.movetab.newwindow}", 0, 0, "opendocs.swap newwindow:1" },
                 { "---" },
                 { copy_Icon " ${menu.duptab}", 0, 0, "opendocs.dup" },
-                { "${menu.copyurl}", 0, 0, "opendocs.copyurl" },
+                { "${menu.copyurl}", 0, 0, "sideitem.copy" },
                 { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "opendocs.bookmark" },
             };
             d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
@@ -2170,13 +2186,6 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
             return iTrue;
         }
-        else if (isCommand_Widget(w, ev, "bookmark.copy")) {
-            const iSidebarItem *item = d->contextItem;
-            if (d->mode == bookmarks_SidebarMode && item) {
-                SDL_SetClipboardText(cstr_String(canonicalUrl_String(&item->url)));
-            }
-            return iTrue;
-        }
         else if (isCommand_Widget(w, ev, "bookmark.edit")) {
             const iSidebarItem *item = d->contextItem;
             const int           argId = argLabel_Command(cmd, "id");
@@ -2369,10 +2378,6 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                                                     argLabel_Command(cmd, "newwindow")));
                     return iTrue;
                 }
-                else if (isCommand_Widget(w, ev, "feed.entry.copy")) {
-                    SDL_SetClipboardText(cstr_String(&item->url));
-                    return iTrue;
-                }
                 else if (isCommand_Widget(w, ev, "feed.entry.toggleread")) {
                     const iString *url = urlFragmentStripped_String(&item->url);
                     markEntryAsRead_Feeds(
@@ -2422,17 +2427,28 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 }
             }
         }
-        else if (startsWith_CStr(cmd, "sub.") && d->mode == subscriptions_SidebarMode) {
+        else if (startsWith_CStr(cmd, "sideitem.")) {
             const iSidebarItem *item = d->contextItem;
             if (item) {
-                if (isCommand_Widget(w, ev, "sub.open")) {
+                if (isCommand_Widget(w, ev, "sideitem.open")) {
                     postCommandf_App("open newwindow:%d newtab:%d url:%s",
                         argLabel_Command(cmd, "newwindow"),
                         argLabel_Command(cmd, "newtab"),
                         cstr_String(&item->url));
                     return iTrue;
                 }
-                else if (isCommand_Widget(w, ev, "sub.edit")) {
+                else if (isCommand_Widget(w, ev, "sideitem.copy")) {
+                    SDL_SetClipboardText(cstr_String(argLabel_Command(cmd, "canon")
+                                                         ? canonicalUrl_String(&item->url)
+                                                         : &item->url));
+                    return iTrue;
+                }
+            }
+        }
+        else if (startsWith_CStr(cmd, "sub.") && d->mode == subscriptions_SidebarMode) {
+            const iSidebarItem *item = d->contextItem;
+            if (item) {
+                if (isCommand_Widget(w, ev, "sub.edit")) {
                     makeFeedSettings_Widget(item->id);
                     return iTrue;
                 }
@@ -2460,13 +2476,6 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                                    argLabel_Command(cmd, "newtab"),
                                    argLabel_Command(cmd, "newwindow"),
                                    cstr_String(&item->url));
-            }
-            return iTrue;
-        }
-        else if (isCommand_Widget(w, ev, "history.copy")) {
-            const iSidebarItem *item = d->contextItem;
-            if (item && !isEmpty_String(&item->url)) {
-                SDL_SetClipboardText(cstr_String(canonicalUrl_String(&item->url)));
             }
             return iTrue;
         }
@@ -2522,13 +2531,6 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             if (item) {
                 postCommandf_App("tabs.switch id:%s", cstr_String(&item->meta));
                 postCommand_App("tabs.new duplicate:1");
-            }
-            return iTrue;
-        }
-        else if (isCommand_Widget(w, ev, "opendocs.copyurl")) {
-            const iSidebarItem *item = d->contextItem;
-            if (item) {
-                SDL_SetClipboardText(cstr_String(&item->url));
             }
             return iTrue;
         }
@@ -2825,11 +2827,11 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
     const int scrollBarWidth = scrollBarWidth_ListWidget(list);
     const int blankWidth     = isApple_Platform() ? 0 : scrollBarWidth;
     const int itemHeight     = height_Rect(itemRect);
+    const int font           = sidebar->itemFonts[d->isBold ? 1 : 0];
     const int iconColor      = isHover ? (isPressing ? uiTextPressed_ColorId : uiIconHover_ColorId)
                                        : uiIcon_ColorId;
-//    const int altIconColor   = isPressing ? uiTextPressed_ColorId : uiTextAction_ColorId;
-    const int font = sidebar->itemFonts[d->isBold ? 1 : 0];
-    int bg         = uiBackgroundSidebar_ColorId;
+    /* Draw item background. */
+    int bg = uiBackgroundSidebar_ColorId;
     if (isHover) {
         bg = isPressing ? uiBackgroundPressed_ColorId
                         : uiBackgroundFramelessHover_ColorId;
@@ -2846,6 +2848,13 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             fillRect_Paint(p, itemRect, bg);
         }
     }
+    else if (sidebar->mode == siteStructure_SidebarMode) {
+        if (d->indent >= 2) {
+            bg = uiBackgroundFolder_ColorId;
+            fillRect_Paint(p, itemRect, bg);
+        }
+    }
+    /* Draw item contents. */
     iInt2 pos = itemRect.pos;
     if (sidebar->mode == documentOutline_SidebarMode) {
         const int level = d->indent / (5 * gap_UI);
@@ -3064,7 +3073,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
     else if (sidebar->mode == siteStructure_SidebarMode) {
         const int fg = isHover ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
                        : d->indent == 0 ? uiTextStrong_ColorId
-                       : endsWith_String(&d->label, "/")
+                       : d->count > 0
                            ? (d->indent <= 2 ? uiTextStrong_ColorId : uiTextAction_ColorId)
                            : uiTextDim_ColorId;
         if (d->id && !isHover && !isPressing) {
