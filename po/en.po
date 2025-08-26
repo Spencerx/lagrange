@@ -295,6 +295,9 @@ msgstr "New Folder…"
 msgid "menu.sort.alpha"
 msgstr "Sort Alphabetically"
 
+msgid "menu.fold"
+msgstr "Fold"
+
 msgid "menu.foldall"
 msgstr "Fold All"
 

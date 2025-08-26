@@ -450,6 +450,16 @@ static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
                                   5 /* only items related to the individual bookmark */);
 }
 
+static void removeStructureUnfold_SidebarWidget_(iSidebarWidget *d, const iString *url) {
+    iForEach(Array, i, &d->structureUnfolds->strings.values) {
+        iString *str = i.value;
+        if (startsWith_String(str, cstr_String(url))) {
+            deinit_String(str);
+            remove_ArrayIterator(&i);
+        }
+    }
+}
+
 static iBool isUnfoldedStructurePath_SidebarWidget_(const iSidebarWidget *d, const iString *url,
                                                     const iString *activeDocumentUrl) {
     if (contains_StringSet(d->structureUnfolds, url)) {
@@ -483,6 +493,11 @@ static iSidebarItem *addStructureItem_SidebarWidget_(iSidebarWidget *d, const iS
                                                      size_t        *highlightedItemPos_out) {
     const int itemIndent = (int) size_Array(stack) + 1;
     if (itemIndent == 1 || isUnfoldedStructurePath_SidebarWidget_(d, url, activeDocumentUrl)) {
+        iSidebarItem *previous = backItem_ListWidget(d->list);
+        if (previous->indent == itemIndent - 1) {
+            /* This must be the parent item. */
+            previous->id |= 2; /* show as open folder */
+        }
         iSidebarItem *item = new_SidebarItem();
         set_String(&item->url, url);
         setRange_String(&item->label, label);
@@ -908,15 +923,17 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             /* Context menu. */
             const iMenuItem menuItems[] = {
                 { openTab_Icon " ${menu.opentab}", 0, 0, "sideitem.open newtab:1" },
-                { openTabBg_Icon " ${menu.opentab.background}",
-                  0, 0, "sideitem.open newtab:2" },
+                { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "sideitem.open newtab:2" },
 #if defined(iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "sideitem.open newwindow:1" },
-            #endif
+#endif
                 { "---" },
                 { "${menu.copyurl}", 0, 0, "sideitem.copy" },
+                { "---" },
+                { "${menu.fold}", 0, 0, "structure.fold" },
             };
-            d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
+            d->menu       = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems) - 2);
+            d->folderMenu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             break;
         }
         case bookmarks_SidebarMode: {
@@ -1517,8 +1534,8 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
             break;
         }
         case siteStructure_SidebarMode:
-            if (item->indent > 0 && item->count > 0 &&
-                !contains_StringSet(d->structureUnfolds, &item->url)) {
+            if (item->indent > 0 && item->count > 0 /*&&
+                !contains_StringSet(d->structureUnfolds, &item->url)*/) {
                 /* This item with folded children will now unfold. */
                 iString *itemUrl = collect_String(copy_String(&item->url));
                 iString *origUrl = collect_String(copy_String(itemUrl));
@@ -2496,6 +2513,15 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 }
             }
         }
+        else if (d->mode == siteStructure_SidebarMode &&
+                 isCommand_Widget(w, ev, "structure.fold")) {
+            const iSidebarItem *item = d->contextItem;
+            if (item) {
+                removeStructureUnfold_SidebarWidget_(d, &item->url);
+                updateItemsWithFlags_SidebarWidget_(d, iTrue);
+            }
+            return iTrue;
+        }
         else if (startsWith_CStr(cmd, "sideitem.")) {
             const iSidebarItem *item = d->contextItem;
             if (item) {
@@ -2825,8 +2851,8 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             iWidget *contextMenu = d->menu;
             /* Update the menu before opening. */
             /* TODO: This kind of updating is already done above, and in `updateContextMenu_`... */
+            const iSidebarItem *hoverItem = hoverItem_ListWidget(d->list);
             if (d->mode == bookmarks_SidebarMode) {
-                const iSidebarItem *hoverItem = hoverItem_ListWidget(d->list);
                 if (!hoverItem) {
                     return iTrue;
                 }
@@ -2849,6 +2875,11 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                                         disabled_WidgetFlag, /* Remote bookmarks have limitations. */
                                         isRemote);
                     }
+                }
+            }
+            else if (d->mode == siteStructure_SidebarMode) {
+                if (hoverItem && hoverItem->id & 2 /* unfolded */) {
+                    contextMenu = d->folderMenu;
                 }
             }
             processContextMenuEvent_Widget(contextMenu, ev, {});
@@ -3145,15 +3176,21 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         iEndCollect();
     }
     else if (sidebar->mode == siteStructure_SidebarMode) {
+        const iBool isActive   = (d->id & 1) != 0;
+        const iBool isUnfolded = (d->id & 2) != 0;
         const int fg = isHover ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
-                       : d->indent == 0 || d->isBold ? uiTextStrong_ColorId
+                       : d->indent == 0 || d->isBold || isUnfolded ? uiTextStrong_ColorId
                        : d->count > 0
                            ? (d->indent <= 2 ? uiTextStrong_ColorId : uiTextAction_ColorId)
                            : uiTextDim_ColorId;
         const int fg2 = isPressing ? uiTextPressed_ColorId
                         : isHover  ? uiTextFramelessHover_ColorId
                                    : uiAnnotation_ColorId;
-        if (d->id && !isHover && !isPressing) {
+        const int fg3 = isPressing   ? uiTextPressed_ColorId
+                        : isHover    ? isUnfolded ? uiTextDim_ColorId : uiAnnotation_ColorId
+                        : isUnfolded ? uiTextShortcut_ColorId
+                                     : uiAnnotation_ColorId;
+        if (isActive && !isHover && !isPressing) {
             fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
         }
         const iInt2 pos = add_I2(
@@ -3161,14 +3198,25 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             init_I2(3 * gap_UI + d->indent * 5 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
         const int span = measureRange_Text(font, range_String(&d->label)).advance.x;
         drawRange_Text(font, pos, fg, range_String(&d->label));
-        if (d->count > 0 && d->indent > 0) {
-            draw_Text(
-                uiLabel_FontId,
-                add_I2(pos,
-                       init_I2(span + gap_UI, ascent_Text(font) - ascent_Text(uiLabel_FontId))),
-                fg2,
-                " (%d)",
-                d->count);
+        if (d->indent > 0) {
+            if (isUnfolded || d->count > 0) {
+                drawCenteredRange_Text(
+                    font,
+                    initCorners_Rect(addX_I2(pos, -6 * gap_UI),
+                                     init_I2(pos.x, pos.y + lineHeight_Text(font))),
+                    iTrue,
+                    fg3,
+                    range_CStr(isUnfolded ? downAngle_Icon : rightAngle_Icon));
+            }
+            if (d->count > 0) {
+                draw_Text(
+                    uiLabel_FontId,
+                    add_I2(pos,
+                           init_I2(span + gap_UI, ascent_Text(font) - ascent_Text(uiLabel_FontId))),
+                    fg2,
+                    " (%d)",
+                    d->count);
+            }
         }
     }
     else if (sidebar->mode == openDocuments_SidebarMode) {
