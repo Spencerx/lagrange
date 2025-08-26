@@ -768,18 +768,16 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             deinit_Hash(&hash);
             /* The context menus. */
             const iMenuItem menuItems[] = {
+                { edit_Icon " ${menu.feed.edit}", 0, 0, "sub.edit" },
+                { "${menu.sub.edit}", 0, 0, "bookmark.edit" },
+                { whiteStar_Icon " " uiTextCaution_ColorEscape "${feeds.unsubscribe}",
+                  0, 0, "sub.unsubscribe" },
+                { "---", 0, 0, NULL },
                 { openTab_Icon " ${menu.opentab}", 0, 0, "sideitem.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "sideitem.open newtab:2" },
 #if defined(iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "sideitem.open newwindow:1" },
 #endif
-                { "---", 0, 0, NULL },
-                { edit_Icon " ${menu.feed.edit}", 0, 0, "sub.edit" },
-                { "${menu.sub.edit}", 0, 0, "bookmark.edit" },
-                { whiteStar_Icon " " uiTextCaution_ColorEscape "${feeds.unsubscribe}",
-                  0,
-                  0,
-                  "sub.unsubscribe" },
                 { "---", 0, 0, NULL },
                 { reload_Icon " ${feeds.refresh}", refreshFeeds_KeyShortcut, "feeds.refresh" },
                 { "${feeds.reset}", 0, 0, "feeds.reset" },

@@ -230,7 +230,7 @@ void scrollToItem_ListWidget(iListWidget *d, size_t index, uint32_t span) {
         return;
     }
     stop_Anim(&d->scrollY.pos);
-    const iRect rect    = innerBounds_Widget(as_Widget(d));
+    const iRect rect    = innerBoundsWithoutVisualOffset_Widget(as_Widget(d));
     int         yTop    = d->itemHeight * index - pos_SmoothScroll(&d->scrollY);
     int         yBottom = yTop + d->itemHeight;
     if (yBottom > height_Rect(rect)) {
