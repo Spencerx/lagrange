@@ -922,6 +922,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             deinit_String(&label);
             /* Context menu. */
             const iMenuItem menuItems[] = {
+                { "${menu.fold}", 0, 0, "structure.fold" },
+                { "---" },
                 { openTab_Icon " ${menu.opentab}", 0, 0, "sideitem.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "sideitem.open newtab:2" },
 #if defined(iPlatformDesktop)
@@ -929,10 +931,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
 #endif
                 { "---" },
                 { "${menu.copyurl}", 0, 0, "sideitem.copy" },
-                { "---" },
-                { "${menu.fold}", 0, 0, "structure.fold" },
             };
-            d->menu       = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems) - 2);
+            d->menu       = makeMenu_Widget(as_Widget(d), menuItems + 2, iElemCount(menuItems) - 2);
             d->folderMenu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             break;
         }
@@ -3187,8 +3187,8 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                         : isHover  ? uiTextFramelessHover_ColorId
                                    : uiAnnotation_ColorId;
         const int fg3 = isPressing   ? uiTextPressed_ColorId
-                        : isHover    ? isUnfolded ? uiTextDim_ColorId : uiAnnotation_ColorId
-                        : isUnfolded ? uiTextShortcut_ColorId
+                        : isHover    ? isUnfolded ? uiText_ColorId : uiAnnotation_ColorId
+                        : isUnfolded ? uiText_ColorId
                                      : uiAnnotation_ColorId;
         if (isActive && !isHover && !isPressing) {
             fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
