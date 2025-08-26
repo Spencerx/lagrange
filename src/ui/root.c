@@ -2214,8 +2214,11 @@ void createUserInterface_Root(iRoot *d) {
         const iMenuItem items[] = {
             { book_Icon " ${sidebar.bookmarks}", 0, 0, "toolbar.showview arg:0" },
             { star_Icon " ${sidebar.feeds}", 0, 0, "toolbar.showview arg:1" },
+            { whiteStar_Icon " ${sidebar.subscriptions}", 0, 0, "toolbar.showview arg:7" },
             { clock_Icon " ${sidebar.history}", 0, 0, "toolbar.showview arg:2" },
             { page_Icon " ${toolbar.outline}", 0, 0, "toolbar.showview arg:4" },
+            { hierarchy_Icon " ${sidebar.structure}", 0, 0, "toolbar.showview arg:5" },
+            { openTabBg_Icon " ${sidebar.documents}", 0, 0, "toolbar.showview arg:6" },
         };
         iWidget *menu = makeMenu_Widget(findChild_Widget(toolBar, "toolbar.view"),
                                         items, iElemCount(items));
