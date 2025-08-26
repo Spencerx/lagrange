@@ -913,9 +913,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 addStructureItem_SidebarWidget_(
                     d, url, range_String(&label), &stack, docUrl, &docItem);
             }
-            // setCursorItem_ListWidget(d->list, docItem);
             if (docItem != iInvalidPos && !keepActions) {
-                // scrollToItem_ListWidget(d->list, docItem, 500);
                 postCommand_Widget(d->list, "sideitem.show arg:%u", docItem);
             }
             deinit_Array(&stack);
