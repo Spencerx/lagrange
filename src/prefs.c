@@ -69,7 +69,8 @@ void init_Prefs(iPrefs *d) {
         /* Phone layout has only the one sidebar. */
         iForIndices(i, d->sidebarModeEnabled[0]) {
             d->sidebarModeEnabled[0][i] = (i != subscriptions_SidebarMode &&
-                                           i != identities_SidebarMode);
+                                           i != identities_SidebarMode &&
+                                           i != openDocuments_SidebarMode);
         }
     }
     else {
