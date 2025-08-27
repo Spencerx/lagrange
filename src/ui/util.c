@@ -955,7 +955,7 @@ static iWidget *makeMenuSeparator_(void) {
     setFlags_Widget(sep, resizeChildren_WidgetFlag, iTrue);
     sep->flags2 |= centerChildrenVertical_WidgetFlag2;
     addChildFlags_Widget(sep, iClob(sbar), 0);
-    setBackgroundColor_Widget(sbar, uiTextDisabled_ColorId);
+    setBackgroundColor_Widget(sbar, isMobile_Platform() ? uiSeparator_ColorId : uiTextDisabled_ColorId);
     sep->rect.size.y = 2 * gap_UI * aspect_UI;
     setFixedSize_Widget(sbar, init_I2(-1, gap_UI / 3));
     setPadding_Widget(sep, 2 * gap_UI, 0, 2 * gap_UI, gap_UI / 3);
@@ -2157,7 +2157,8 @@ static void addTabPage_Widget_(iWidget *tabs, enum iWidgetAddPos addPos, iWidget
         setNoTopFrame_LabelWidget((iLabelWidget *) button, iTrue);
     }
     addChildPos_Widget(pages, page, addPos);
-    if (tabCount_Widget(tabs) > 1) {
+    if (tabCount_Widget(tabs) > 1 && (cmp_String(id_Widget(tabs), "doctabs") ||
+                                      !prefs_App()->hideTabBar)) {
         setFlags_Widget(buttons, hidden_WidgetFlag, iFalse);
     }
     setFlags_Widget(page, hidden_WidgetFlag | disabled_WidgetFlag, !isSel);
@@ -3459,18 +3460,27 @@ iWidget *makePreferences_Widget(void) {
             { NULL }
         };
         const iMenuItem uiPanelItems[] = {
-            { "title id:heading.prefs.interface" },
+            { "title id:heading.prefs.ui" },
             { "padding arg:0.667" },
             { "dropdown device:0 id:prefs.returnkey", 0, 0, (const void *) returnKeyBehaviorItems },
             { "toggle device:2 id:prefs.hidetoolbarscroll" },
             { "toggle id:prefs.bottomnavbar text:${LC:prefs.bottomnavbar}" },
             { "toggle id:prefs.bottomtabbar text:${LC:prefs.bottomtabbar}" },
+            { "toggle id:prefs.hidetabs" },
             { "padding" },
             { "toggle id:prefs.swipe.edge" },
             { "toggle id:prefs.swipe.page" },
             { "heading device:2 id:heading.prefs.toolbaractions" },
             { "dropdown device:2 id:prefs.toolbaraction1", 0, 0, (const void *) toolbarActionItems[0] },
             { "dropdown device:2 id:prefs.toolbaraction2", 0, 0, (const void *) toolbarActionItems[1] },
+            { "heading id:heading.prefs.toolbartabs" },
+            { "toggle id:prefs.sidebar.enabled.0 text:${LC:sidebar.bookmarks}" },
+            { "toggle id:prefs.sidebar.enabled.1 text:${LC:sidebar.feeds}" },
+            { "toggle id:prefs.sidebar.enabled.2 text:${LC:sidebar.subscriptions}" },
+            { "toggle id:prefs.sidebar.enabled.4 text:${LC:sidebar.outline}" },
+            { "toggle id:prefs.sidebar.enabled.5 text:${LC:sidebar.structure}" },
+            { "toggle id:prefs.sidebar.enabled.6 text:${LC:sidebar.documents}" },
+            { "toggle id:prefs.sidebar.enabled.7 text:${LC:sidebar.history}" },
             { "heading id:heading.prefs.sizing" },
             { "input id:prefs.uiscale maxlen:5" },
             { "padding" },
@@ -3623,7 +3633,7 @@ iWidget *makePreferences_Widget(void) {
             { "title id:heading.settings" },
             { "padding arg:0.167" },
             { "panel text:" gear_Icon " ${heading.prefs.general}", 0, 0, (const void *) generalPanelItems },
-            { "panel icon:0x1f4f1 id:heading.prefs.interface", 0, 0, (const void *) uiPanelItems },
+            { "panel icon:0x1f4f1 id:heading.prefs.ui", 0, 0, (const void *) uiPanelItems },
             { "panel icon:0x1f5a7 id:heading.prefs.network", 0, 0, (const void *) networkPanelItems },
             { "panel noscroll:1 text:" person_Icon " ${sidebar.identities}", 0, 0, (const void *) identityPanelItems },
             { "padding" },
@@ -3745,6 +3755,7 @@ iWidget *makePreferences_Widget(void) {
 #endif
             },
             iInvalidSize);
+        addDialogToggle_Widget(headings, values, "${prefs.hidetabs}", "prefs.hidetabs");
         addDialogToggle_Widget(headings, values, "${prefs.evensplit}", "prefs.evensplit");
         if (!isTerminal_Platform()) {
             addDialogPadding_(headings, values);

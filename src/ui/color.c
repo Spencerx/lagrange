@@ -224,7 +224,7 @@ void setThemePalette_Color(enum iColorTheme theme) {
             copy_(uiAnnotation_ColorId, accentHi);
             copy_(uiIcon_ColorId, accentHi);
             copy_(uiIconHover_ColorId, accentHi);
-            copy_(uiSeparator_ColorId, black_ColorId);
+            copy_(uiSeparator_ColorId, gray50_ColorId);
             copy_(uiMarked_ColorId, accentLo);
             copy_(uiMatching_ColorId, accentLo);
             break;
@@ -361,6 +361,10 @@ void setThemePalette_Color(enum iColorTheme theme) {
         copy_(uiInputFrame_ColorId, uiBackgroundSidebar_ColorId);
         copy_(uiInputFrameFocused_ColorId, uiBackgroundSidebar_ColorId);
         copy_(uiInputBackgroundFocused_ColorId, uiBackgroundSidebar_ColorId);
+        if (theme == dark_ColorTheme || theme == light_ColorTheme) {
+            set_Color(uiSeparator_ColorId, mix_Color(get_Color(uiSeparator_ColorId),
+                                                     get_Color(uiBackgroundSidebar_ColorId), 0.5f));
+        }
     }
 }
 

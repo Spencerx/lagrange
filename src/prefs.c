@@ -41,8 +41,9 @@ void init_Prefs(iPrefs *d) {
     d->translationIgnorePre         = iTrue;
     d->recentMenuBarIndex           = 0;
     d->useSystemTheme               = iTrue;
-    d->systemPreferredColorTheme[0] = d->systemPreferredColorTheme[1] = -1;
-    d->theme                                                          = dark_ColorTheme;
+    d->systemPreferredColorTheme[0] = pureBlack_ColorTheme;
+    d->systemPreferredColorTheme[1] = light_ColorTheme;
+    d->theme                        = dark_ColorTheme;
     d->accent                   = isAppleDesktop_Platform() ? system_ColorAccent : cyan_ColorAccent;
     d->customFrame              = iFalse; /* needs some more work to be default */
     d->retainWindowSize         = iTrue;
@@ -64,16 +65,26 @@ void init_Prefs(iPrefs *d) {
 #endif
     d->toolbarActions[1] = forward_ToolbarAction;
     iZap(d->sidebarModeEnabled);
-    d->sidebarModeEnabled[0][bookmarks_SidebarMode] = iTrue;
-    d->sidebarModeEnabled[0][feedEntries_SidebarMode] = iTrue;
-    d->sidebarModeEnabled[0][subscriptions_SidebarMode] = iTrue;
-    d->sidebarModeEnabled[0][identities_SidebarMode] = iTrue;
-    d->sidebarModeEnabled[1][documentOutline_SidebarMode] = iTrue;
-    d->sidebarModeEnabled[1][siteStructure_SidebarMode] = iTrue;
-    d->sidebarModeEnabled[1][openDocuments_SidebarMode] = iTrue;
-    d->sidebarModeEnabled[1][history_SidebarMode] = iTrue;
+    if (deviceType_App() == phone_AppDeviceType) {
+        /* Phone layout has only the one sidebar. */
+        iForIndices(i, d->sidebarModeEnabled[0]) {
+            d->sidebarModeEnabled[0][i] = (i != subscriptions_SidebarMode &&
+                                           i != identities_SidebarMode);
+        }
+    }
+    else {
+        d->sidebarModeEnabled[0][bookmarks_SidebarMode] = iTrue;
+        d->sidebarModeEnabled[0][feedEntries_SidebarMode] = iTrue;
+        d->sidebarModeEnabled[0][subscriptions_SidebarMode] = iTrue;
+        d->sidebarModeEnabled[0][identities_SidebarMode] = iTrue;
+        d->sidebarModeEnabled[1][documentOutline_SidebarMode] = iTrue;
+        d->sidebarModeEnabled[1][siteStructure_SidebarMode] = iTrue;
+        d->sidebarModeEnabled[1][openDocuments_SidebarMode] = iTrue;
+        d->sidebarModeEnabled[1][history_SidebarMode] = iTrue;
+    }
     d->sideIcon            = iTrue;
     d->hideToolbarOnScroll = iTrue;
+    d->hideTabBar          = iFalse;
     d->blinkingCursor      = iTrue;
     if (deviceType_App() == phone_AppDeviceType) {
         d->bottomNavBar = iTrue;

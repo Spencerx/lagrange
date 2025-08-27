@@ -608,7 +608,7 @@ msgstr[1] "Unread"
 msgid "sidebar.sub.empty"
 msgstr "Empty feed"
 
-msgid "feed.edit"
+msgid "menu.feed.edit"
 msgstr "Feed Settings…"
 
 msgid "menu.sub.edit"
@@ -1883,6 +1883,9 @@ msgstr "Appearance"
 msgid "heading.prefs.interface"
 msgstr "Behavior"
 
+msgid "heading.prefs.ui"
+msgstr "User Interface"
+
 msgid "heading.prefs.theme"
 msgstr "Theme"
 
@@ -2015,6 +2018,9 @@ msgstr "Bottom Nav Bar"
 msgid "prefs.bottomtabbar"
 msgstr "Bottom Tabs"
 
+msgid "prefs.hidetabs"
+msgstr "Hide tab bar:"
+
 msgid "prefs.menubar"
 msgstr "Menu Bar"
 
@@ -2032,6 +2038,9 @@ msgstr "Hide toolbar on scroll:"
 
 msgid "heading.prefs.toolbaractions"
 msgstr "Toolbar Actions"
+
+msgid "heading.prefs.toolbartabs"
+msgstr "Toolbar Tabs"
 
 msgid "prefs.toolbaraction1"
 msgstr "Button 1"

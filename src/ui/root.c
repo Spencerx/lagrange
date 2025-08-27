@@ -2375,6 +2375,8 @@ static void setupMovableElements_Root_(iRoot *d) {
         else {
             tabBar->padding[3] = 0;
         }
+        setFlags_Widget(tabBar, hidden_WidgetFlag,
+                        prefs->hideTabBar || tabCount_Widget(docTabs) <= 1);
     }
     setTabBarPosition_Widget(docTabs, prefs->bottomTabBar);
     arrange_Widget(d->widget);

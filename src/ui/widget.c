@@ -169,6 +169,7 @@ void init_Widget(iWidget *d) {
     init_Anim(&d->overflowScrollOpacity, 0.0f);
     init_String(&d->data);
     iZap(d->padding);
+    iZap(d->borderPad);
     d->updateMenuItems = NULL;
     d->menuClosed = NULL;
 //    d->delayedTimer = 0;
@@ -1878,13 +1879,13 @@ void drawBorders_Widget(const iWidget *d) {
         const int hgt = gap_UI / 4;
         const int borderColor = uiSeparator_ColorId; /* TODO: Add a property to customize? */
         if (d->flags & borderTop_WidgetFlag) {
-            fillRect_Paint(&p, (iRect){ topLeft_Rect(rect),
-                                        init_I2(width_Rect(rect), hgt) },
+            fillRect_Paint(&p, (iRect){ addX_I2(topLeft_Rect(rect), d->borderPad[0]),
+                                        init_I2(width_Rect(rect) - d->borderPad[1] - d->borderPad[0], hgt) },
                             borderColor);
         }
         if (d->flags & borderBottom_WidgetFlag) {
-            fillRect_Paint(&p, (iRect) { addY_I2(bottomLeft_Rect(rect), -hgt),
-                                         init_I2(width_Rect(rect), hgt) },
+            fillRect_Paint(&p, (iRect) { add_I2(bottomLeft_Rect(rect), init_I2(d->borderPad[2], -hgt)),
+                                         init_I2(width_Rect(rect) - d->borderPad[3] - d->borderPad[2], hgt) },
                             borderColor);
         }
     }

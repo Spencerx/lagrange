@@ -1423,7 +1423,8 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
                 (!prefs_App()->sidebarModeEnabled[d->side][i] ? hidden_WidgetFlag : 0));
         as_Widget(d->modeButtons[i])->flags2 |= slidingSheetDraggable_WidgetFlag2; /* phone */
     }
-    /* Dropdown menu for changing the mode. */ {
+    /* Dropdown menu for changing the mode. */
+    if (!isSlidingSheet_SidebarWidget_(d)) {
         // clang-format off
         const iMenuItem modeDropItems[] = {
             { "${sidebar.bookmarks}",     0, 0, format_CStr("%s.mode force:1 arg:0", cstr_String(id_Widget(w))) },
@@ -1639,6 +1640,7 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
         }
         case openDocuments_SidebarMode: {
             iWidget *tabs = findWidget_Root("doctabs");
+            dismissPortraitPhoneSidebars_Root(as_Widget(d)->root);
             showTabPage_Widget(tabs, findChild_Widget(tabs, cstr_String(&item->meta)));
             break;
         }
@@ -1660,7 +1662,7 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
         }
         setButtonFont_SidebarWidget(d, isPortrait_App() ? uiLabelMedium_FontId : uiLabel_FontId);
     }
-    const iBool isTight =
+    const iBool isTight = isPortraitPhone_App() ||
         (width_Rect(bounds_Widget(as_Widget(d->modeButtons[0]))) < d->maxButtonLabelWidth);
     for (int i = 0; i < max_SidebarMode; i++) {
         iLabelWidget *button = d->modeButtons[i];
@@ -1827,7 +1829,8 @@ static iBool handleSidebarCommand_SidebarWidget_(iSidebarWidget *d, const char *
     }
     else if (equal_Command(cmd, "mode")) {
         const int mode = arg_Command(cmd);
-        if (!argLabel_Command(cmd, "force") && !prefs_App()->sidebarModeEnabled[d->side][mode] &&
+        if (!isSlidingSheet_SidebarWidget_(d) && !argLabel_Command(cmd, "force") &&
+            !prefs_App()->sidebarModeEnabled[d->side][mode] &&
             prefs_App()->sidebarModeEnabled[d->side ^ 1][mode]) {
             /* Make it affect the other side instead. */
             postCommand_Widget(w, "%s.mode arg:%d show:%d toggle:%d",

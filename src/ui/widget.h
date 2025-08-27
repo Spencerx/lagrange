@@ -166,6 +166,7 @@ struct Impl_Widget {
     iWidget *    sizeRef;
     iWidget *    offsetRef;
     int          padding[4]; /* left, top, right, bottom */
+    int          borderPad[4]; /* top left, top right, bottom left, bottom right */
     int          overflowTopMargin; /* keep clear of this much space at the top */
     iAnim        visualOffset;
     int          bgColor;

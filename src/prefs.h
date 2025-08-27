@@ -66,12 +66,13 @@ enum iPrefsBool {
     uiAnimations_PrefsBool,
     hideToolbarOnScroll_PrefsBool,
 
+    hideTabBar_PrefsBool,
     blinkingCursor_PrefsBool,
     bottomNavBar_PrefsBool,
     bottomTabBar_PrefsBool,
     menuBar_PrefsBool,
+    
     simpleChars_PrefsBool,
-
     evenSplit_PrefsBool,
     detachedPrefs_PrefsBool,
     editorSyntaxHighlighting_PrefsBool,
@@ -149,13 +150,14 @@ struct Impl_Prefs {
             iBool retainWindowSize;
             iBool uiAnimations;
             iBool hideToolbarOnScroll;
-
+            
+            iBool hideTabBar;
             iBool blinkingCursor;
             iBool bottomNavBar;
             iBool bottomTabBar;
             iBool menuBar;
+            
             iBool simpleChars;
-
             iBool evenSplit;
             iBool detachedPrefs;
             iBool editorSyntaxHighlighting;
