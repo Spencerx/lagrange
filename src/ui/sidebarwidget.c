@@ -1664,6 +1664,7 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
     }
     const iBool isTight = isPortraitPhone_App() ||
         (width_Rect(bounds_Widget(as_Widget(d->modeButtons[0]))) < d->maxButtonLabelWidth);
+    const size_t tabCount = tabCount_Widget(findWidget_App("doctabs"));
     for (int i = 0; i < max_SidebarMode; i++) {
         iLabelWidget *button = d->modeButtons[i];
         if (!button) continue;
@@ -1680,6 +1681,12 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
                     d->numUnreadEntries,
                     !isTight ? " " : "",
                     !isTight ? formatCStrs_Lang("sidebar.unread.n", d->numUnreadEntries) : ""));
+        }
+        else if (i == openDocuments_SidebarMode && tabCount > 1) {
+            updateText_LabelWidget(button,
+                                   collectNewFormat_String("%s " uiTextAction_ColorEscape "%u",
+                                                           tightModeLabels_[i],
+                                                           tabCount));
         }
         else {
             updateTextCStr_LabelWidget(button,
@@ -2127,9 +2134,11 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             checkModeButtonLayout_SidebarWidget_(d);
             arrange_Widget(parent_Widget(d->modeButtons[0]));
         }
-        else if (d->mode == openDocuments_SidebarMode &&
-                 equal_Command(cmd, "document.openurls.changed")) {
-            updateItems_SidebarWidget_(d);
+        else if (equal_Command(cmd, "document.openurls.changed")) {
+            if (d->mode == openDocuments_SidebarMode) {
+                updateItems_SidebarWidget_(d);
+            }
+            checkModeButtonLayout_SidebarWidget_(d);
             return iFalse;
         }
         else if (equal_Command(cmd, "sidebar.update")) {
