@@ -2082,8 +2082,7 @@ void createUserInterface_Root(iRoot *d) {
                                                         unhittable_WidgetFlag);
         iWidget *docTabs = makeTabs_Widget(mainStack);
         setId_Widget(docTabs, "doctabs");
-        setBackgroundColor_Widget(docTabs, uiBackground_ColorId);
-//        setTabBarPosition_Widget(docTabs, prefs_App()->bottomTabBar);
+//        setBackgroundColor_Widget(docTabs, uiBackground_ColorId);
         iDocumentWidget *doc;
         appendTabPage_Widget(docTabs, iClob(doc = new_DocumentWidget()), "Document", 0, 0);
         addTabCloseButton_Widget(docTabs, as_Widget(doc), "tabs.close");
@@ -2361,6 +2360,7 @@ static void setupMovableElements_Root_(iRoot *d) {
     }
     if (tabBar) {
         iChangeFlags(tabBar->flags2, permanentVisualOffset_WidgetFlag2, prefs->bottomTabBar);
+        iChangeFlags(tabBar->flags, drawBackgroundToBottom_WidgetFlag, prefs->bottomTabBar);
         /* Tab button frames. */
         iForEach(ObjectList, i, children_Widget(tabBar)) {
             if (isInstance_Object(i.object, &Class_LabelWidget)) {
@@ -2435,7 +2435,10 @@ static void updateBottomBarPosition_(iWidget *bottomBar, iBool animate) {
     }
     else {
         /* Close any menus that open via the toolbar. */
-        setVisualOffset_Widget(bottomBar, height - bottomSafe, 200 * animate, easeOut_AnimFlag);
+        setVisualOffset_Widget(bottomBar,
+                       height - (bottomTabBar && tabBar->flags & hidden_WidgetFlag ? 0 : bottomSafe),
+                       200 * animate,
+                       easeOut_AnimFlag);
         if (bottomTabBar) {
             if (isPortraitPhone_App()) {
                 setVisualOffset_Widget(toolBar, bottomSafe, 200 * animate, 0);

@@ -1913,6 +1913,9 @@ void drawBackground_Widget(const iWidget *d) {
                 return;
             }
             fillRect_Paint(&p, rect, d->bgColor);
+            /*printf("drawBackground: '%s' %4d,%4d - %4d,%4d color:%3d\n",
+                   cstr_String(id_Widget(d)), rect.pos.x, rect.pos.y,
+                   rect.size.x, rect.size.y, d->bgColor);*/
         }
         if (d->frameColor >= 0 && ~d->flags & frameless_WidgetFlag) {
             drawRectThickness_Paint(&p, adjusted_Rect(rect, zero_I2(), neg_I2(one_I2())),
