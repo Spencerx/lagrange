@@ -296,27 +296,6 @@ static iString *serializePrefs_App_(const iApp *d) {
                                 x,
                                 y,
                                 winSnap);
-#if 0
-#i f defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
-            if (snap_MainWindow(win)) {
-                if (snap_MainWindow(win) == maximized_WindowSnap) {
-                    appendFormat_String(str, "~window.maximize index:%zu\n", winIndex);
-                }
-                else if (~SDL_GetWindowFlags(win->base.win) & SDL_WINDOW_MINIMIZED) {
-                    /* Save the actual visible window position, too, because snapped windows may
-                       still be resized/moved without affecting normalRect. */
-                    SDL_GetWindowPosition(win->base.win, &x, &y);
-                    SDL_GetWindowSize(win->base.win, &w, &h);
-                    appendFormat_String(
-                        str, "~window.setrect index:%zu snap:%d width:%d height:%d coord:%d %d\n",
-                        winIndex, snap_MainWindow(d->window), w, h, x, y);
-                }
-            }
-//#elif !defined (iPlatformApple)
-//            if (snap_MainWindow(win) == maximized_WindowSnap) {
-//                appendFormat_String(str, "~window.maximize index:%zu\n", winIndex);
-//            }
-#endif
         }
     }
     appendFormat_String(str, "uilang id:%s\n", cstr_String(&d->prefs.strings[uiLanguage_PrefsString]));
@@ -356,6 +335,15 @@ static iString *serializePrefs_App_(const iApp *d) {
         appendFormat_String(str, "hidetoolbarscroll arg:%d\n", d->prefs.hideToolbarOnScroll);
         appendFormat_String(str, "toolbar.action.set arg:%d button:0\n", d->prefs.toolbarActions[0]);
         appendFormat_String(str, "toolbar.action.set arg:%d button:1\n", d->prefs.toolbarActions[1]);
+    }
+    for (size_t i = 0; i < 2; i++) {
+        for (size_t j = 0; j < maxSidebarModes_Prefs; j++) {
+            appendFormat_String(str,
+                                "sidebar.modes.set arg:%d side:%u mode:%u\n",
+                                d->prefs.sidebarModeEnabled[i][j],
+                                i,
+                                j);
+        }
     }
     iConstForEach(StringSet, fp, d->prefs.disabledFontPacks) {
         appendFormat_String(str, "fontpack.disable id:%s\n", cstr_String(fp.value));
@@ -3758,6 +3746,28 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         }
         return iTrue;
     }
+    else if (startsWith_CStr(cmd, "prefs.sidebar.enabled.")) {
+        const int mode = atoi(cmd + 22);
+        postCommandf_App("sidebar.modes.set arg:%d side:0 mode:%d", arg_Command(cmd), mode);
+        return iTrue;
+    }
+    else if (startsWith_CStr(cmd, "prefs.sidebar2.enabled.")) {
+        const int mode = atoi(cmd + 23);
+        postCommandf_App("sidebar.modes.set arg:%d side:1 mode:%d", arg_Command(cmd), mode);
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "sidebar.modes.set")) {
+        const int side = iClamp(argLabel_Command(cmd, "side"), 0, 1);
+        const int mode = iClamp(argLabel_Command(cmd, "mode"), 0, maxSidebarModes_Prefs - 1);
+        const iBool newValue = arg_Command(cmd) != 0;
+        if (d->prefs.sidebarModeEnabled[side][mode] != newValue) {
+            d->prefs.sidebarModeEnabled[side][mode] = newValue;
+            if (!isFrozen) {
+                postCommand_App("~sidebar.modes.changed");
+            }
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "toolbar.action.set")) {
         d->prefs.toolbarActions[iClamp(argLabel_Command(cmd, "button"), 0, 1)] =
             iClamp(arg_Command(cmd), 0, max_ToolbarAction - 1);
@@ -5079,6 +5089,15 @@ iBool handleCommand_App(const char *cmd) {
             format_CStr("returnkey.set arg:%d", d->prefs.returnKey));
         updatePrefsToolBarActionButton_(dlg, 0, d->prefs.toolbarActions[0]);
         updatePrefsToolBarActionButton_(dlg, 1, d->prefs.toolbarActions[1]);
+        for (int side = 0; side < 2; side++) {
+            for (int barMode = 0; barMode < maxSidebarModes_Prefs; barMode++) {
+                setToggle_Widget(findChild_Widget(dlg,
+                                                  format_CStr("prefs.%s.enabled.%d",
+                                                              side == 0 ? "sidebar" : "sidebar2",
+                                                              barMode)),
+                                 d->prefs.sidebarModeEnabled[side][barMode]);
+            }
+        }
         setToggle_Widget(findChild_Widget(dlg, "prefs.retainwindow"), d->prefs.retainWindowSize);
         setText_InputWidget(findChild_Widget(dlg, "prefs.uiscale"),
                             collectNewFormat_String("%g", uiScale_Window(as_Window(d->window))));
@@ -5177,6 +5196,11 @@ iBool handleCommand_App(const char *cmd) {
                 iWidget *snippetPanel = panel_Mobile(dlg, 8);
                 iWidget *button  = findUserData_Widget(findChild_Widget(dlg, "panel.top"), snippetPanel);
                 postCommand_Widget(button, "panel.open");
+            }
+        }
+        if (argLabel_Command(cmd, "sidecfg")) {
+            if (deviceType_App() == desktop_AppDeviceType) {
+                postCommand_Widget(dlg, "tabs.switch id:sidecfg");
             }
         }
     }

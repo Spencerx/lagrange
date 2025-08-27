@@ -1894,7 +1894,7 @@ void createUserInterface_Root(iRoot *d) {
                     iClob(newIcon_LabelWidget("\U0001f513", SDLK_i, KMOD_PRIMARY, "document.info")),
                     embedFlags | moveToParentLeftEdge_WidgetFlag);
                 setId_Widget(as_Widget(lock), "navbar.lock");
-//                setFont_LabelWidget(lock, symbols_FontId + uiNormal_FontSize);
+               // setFont_LabelWidget(lock, symbols_FontId + uiNormal_FontSize);
                 updateTextCStr_LabelWidget(lock, "\U0001f512");
             }
             /* Button for clearing the URL bar contents. */ {
@@ -1903,10 +1903,10 @@ void createUserInterface_Root(iRoot *d) {
                     iClob(newIcon_LabelWidget(delete_Icon, 0, 0, "navbar.clear")),
                     hidden_WidgetFlag | embedFlags | moveToParentLeftEdge_WidgetFlag | tight_WidgetFlag);
                 setId_Widget(as_Widget(clear), "navbar.clear");
-//                setFont_LabelWidget(clear, symbols2_FontId + uiNormal_FontSize);
+               // setFont_LabelWidget(clear, symbols2_FontId + uiNormal_FontSize);
                 setFont_LabelWidget(clear, uiLabelSymbols_FontId);
-//                setFlags_Widget(as_Widget(clear), noBackground_WidgetFlag, iFalse);
-//                setBackgroundColor_Widget(as_Widget(clear), uiBackground_ColorId);
+               // setFlags_Widget(as_Widget(clear), noBackground_WidgetFlag, iFalse);
+               // setBackgroundColor_Widget(as_Widget(clear), uiBackground_ColorId);
             }
             iWidget *rightEmbed = new_Widget();
             setId_Widget(rightEmbed, "url.rightembed");
@@ -1922,7 +1922,7 @@ void createUserInterface_Root(iRoot *d) {
                 setFont_LabelWidget(queryInd, uiLabelSmall_FontId);
                 setBackgroundColor_Widget(as_Widget(queryInd), uiBackground_ColorId);
                 setFrameColor_Widget(as_Widget(queryInd), uiTextAction_ColorId);
-//                setAlignVisually_LabelWidget(queryInd, iTrue);
+               // setAlignVisually_LabelWidget(queryInd, iTrue);
                 setNoAutoMinHeight_LabelWidget(queryInd, iTrue);
                 addChildFlags_Widget(rightEmbed,
                                      iClob(queryInd),
@@ -1934,7 +1934,7 @@ void createUserInterface_Root(iRoot *d) {
                 setTextColor_LabelWidget(fprog, uiTextAction_ColorId);
                 setFont_LabelWidget(fprog, uiLabelSmall_FontId);
                 setBackgroundColor_Widget(as_Widget(fprog), uiBackground_ColorId);
-//                setAlignVisually_LabelWidget(fprog, iTrue);
+               // setAlignVisually_LabelWidget(fprog, iTrue);
                 setNoAutoMinHeight_LabelWidget(fprog, iTrue);
                 iWidget *progBar = new_Widget();
                 setBackgroundColor_Widget(progBar, uiTextAction_ColorId);
@@ -2214,11 +2214,11 @@ void createUserInterface_Root(iRoot *d) {
         const iMenuItem items[] = {
             { book_Icon " ${sidebar.bookmarks}", 0, 0, "toolbar.showview arg:0" },
             { star_Icon " ${sidebar.feeds}", 0, 0, "toolbar.showview arg:1" },
-            { whiteStar_Icon " ${sidebar.subscriptions}", 0, 0, "toolbar.showview arg:7" },
-            { clock_Icon " ${sidebar.history}", 0, 0, "toolbar.showview arg:2" },
+            { whiteStar_Icon " ${sidebar.subscriptions}", 0, 0, "toolbar.showview arg:2" },
             { page_Icon " ${toolbar.outline}", 0, 0, "toolbar.showview arg:4" },
             { hierarchy_Icon " ${sidebar.structure}", 0, 0, "toolbar.showview arg:5" },
             { openTabBg_Icon " ${sidebar.documents}", 0, 0, "toolbar.showview arg:6" },
+            { clock_Icon " ${sidebar.history}", 0, 0, "toolbar.showview arg:7" },
         };
         iWidget *menu = makeMenu_Widget(findChild_Widget(toolBar, "toolbar.view"),
                                         items, iElemCount(items));

@@ -132,7 +132,8 @@ enum iCollapse {
     always_Collapse,
 };
 
-#define maxNavbarActions_Prefs 4
+#define maxNavbarActions_Prefs  4
+#define maxSidebarModes_Prefs   8
 
 /* TODO: Use a systematic command naming convention for notifications. */
 
@@ -222,6 +223,7 @@ struct Impl_Prefs {
     float               uiScale;
     enum iToolbarAction navbarActions[maxNavbarActions_Prefs];
     enum iToolbarAction toolbarActions[2];
+    iBool               sidebarModeEnabled[2][maxSidebarModes_Prefs];
     int                 inputZoomLevel;
     int                 editorZoomLevel;
 

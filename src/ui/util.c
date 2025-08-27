@@ -3144,20 +3144,25 @@ iWidget *addDialogToggle_Widget(iWidget *headings, iWidget *values,
     return toggle;
 }
 
-static void addDialogToggleGroup_(iWidget *headings, iWidget *values, const char *title,
-                                  const char *toggleIds[], size_t n) {
+static void addDialogToggleGroupWithLabels_(iWidget *headings, iWidget *values, const char *title,
+                                  const char *toggleIds[], const char *toggleLabels[], size_t n) {
     addChild_Widget(headings, iClob(makeHeading_Widget(title)));
     iWidget *group = new_Widget();
     for (size_t i = 0; i < n && toggleIds[i]; i++) {
         iWidget *tog;
         setTextCStr_LabelWidget(
             addChild_Widget(group, tog = iClob(makeToggle_Widget(toggleIds[i]))),
-            format_CStr("${%s}", toggleIds[i]));
+            toggleLabels ? toggleLabels[i] : format_CStr("${%s}", toggleIds[i]));
         setFlags_Widget(tog, fixedWidth_WidgetFlag, iFalse);
         updateSize_LabelWidget((iLabelWidget *) tog);
     }
     addChildFlags_Widget(
         values, iClob(group), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
+}
+
+static void addDialogToggleGroup_(iWidget *headings, iWidget *values, const char *title,
+                                  const char *toggleIds[], size_t n) {
+    addDialogToggleGroupWithLabels_(headings, values, title, toggleIds, NULL, n);
 }
 
 static iLabelWidget *addDialogDropMenu_(iWidget *headings, iWidget *values, const char *title,
@@ -3628,11 +3633,11 @@ iWidget *makePreferences_Widget(void) {
             { "padding" },
             { "panel icon:0x1f4e6 id:heading.prefs.user", 0, 0, (const void *) userPanelItems },
             { "panel icon:0x1f4cb id:heading.prefs.snip", 0, 0, (const void *) snippetPanelItems },
-            //{ "heading id:heading.prefs.support" },
+            // { "heading id:heading.prefs.support" },
             { "padding" },
             { "panel text:" info_Icon " ${heading.prefs.support}", 0, 0, (const void *) supportPanelItems },
-//            { "button text:" info_Icon " ${menu.help}", 0, 0, "!open url:about:help" },
-//            { "panel text:" planet_Icon " ${menu.about}", 0, 0, (const void *) aboutPanelItems },
+            // { "button text:" info_Icon " ${menu.help}", 0, 0, "!open url:about:help" },
+            // { "panel text:" planet_Icon " ${menu.about}", 0, 0, (const void *) aboutPanelItems },
             { NULL }
         }, NULL, 0);
         setupSheetTransition_Mobile(dlg, iTrue);
@@ -3691,7 +3696,6 @@ iWidget *makePreferences_Widget(void) {
     /* Appearance. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs, eye_Icon " ${heading.prefs.appearance}", red_ColorId, '2', &headings, &values),
                      "prefs.page.appearance");
-//        makeTwoColumnHeading_("${heading.prefs.uitheme}", headings, values);
         if (isTerminal_Platform()) {
             /* Display character set. */
             addDialogToggle_Widget(headings, values, "${prefs.tui.simple}", "prefs.tui.simple");
@@ -3744,18 +3748,62 @@ iWidget *makePreferences_Widget(void) {
         addDialogToggle_Widget(headings, values, "${prefs.evensplit}", "prefs.evensplit");
         if (!isTerminal_Platform()) {
             addDialogPadding_(headings, values);
-//            makeTwoColumnHeading_("${heading.prefs.sizing}", headings, values);
+            // makeTwoColumnHeading_("${heading.prefs.sizing}", headings, values);
             addPrefsInputWithHeading_(headings, values, "prefs.uiscale", iClob(new_InputWidget(5)));
             addDialogToggle_Widget(headings, values, "${prefs.retainwindow}", "prefs.retainwindow");
             addDialogPadding_(headings, values);
             addDialogToggle_Widget(headings, values, "${prefs.editor.highlight}", "prefs.editor.highlight");
         }
     }
+    /* UI behavior. */ {
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs, computer_Icon " ${heading.prefs.interface}", red_ColorId, '3', &headings, &values),
+                     "prefs.page.ui");
+        addDialogToggle_Widget(headings, values, "${prefs.hoverlink}", "prefs.hoverlink");
+        addDialogToggle_Widget(headings, values, "${prefs.bookmarks.addbottom}", "prefs.bookmarks.addbottom");
+        /* Return key behaviors. */
+        addDialogDropMenu_(headings,
+                           values,
+                           "${prefs.returnkey}",
+                           returnKeyBehaviorItems,
+                           iInvalidSize,
+                           "prefs.returnkey");
+        if (!isTerminal_Platform()) {
+            addDialogToggle_Widget(headings, values, "${prefs.imageloadscroll}", "prefs.imageloadscroll");
+        }
+        addDialogToggle_Widget(headings, values, "${prefs.time.24h}", "prefs.time.24h");
+        addDialogPadding_(headings, values);
+        addDialogToggle_Widget(headings, values, "${prefs.animate}", "prefs.animate");
+        if (!isTerminal_Platform()) {
+            addDialogToggle_Widget(headings, values, "${prefs.blink}", "prefs.blink");
+        }
+        //        makeTwoColumnHeading_("${heading.prefs.scrolling}", headings, values);
+        addDialogToggle_Widget(headings, values, "${prefs.smoothscroll}", "prefs.smoothscroll");
+        /* Scroll speeds. */ {
+            for (int type = 0; type < max_ScrollType; type++) {
+                const char *typeStr = (type == mouse_ScrollType ? "mouse" : "keyboard");
+                addChild_Widget(headings,
+                                iClob(makeHeading_Widget(type == mouse_ScrollType
+                                                             ? "${prefs.scrollspeed.mouse}"
+                                                             : "${prefs.scrollspeed.keyboard}")));
+                /* TODO: Make a SliderWidget. */
+                iWidget *scrollSpeed = new_Widget();
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.7",  typeStr), "0", format_CStr("scrollspeed arg:7  type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.10", typeStr), "1", format_CStr("scrollspeed arg:10 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.13", typeStr), "2", format_CStr("scrollspeed arg:13 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.17", typeStr), "3", format_CStr("scrollspeed arg:17 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.23", typeStr), "4", format_CStr("scrollspeed arg:23 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.30", typeStr), "5", format_CStr("scrollspeed arg:30 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.40", typeStr), "6", format_CStr("scrollspeed arg:40 type:%d", type));
+                addChildFlags_Widget(
+                    values, iClob(scrollSpeed), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
+            }
+        }
+    }
     /* Page theme. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    palette_Icon " ${heading.prefs.theme}",
                                                    orange_ColorId,
-                                                   '3',
+                                                   '4',
                                                    &headings,
                                                    &values),
                      "prefs.page.theme");
@@ -3804,7 +3852,7 @@ iWidget *makePreferences_Widget(void) {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    fonts_Icon " ${heading.prefs.fonts}",
                                                    orange_ColorId,
-                                                   '4',
+                                                   '5',
                                                    &headings,
                                                    &values),
                      "prefs.page.fonts");
@@ -3846,7 +3894,7 @@ iWidget *makePreferences_Widget(void) {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    pageLayout_Icon " ${heading.prefs.layout}",
                                                    orange_ColorId,
-                                                   '5',
+                                                   '6',
                                                    &headings,
                                                    &values),
                      "prefs.page.layout");
@@ -3876,14 +3924,13 @@ iWidget *makePreferences_Widget(void) {
         addDialogToggle_Widget(headings, values, "${prefs.expandline}", "prefs.expandline");
         addDialogToggle_Widget(headings, values, "${prefs.centershort}", "prefs.centershort");
         addDialogPadding_(headings, values);
-        //addDialogPadding_(headings, values);
         addDialogToggle_Widget(headings, values, "${prefs.sideicon}", "prefs.sideicon");
         addDialogDropMenu_(headings, values, "${prefs.collapsepre}", collapseItems, iInvalidSize,
                            "prefs.collapsepre");
     }
     /* Content. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs, photo_Icon " ${heading.prefs.content}",
-                                                   green_ColorId, '6', &headings, &values),
+                                                   green_ColorId, '7', &headings, &values),
                      "prefs.page.content");
         /* Cache size. */ {
             iInputWidget *cache = new_InputWidget(4);
@@ -3923,48 +3970,33 @@ iWidget *makePreferences_Widget(void) {
         addDialogPadding_(headings, values);
         addDialogToggle_Widget(headings, values, "${prefs.font.warnmissing}", "prefs.font.warnmissing");
     }
-    /* User Interface. */ {
-        setId_Widget(appendTwoColumnTabPage_Widget(tabs, computer_Icon " ${heading.prefs.interface}", cyan_ColorId, '7', &headings, &values),
-                     "prefs.page.ui");
-        addDialogToggle_Widget(headings, values, "${prefs.hoverlink}", "prefs.hoverlink");
-        addDialogToggle_Widget(headings, values, "${prefs.bookmarks.addbottom}", "prefs.bookmarks.addbottom");
-        /* Return key behaviors. */
-        addDialogDropMenu_(headings,
-                           values,
-                           "${prefs.returnkey}",
-                           returnKeyBehaviorItems,
-                           iInvalidSize,
-                           "prefs.returnkey");
-        if (!isTerminal_Platform()) {
-            addDialogToggle_Widget(headings, values, "${prefs.imageloadscroll}", "prefs.imageloadscroll");
-        }
-        addDialogToggle_Widget(headings, values, "${prefs.time.24h}", "prefs.time.24h");
-        addDialogPadding_(headings, values);
-        addDialogToggle_Widget(headings, values, "${prefs.animate}", "prefs.animate");
-        if (!isTerminal_Platform()) {
-            addDialogToggle_Widget(headings, values, "${prefs.blink}", "prefs.blink");
-        }
-        //        makeTwoColumnHeading_("${heading.prefs.scrolling}", headings, values);
-        addDialogToggle_Widget(headings, values, "${prefs.smoothscroll}", "prefs.smoothscroll");
-        /* Scroll speeds. */ {
-            for (int type = 0; type < max_ScrollType; type++) {
-                const char *typeStr = (type == mouse_ScrollType ? "mouse" : "keyboard");
-                addChild_Widget(headings,
-                                iClob(makeHeading_Widget(type == mouse_ScrollType
-                                                             ? "${prefs.scrollspeed.mouse}"
-                                                             : "${prefs.scrollspeed.keyboard}")));
-                /* TODO: Make a SliderWidget. */
-                iWidget *scrollSpeed = new_Widget();
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.7",  typeStr), "0", format_CStr("scrollspeed arg:7  type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.10", typeStr), "1", format_CStr("scrollspeed arg:10 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.13", typeStr), "2", format_CStr("scrollspeed arg:13 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.17", typeStr), "3", format_CStr("scrollspeed arg:17 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.23", typeStr), "4", format_CStr("scrollspeed arg:23 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.30", typeStr), "5", format_CStr("scrollspeed arg:30 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.40", typeStr), "6", format_CStr("scrollspeed arg:40 type:%d", type));
-                addChildFlags_Widget(
-                    values, iClob(scrollSpeed), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
-            }
+    /* Sidebars. */ {
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs,
+                                                   leftHalf_Icon " ${heading.prefs.sidebars}",
+                                                   cyan_ColorId,
+                                                   '8',
+                                                   &headings,
+                                                   &values),
+                     "sidecfg");
+        const char *modes[maxSidebarModes_Prefs] = {
+            "bookmarks",
+            "feeds",
+            "subscriptions",
+            "identities",
+            "outline",
+            "structure",
+            "documents",
+            "history",
+        };
+        iForIndices(sm, modes) {
+            addDialogToggleGroupWithLabels_(
+                headings,
+                values,
+                format_CStr("${sidebar.%s}:", modes[sm]),
+                (const char *[]) { format_CStr("prefs.sidebar.enabled.%u", sm),
+                                   format_CStr("prefs.sidebar2.enabled.%u", sm) },
+                (const char *[]) { "${prefs.sidebar.left}", "${prefs.sidebar.right}" },
+                2);
         }
     }
     /* Snippets. */ {
@@ -3973,7 +4005,7 @@ iWidget *makePreferences_Widget(void) {
                                       iClob(sniped),
                                       clipboard_Icon " ${heading.prefs.snip}",
                                       cyan_ColorId,
-                                      '8',
+                                      '9',
                                       KMOD_PRIMARY);
     }
     /* Keybindings. */ {
@@ -3985,7 +4017,7 @@ iWidget *makePreferences_Widget(void) {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    network_Icon " ${heading.prefs.network}",
                                                    blue_ColorId,
-                                                   '0',
+                                                   0,
                                                    &headings,
                                                    &values),
                      "prefs.page.network");

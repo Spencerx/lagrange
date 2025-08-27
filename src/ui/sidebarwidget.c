@@ -87,25 +87,33 @@ void deinit_SidebarItem(iSidebarItem *d) {
 static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                               const iListWidget *list);
 
-iBeginDefineSubclass(SidebarItem, ListItem)
-    .draw = (iAny *) draw_SidebarItem_,
-iEndDefineSubclass(SidebarItem)
+iBeginDefineSubclass(SidebarItem, ListItem).draw = (iAny *) draw_SidebarItem_,
+                                  iEndDefineSubclass(SidebarItem)
 
-iDefineObjectConstruction(SidebarItem);
+                                      iDefineObjectConstruction(SidebarItem);
 
 /*----------------------------------------------------------------------------------------------*/
 
 static const char *normalModeLabels_[max_SidebarMode] = {
-    book_Icon " ${sidebar.bookmarks}",      star_Icon " ${sidebar.feeds}",
-    clock_Icon " ${sidebar.history}",       person_Icon " ${sidebar.identities}",
-    page_Icon " ${sidebar.outline}",        hierarchy_Icon " ${sidebar.structure}",
-    openTabBg_Icon " ${sidebar.documents}", whiteStar_Icon " ${sidebar.subscriptions}",
-    /*book_Icon " ${sidebar.gempub}",         file_Icon " ${sidebar.page}",*/
+    book_Icon " ${sidebar.bookmarks}",
+    star_Icon " ${sidebar.feeds}",
+    whiteStar_Icon " ${sidebar.subscriptions}",
+    person_Icon " ${sidebar.identities}",
+    page_Icon " ${sidebar.outline}",
+    hierarchy_Icon " ${sidebar.structure}",
+    openTabBg_Icon " ${sidebar.documents}",
+    clock_Icon " ${sidebar.history}",
 };
 
 static const char *tightModeLabels_[max_SidebarMode] = {
-    book_Icon, star_Icon,      clock_Icon,     person_Icon,
-    page_Icon, hierarchy_Icon, openTabBg_Icon, whiteStar_Icon, /*book_Icon,   file_Icon,*/
+    book_Icon,
+    star_Icon,
+    whiteStar_Icon,
+    person_Icon,
+    page_Icon,
+    hierarchy_Icon,
+    openTabBg_Icon,
+    clock_Icon,
 };
 
 struct Impl_SidebarWidget {
@@ -462,9 +470,6 @@ static void removeStructureUnfold_SidebarWidget_(iSidebarWidget *d, const iStrin
 
 static iBool isUnfoldedStructurePath_SidebarWidget_(const iSidebarWidget *d, const iString *url,
                                                     const iString *activeDocumentUrl) {
-    if (contains_StringSet(d->structureUnfolds, url)) {
-        return iTrue;
-    }
     iUrl parts;
     init_Url(&parts, url);
     iRangecc path = parts.path;
@@ -707,17 +712,21 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             init_Hash(&hash);
             /* Make an item for each subscribed page. */
             iPtrArray *items = new_PtrArray();
-            iConstForEach(PtrArray, i, list_Bookmarks(
+            iConstForEach(
+                PtrArray,
+                i,
+                list_Bookmarks(
                     bookmarks_App(), cmpTitleAscending_Bookmark, isSubscribed_Bookmark_, NULL)) {
                 const iBookmark *bm   = i.ptr;
-                iSidebarItem    *item = new_SidebarItem(); {
+                iSidebarItem    *item = new_SidebarItem();
+                {
                     set_String(&item->label, &bm->title);
                     set_String(&item->url, &bm->url);
                     item->id   = id_Bookmark(bm);
                     item->icon = bm->icon;
                 }
                 addItem_ListWidget(d->list, item);
-                iRelease(item); /* list owns it */
+                iRelease(item);                 /* list owns it */
                 pushBack_PtrArray(items, item); /* we'll use this in the next phase */
                 /* Build a lookup hash from feeds to items. */ {
                     iFeedItem *mapping = iMalloc(FeedItem);
@@ -730,7 +739,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                TODO: Do this while refreshing feeds... */
             iConstForEach(PtrArray, e, listFeedEntries_SidebarWidget_(d)) {
                 const iFeedEntry *entry = e.ptr;
-                iSidebarItem *item = ((iFeedItem *) value_Hash(&hash, entry->bookmarkId))->item;
+                iSidebarItem     *item = ((iFeedItem *) value_Hash(&hash, entry->bookmarkId))->item;
                 item->count++;
                 if (!isValid_Time(&item->ts) || cmp_Time(&entry->posted, &item->ts) > 0) {
                     item->ts = entry->posted; /* latest timestamp */
@@ -738,7 +747,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             }
             /* Finalize the items. */
             const iTime now = now_Time();
-            iDate on;
+            iDate       on;
             initCurrent_Date(&on);
             iForEach(PtrArray, it, items) {
                 iSidebarItem *item = it.ptr;
@@ -771,7 +780,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 { edit_Icon " ${menu.feed.edit}", 0, 0, "sub.edit" },
                 { "${menu.sub.edit}", 0, 0, "bookmark.edit" },
                 { whiteStar_Icon " " uiTextCaution_ColorEscape "${feeds.unsubscribe}",
-                  0, 0, "sub.unsubscribe" },
+                  0,
+                  0,
+                  "sub.unsubscribe" },
                 { "---", 0, 0, NULL },
                 { openTab_Icon " ${menu.opentab}", 0, 0, "sideitem.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "sideitem.open newtab:2" },
@@ -789,8 +800,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const iGmDocument *doc = document_DocumentWidget(document_App());
             iConstForEach(Array, i, headings_GmDocument(doc)) {
                 const iGmHeading *head = i.value;
-                iSidebarItem *item = new_SidebarItem();
-                item->id = index_ArrayConstIterator(&i);
+                iSidebarItem     *item = new_SidebarItem();
+                item->id               = index_ArrayConstIterator(&i);
                 setRange_String(&item->label, head->text);
                 item->indent = head->level * 5 * gap_UI;
                 item->isBold = head->level == 0;
@@ -881,8 +892,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     }
                     if (i >= size_Array(&stack)) {
                         /* The itemDir has more components than the stack. */
-                        iSidebarItem *previousItem = backItem_ListWidget(d->list);
-                        iRangecc parentUrlRange = { constBegin_String(url), subDir.end };
+                        iSidebarItem *previousItem   = backItem_ListWidget(d->list);
+                        iRangecc      parentUrlRange = { constBegin_String(url), subDir.end };
                         if (!equalRange_Rangecc(range_String(&previousItem->url), parentUrlRange)) {
                             iString parentUrl;
                             parentUrlRange.end++; /* include the slash */
@@ -895,7 +906,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                                 parent->isBold = (parent->indent == 1);
                             }
                         }
-                        pushBack_Array(&stack, &(iLevel){ subDir });
+                        pushBack_Array(&stack, &(iLevel) { subDir });
                     }
                     i++;
                 }
@@ -903,7 +914,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     /* The prefix has become shorter. */
                     resize_Array(&stack, i);
                 }
-                setRange_String(&label, (iRangecc){ itemDir.end + 1, constEnd_String(url) });
+                setRange_String(&label, (iRangecc) { itemDir.end + 1, constEnd_String(url) });
                 if (isEmpty_String(&label) || !cmp_String(&label, "/")) {
                     /* The directory item was already created above. */
                     continue;
@@ -979,9 +990,11 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                                                "bookmarks.addfolder",
                                                !d->isEditing ? hidden_WidgetFlag : 0);
                 addChildFlags_Widget(d->actions, iClob(new_Widget()), expand_WidgetFlag);
-                addActionButton_SidebarWidget_(d,
+                addActionButton_SidebarWidget_(
+                    d,
                     d->isEditing ? "${sidebar.close}" : "${sidebar.action.bookmarks.edit}",
-                    format_CStr("%s.bookmarks.edit", cstr_String(&d->widget.id)), 0);
+                    format_CStr("%s.bookmarks.edit", cstr_String(&d->widget.id)),
+                    0);
             }
             break;
         }
@@ -991,35 +1004,39 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const int thisYear = on.year;
             iConstForEach(PtrArray, i, list_Visited(visited_App(), 200)) {
                 const iVisitedUrl *visit = i.ptr;
-                iSidebarItem *item = new_SidebarItem();
+                iSidebarItem      *item  = new_SidebarItem();
                 set_String(&item->url, &visit->url);
                 set_String(&item->label, &visit->url);
                 if (prefs_App()->decodeUserVisibleURLs) {
-                    set_String(&item->label, collect_String(urlDecodeExclude_String(&item->label, URL_DECODE_EXCLUDE_CHARS)));
+                    set_String(&item->label,
+                               collect_String(urlDecodeExclude_String(&item->label,
+                                                                      URL_DECODE_EXCLUDE_CHARS)));
                 }
                 else {
-                    set_String(&item->label, collect_String(urlEncodeExclude_String(&item->label, URL_ENCODE_EXCLUDE_CHARS)));
+                    set_String(&item->label,
+                               collect_String(urlEncodeExclude_String(&item->label,
+                                                                      URL_ENCODE_EXCLUDE_CHARS)));
                 }
                 iDate date;
                 init_Date(&date, &visit->when);
                 if (date.day != on.day || date.month != on.month || date.year != on.year) {
                     on = date;
                     /* Date separator. */
-                    iSidebarItem *sep = new_SidebarItem();
+                    iSidebarItem *sep         = new_SidebarItem();
                     sep->listItem.isSeparator = iTrue;
-                    const iString *text = collect_String(
+                    const iString *text       = collect_String(
                         format_Date(&date,
                                     cstr_Lang(date.year != thisYear ? "sidebar.date.otheryear"
                                                                     : "sidebar.date.thisyear")));
                     set_String(&sep->meta, text);
                     const int yOffset = itemHeight_ListWidget(d->list) * 2 / 3;
-                    sep->id = yOffset;
+                    sep->id           = yOffset;
                     addItem_ListWidget(d->list, sep);
                     iRelease(sep);
                     /* Date separators are two items tall. */
-                    sep = new_SidebarItem();
+                    sep                       = new_SidebarItem();
                     sep->listItem.isSeparator = iTrue;
-                    sep->id = -itemHeight_ListWidget(d->list) + yOffset;
+                    sep->id                   = -itemHeight_ListWidget(d->list) + yOffset;
                     set_String(&sep->meta, text);
                     addItem_ListWidget(d->list, sep);
                     iRelease(sep);
@@ -1030,23 +1047,30 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             const iMenuItem menuItems[] = {
                 { openTab_Icon " ${menu.opentab}", 0, 0, "history.open newtab:1" },
                 { openTabBg_Icon " ${menu.opentab.background}", 0, 0, "history.open newtab:2" },
-            #if defined (iPlatformDesktop)
+#if defined(iPlatformDesktop)
                 { openWindow_Icon " ${menu.openwindow}", 0, 0, "history.open newwindow:1" },
-            #endif
+#endif
                 { "---" },
                 { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "history.addbookmark" },
                 { "${menu.copyurl}", 0, 0, "sideitem.copy canon:1" },
                 { "---", 0, 0, NULL },
                 { close_Icon " ${menu.forgeturl}", 0, 0, "history.delete" },
                 { "---", 0, 0, NULL },
-                { delete_Icon " " uiTextCaution_ColorEscape "${history.clear}", 0, 0, "history.clear confirm:1" },
+                { delete_Icon " " uiTextCaution_ColorEscape "${history.clear}",
+                  0,
+                  0,
+                  "history.clear confirm:1" },
             };
             d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
-            d->modeMenu = makeMenu_Widget(
-                as_Widget(d),
-                (iMenuItem[]){
-                    { delete_Icon " " uiTextCaution_ColorEscape "${history.clear}", 0, 0, "history.clear confirm:1" },
-                }, 1);
+            d->modeMenu =
+                makeMenu_Widget(as_Widget(d),
+                                (iMenuItem[]) {
+                                    { delete_Icon " " uiTextCaution_ColorEscape "${history.clear}",
+                                      0,
+                                      0,
+                                      "history.clear confirm:1" },
+                                },
+                                1);
             if (isMobile) {
                 addChildFlags_Widget(d->actions, iClob(new_Widget()), expand_WidgetFlag);
                 iLabelWidget *btn = addActionButton_SidebarWidget_(
@@ -1068,8 +1092,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
         case openDocuments_SidebarMode: {
             iWidget *w = as_Widget(d);
             iConstForEach(ObjectList, i, listDocuments_App(w->root)) {
-                const iDocumentWidget *doc = i.object;
-                iSidebarItem *item = new_SidebarItem();
+                const iDocumentWidget *doc  = i.object;
+                iSidebarItem          *item = new_SidebarItem();
                 set_String(&item->label, title_GmDocument(document_DocumentWidget(doc)));
                 if (isEmpty_String(&item->label)) {
                     set_String(&item->label, url_DocumentWidget(doc));
@@ -1082,7 +1106,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 item->icon   = siteIcon_GmDocument(document_DocumentWidget(doc));
                 item->isBold = isUnseen_DocumentWidget(doc);
                 item->indent = isVisible_Widget(doc) ? 1 : 0;
-                item->id = (isRequestOngoing_DocumentWidget(doc) ? 1 : 0);
+                item->id     = (isRequestOngoing_DocumentWidget(doc) ? 1 : 0);
                 if (numActivePlayers_Media(constMedia_GmDocument(document_DocumentWidget(doc)))) {
                     item->id |= 2;
                 }
@@ -1124,7 +1148,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             setPadding_Widget(div, 3 * gap_UI, 0, rightPad, 2 * gap_UI);
             addChildFlags_Widget(div, iClob(new_Widget()), expand_WidgetFlag); /* pad */
             if (d->feedsMode == all_FeedsMode) {
-                addChild_Widget(div, iClob(new_LabelWidget("${menu.feeds.refresh}", "feeds.refresh")));
+                addChild_Widget(div,
+                                iClob(new_LabelWidget("${menu.feeds.refresh}", "feeds.refresh")));
             }
             else {
                 iLabelWidget *msg =
@@ -1152,13 +1177,13 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             addChildFlags_Widget(div, iClob(new_Widget()), expand_WidgetFlag); /* pad */
             iLabelWidget *linkLabel;
             setBackgroundColor_Widget(
-                addChildFlags_Widget(
-                    div,
-                    iClob(linkLabel = new_LabelWidget(format_CStr(cstr_Lang("ident.gotohelp"),
-                                                      uiTextStrong_ColorEscape,
-                                                      restore_ColorEscape),
-                                          "!open newtab:1 gotoheading:1.6 url:about:help")),
-                    frameless_WidgetFlag | fixedHeight_WidgetFlag),
+                addChildFlags_Widget(div,
+                                     iClob(linkLabel = new_LabelWidget(
+                                               format_CStr(cstr_Lang("ident.gotohelp"),
+                                                           uiTextStrong_ColorEscape,
+                                                           restore_ColorEscape),
+                                               "!open newtab:1 gotoheading:1.6 url:about:help")),
+                                     frameless_WidgetFlag | fixedHeight_WidgetFlag),
                 uiBackgroundSidebar_ColorId);
             setWrap_LabelWidget(linkLabel, iTrue);
             addChild_Widget(d->blank, iClob(div));
@@ -1198,14 +1223,13 @@ static size_t findItemUrl_SidebarWidget_(const iSidebarWidget *d, const iString 
 
 static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     /* Note: identity item height is defined by CertListWidget */
-#if !defined (iPlatformTerminal)
-    const float heights[max_SidebarMode] = {
-        1.333f, 2.333f, 1.333f, 0, 1.2f, 1.2f, 1.333f, 2.5f
-    };
+#if !defined(iPlatformTerminal)
+    const float heights[max_SidebarMode] = { 1.333f, 2.333f, 2.5f, 0, 1.2f, 1.2f, 1.333f, 1.333f };
 #else
-    const float heights[max_SidebarMode] = { 1, 3, 1, 0, 1, 1, 1, 1 };
+    const float heights[max_SidebarMode] = { 1, 3, 1, 1, 0, 1, 1, 1 };
 #endif
     if (d->list) {
+        iAssert(heights[d->mode] != 0);
         setItemHeight_ListWidget(d->list, heights[d->mode] * lineHeight_Text(d->itemFonts[0]));
     }
     if (d->certList) {
@@ -1228,8 +1252,8 @@ iBool setMode_SidebarWidget(iSidebarWidget *d, enum iSidebarMode mode) {
         setFlags_Widget(as_Widget(d->modeButtons[i]), selected_WidgetFlag, i == d->mode);
     }
     setBackgroundColor_Widget(as_Widget(list_SidebarWidget_(d)),
-                              //d->mode == documentOutline_SidebarMode ? tmBannerBackground_ColorId
-                                                                      uiBackgroundSidebar_ColorId);
+                              // d->mode == documentOutline_SidebarMode ? tmBannerBackground_ColorId
+                              uiBackgroundSidebar_ColorId);
     updateItemHeight_SidebarWidget_(d);
     if (deviceType_App() != desktop_AppDeviceType && mode != bookmarks_SidebarMode) {
         setMobileEditMode_SidebarWidget_(d, iFalse);
@@ -1302,7 +1326,7 @@ static void updateMetrics_SidebarWidget_(iSidebarWidget *d) {
 
 static void updateSlidingSheetHeight_SidebarWidget_(iSidebarWidget *sidebar, iRoot *root) {
     if (!isPortraitPhone_App() || !isVisible_Widget(sidebar)) return;
-    iWidget *d = as_Widget(sidebar);
+    iWidget  *d       = as_Widget(sidebar);
     const int oldSize = d->rect.size.y;
     const int newSize = bottom_Rect(safeRect_Root(d->root)) - top_Rect(bounds_Widget(d));
     if (oldSize != newSize) {
@@ -1324,18 +1348,18 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     setFlags_Widget(w,
                     collapse_WidgetFlag | hidden_WidgetFlag | arrangeHorizontal_WidgetFlag |
                         resizeWidthOfChildren_WidgetFlag | noFadeBackground_WidgetFlag |
-                    noShadowBorder_WidgetFlag,
+                        noShadowBorder_WidgetFlag,
                     iTrue);
     iZap(d->modeScroll);
-    d->side = side;
-    d->mode = -1;
-    d->feedsMode = all_FeedsMode;
-    d->midHeight = 0;
-    d->isEditing = iFalse;
+    d->side             = side;
+    d->mode             = -1;
+    d->feedsMode        = all_FeedsMode;
+    d->midHeight        = 0;
+    d->isEditing        = iFalse;
     d->numUnreadEntries = 0;
-    d->buttonFont = uiLabel_FontId; /* wiil be changed later */
-    d->itemFonts[0] = uiContent_FontId;
-    d->itemFonts[1] = uiContentBold_FontId;
+    d->buttonFont       = uiLabel_FontId; /* wiil be changed later */
+    d->itemFonts[0]     = uiContent_FontId;
+    d->itemFonts[1]     = uiContentBold_FontId;
     if (isMobile_Platform()) {
         if (deviceType_App() == phone_AppDeviceType) {
             d->itemFonts[0] = uiLabelBig_FontId;
@@ -1348,7 +1372,8 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     }
     setFlags_Widget(w, fixedWidth_WidgetFlag, iTrue);
     iWidget *vdiv = makeVDiv_Widget();
-    addChildFlags_Widget(w, iClob(vdiv), resizeToParentWidth_WidgetFlag | resizeToParentHeight_WidgetFlag);
+    addChildFlags_Widget(
+        w, iClob(vdiv), resizeToParentWidth_WidgetFlag | resizeToParentHeight_WidgetFlag);
     iZap(d->modeButtons);
     d->resizer       = NULL;
     d->list          = NULL;
@@ -1357,7 +1382,7 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     d->closedFolders = new_IntSet();
     init_String(&d->bookmarkFilter);
     init_String(&d->structureHost);
-    d->structureUrls = new_StringSet();
+    d->structureUrls    = new_StringSet();
     d->structureUnfolds = new_StringSet();
     /* On a phone, the right sidebar is not used. */
     const iBool isPhone = (deviceType_App() == phone_AppDeviceType);
@@ -1393,8 +1418,32 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
             buttons,
             iClob(new_LabelWidget(tightModeLabels_[i],
                                   format_CStr("%s.mode arg:%d", cstr_String(id_Widget(w)), i))),
-            frameless_WidgetFlag | noBackground_WidgetFlag);
+            frameless_WidgetFlag | noBackground_WidgetFlag | expand_WidgetFlag |
+                collapse_WidgetFlag |
+                (!prefs_App()->sidebarModeEnabled[d->side][i] ? hidden_WidgetFlag : 0));
         as_Widget(d->modeButtons[i])->flags2 |= slidingSheetDraggable_WidgetFlag2; /* phone */
+    }
+    /* Dropdown menu for changing the mode. */ {
+        // clang-format off
+        const iMenuItem modeDropItems[] = {
+            { "${sidebar.bookmarks}",     0, 0, format_CStr("%s.mode force:1 arg:0", cstr_String(id_Widget(w))) },
+            { "${sidebar.feeds}",         0, 0, format_CStr("%s.mode force:1 arg:1", cstr_String(id_Widget(w))) },
+            { "${sidebar.subscriptions}", 0, 0, format_CStr("%s.mode force:1 arg:2", cstr_String(id_Widget(w))) },
+            { "---" },
+            { "${sidebar.identities}",    0, 0, format_CStr("%s.mode force:1 arg:3", cstr_String(id_Widget(w))) },
+            { "${sidebar.outline}",       0, 0, format_CStr("%s.mode force:1 arg:4", cstr_String(id_Widget(w))) },
+            { "${sidebar.structure}",     0, 0, format_CStr("%s.mode force:1 arg:5", cstr_String(id_Widget(w))) },
+            { "---" },
+            { "${sidebar.documents}",     0, 0, format_CStr("%s.mode force:1 arg:6", cstr_String(id_Widget(w))) },
+            { "${sidebar.history}",       0, 0, format_CStr("%s.mode force:1 arg:7", cstr_String(id_Widget(w))) },
+            { "---" },
+            { "${menu.sidebar.configure}", 0, 0, "preferences sidecfg:1" },
+        };
+        // clang-format on
+        addChildFlags_Widget(buttons,
+                             iClob(makeMenuButton_LabelWidget(
+                                 midEllipsis_Icon, modeDropItems, iElemCount(modeDropItems))),
+                             0);
     }
     setButtonFont_SidebarWidget(d, isPhone ? uiLabelBig_FontId : uiLabel_FontId);
     addChildFlags_Widget(vdiv,
@@ -1416,16 +1465,13 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
         setPadding_Widget(as_Widget(d->certList), 0, gap_UI, 0, gap_UI);
         addChild_Widget(listArea, iClob(d->certList));
     }
-    addChildFlags_Widget(listAndActions,
-                         iClob(listArea),
-                         expand_WidgetFlag); // | drawBackgroundToHorizontalSafeArea_WidgetFlag);
-    setId_Widget(
-        addChildPosFlags_Widget(listAndActions,
-                                iClob(d->actions = new_Widget()),
-                                back_WidgetAddPos,
-                                arrangeHorizontal_WidgetFlag | arrangeHeight_WidgetFlag |
-                                    resizeWidthOfChildren_WidgetFlag),
-        "actions");
+    addChildFlags_Widget(listAndActions, iClob(listArea), expand_WidgetFlag);
+    setId_Widget(addChildPosFlags_Widget(listAndActions,
+                                         iClob(d->actions = new_Widget()),
+                                         back_WidgetAddPos,
+                                         arrangeHorizontal_WidgetFlag | arrangeHeight_WidgetFlag |
+                                             resizeWidthOfChildren_WidgetFlag),
+                 "actions");
     if (deviceType_App() != desktop_AppDeviceType) {
         setFlags_Widget(findChild_Widget(w, "sidebar.title"), borderTop_WidgetFlag, iTrue);
         setFlags_Widget(d->actions, drawBackgroundToBottom_WidgetFlag, iTrue);
@@ -1439,10 +1485,7 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     d->blank        = new_Widget();
     addChildFlags_Widget(content, iClob(d->blank), resizeChildren_WidgetFlag);
     addChildFlags_Widget(vdiv, iClob(content), expand_WidgetFlag);
-    setMode_SidebarWidget(d,
-                          /*deviceType_App() == phone_AppDeviceType && d->side == right_SidebarSide
-                          ? identities_SidebarMode :*/
-                          bookmarks_SidebarMode);
+    setMode_SidebarWidget(d, bookmarks_SidebarMode);
     d->resizer =
         addChildFlags_Widget(w,
                              iClob(new_Widget()),
@@ -1576,7 +1619,7 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
                 }
             }
             if (d->isEditing) {
-                d->contextItem = item;
+                d->contextItem  = item;
                 d->contextIndex = itemIndex;
                 setFocus_Widget(NULL);
                 postCommand_Widget(d, "bookmark.edit");
@@ -1608,14 +1651,11 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
     if (!d->modeButtons[0]) return;
     if (deviceType_App() == phone_AppDeviceType) {
         /* Change font size depending on orientation. */
-        const int fonts[2] = {
-            isPortrait_App() ? uiLabelBig_FontId : uiContent_FontId,
-            isPortrait_App() ? uiLabelBigBold_FontId : uiContentBold_FontId
-        };
+        const int fonts[2] = { isPortrait_App() ? uiLabelBig_FontId : uiContent_FontId,
+                               isPortrait_App() ? uiLabelBigBold_FontId : uiContentBold_FontId };
         if (d->itemFonts[0] != fonts[0]) {
             d->itemFonts[0] = fonts[0];
             d->itemFonts[1] = fonts[1];
-//            updateMetrics_SidebarWidget_(d);
             updateItemHeight_SidebarWidget_(d);
         }
         setButtonFont_SidebarWidget(d, isPortrait_App() ? uiLabelMedium_FontId : uiLabel_FontId);
@@ -1625,18 +1665,19 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
     for (int i = 0; i < max_SidebarMode; i++) {
         iLabelWidget *button = d->modeButtons[i];
         if (!button) continue;
+        setFlags_Widget(
+            as_Widget(button), hidden_WidgetFlag, !prefs_App()->sidebarModeEnabled[d->side][i]);
         setAlignVisually_LabelWidget(button, isTight);
         setFlags_Widget(as_Widget(button), tight_WidgetFlag, isTight);
         if (i == feedEntries_SidebarMode && d->numUnreadEntries) {
             updateText_LabelWidget(
                 button,
-                collectNewFormat_String("%s " uiTextAction_ColorEscape "%zu%s%s",
-                                        tightModeLabels_[i],
-                                        d->numUnreadEntries,
-                                        !isTight ? " " : "",
-                                        !isTight
-                                            ? formatCStrs_Lang("sidebar.unread.n", d->numUnreadEntries)
-                                            : ""));
+                collectNewFormat_String(
+                    "%s " uiTextAction_ColorEscape "%zu%s%s",
+                    tightModeLabels_[i],
+                    d->numUnreadEntries,
+                    !isTight ? " " : "",
+                    !isTight ? formatCStrs_Lang("sidebar.unread.n", d->numUnreadEntries) : ""));
         }
         else {
             updateTextCStr_LabelWidget(button,
@@ -1647,14 +1688,14 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
 
 void setWidth_SidebarWidget(iSidebarWidget *d, float widthAsGaps) {
     if (!d) return;
-    iWidget *w = as_Widget(d);
+    iWidget    *w            = as_Widget(d);
     const iBool isFixedWidth = deviceType_App() == phone_AppDeviceType;
-    int width = widthAsGaps * gap_UI; /* in pixels */
+    int         width        = widthAsGaps * gap_UI; /* in pixels */
     if (!isFixedWidth) {
         /* Even less space if the other sidebar is visible, too. */
         const iWidget *other = findWidget_App(d->side == left_SidebarSide ? "sidebar2" : "sidebar");
-        const int otherWidth = isVisible_Widget(other) ? width_Widget(other) : 0;
-        width = iClamp(width,
+        const int      otherWidth = isVisible_Widget(other) ? width_Widget(other) : 0;
+        width                     = iClamp(width,
                        30 * gap_UI * aspect_UI,
                        size_Root(w->root).x - 50 * gap_UI * aspect_UI - otherWidth);
     }
@@ -1684,8 +1725,8 @@ iBool handleBookmarkEditorCommands_SidebarWidget_(iWidget *editor, const char *c
     else if (equal_Command(cmd, "bmed.dup")) {
         const iString *title = text_InputWidget(findChild_Widget(editor, "bmed.title"));
         const iString *url   = text_InputWidget(findChild_Widget(editor, "bmed.url"));
-        const iString *icon  = collect_String(trimmed_String(
-            text_InputWidget(findChild_Widget(editor, "bmed.icon"))));
+        const iString *icon =
+            collect_String(trimmed_String(text_InputWidget(findChild_Widget(editor, "bmed.icon"))));
         makeBookmarkCreation_Widget(url, title, isEmpty_String(icon) ? 0 : first_String(icon));
         setupSheetTransition_Mobile(editor, dialogTransitionDir_Widget(editor));
         destroy_Widget(editor);
@@ -1693,7 +1734,7 @@ iBool handleBookmarkEditorCommands_SidebarWidget_(iWidget *editor, const char *c
     }
     else if (equal_Command(cmd, "bmed.setident")) {
         const uint32_t bmId = bookmarkEditorId_(editor);
-        iBookmark *bm = get_Bookmarks(bookmarks_App(), bmId);
+        iBookmark     *bm   = get_Bookmarks(bookmarks_App(), bmId);
         if (bm) {
             set_String(&bm->identity, string_Command(cmd, "fp"));
             updateDropdownSelection_LabelWidget(findChild_Widget(editor, "bmed.setident"),
@@ -1708,8 +1749,8 @@ iBool handleBookmarkEditorCommands_SidebarWidget_(iWidget *editor, const char *c
             const iString *url   = text_InputWidget(findChild_Widget(editor, "bmed.url"));
             const iString *tags  = text_InputWidget(findChild_Widget(editor, "bmed.tags"));
             const iString *notes = text_InputWidget(findChild_Widget(editor, "bmed.notes"));
-            const iString *icon  = collect_String(trimmed_String(
-                                        text_InputWidget(findChild_Widget(editor, "bmed.icon"))));
+            const iString *icon  = collect_String(
+                trimmed_String(text_InputWidget(findChild_Widget(editor, "bmed.icon"))));
             iBookmark *bm = get_Bookmarks(bookmarks_App(), bmId);
             set_String(&bm->title, title);
             if (!isFolder_Bookmark(bm)) {
@@ -1724,9 +1765,15 @@ iBool handleBookmarkEditorCommands_SidebarWidget_(iWidget *editor, const char *c
                     bm->flags |= userIcon_BookmarkFlag;
                     bm->icon = first_String(icon);
                 }
-                iChangeFlags(bm->flags, homepage_BookmarkFlag, isSelected_Widget(findChild_Widget(editor, "bmed.tag.home")));
-                iChangeFlags(bm->flags, remoteSource_BookmarkFlag, isSelected_Widget(findChild_Widget(editor, "bmed.tag.remote")));
-                iChangeFlags(bm->flags, linkSplit_BookmarkFlag, isSelected_Widget(findChild_Widget(editor, "bmed.tag.linksplit")));
+                iChangeFlags(bm->flags,
+                             homepage_BookmarkFlag,
+                             isSelected_Widget(findChild_Widget(editor, "bmed.tag.home")));
+                iChangeFlags(bm->flags,
+                             remoteSource_BookmarkFlag,
+                             isSelected_Widget(findChild_Widget(editor, "bmed.tag.remote")));
+                iChangeFlags(bm->flags,
+                             linkSplit_BookmarkFlag,
+                             isSelected_Widget(findChild_Widget(editor, "bmed.tag.linksplit")));
             }
             const iBookmark *folder = userData_Object(findChild_Widget(editor, "bmed.folder"));
             if (!folder || !hasParent_Bookmark(folder, id_Bookmark(bm))) {
@@ -1748,11 +1795,11 @@ enum iSlidingSheetPos {
 };
 
 static void setSlidingSheetPos_SidebarWidget_(iSidebarWidget *d, enum iSlidingSheetPos slide) {
-    iWidget *w = as_Widget(d);
-    const int pos = w->rect.pos.y;
+    iWidget    *w        = as_Widget(d);
+    const int   pos      = w->rect.pos.y;
     const iRect safeRect = safeRect_Root(w->root);
     if (slide == top_SlidingSheetPos) {
-        w->rect.pos.y = top_Rect(safeRect);
+        w->rect.pos.y  = top_Rect(safeRect);
         w->rect.size.y = height_Rect(safeRect);
         setVisualOffset_Widget(w, pos - w->rect.pos.y, 0, 0);
         setVisualOffset_Widget(w, 0, 200, easeOut_AnimFlag | softer_AnimFlag);
@@ -1763,23 +1810,34 @@ static void setSlidingSheetPos_SidebarWidget_(iSidebarWidget *d, enum iSlidingSh
     }
     else {
         w->rect.size.y = d->midHeight;
-        w->rect.pos.y = height_Rect(safeRect) - w->rect.size.y;
+        w->rect.pos.y  = height_Rect(safeRect) - w->rect.size.y;
         setVisualOffset_Widget(w, pos - w->rect.pos.y, 0, 0);
         setVisualOffset_Widget(w, 0, 200, easeOut_AnimFlag | softer_AnimFlag);
         setScrollMode_ListWidget(d->list, disabledAtTopBothDirections_ScrollMode);
     }
-//    animateSlidingSheetHeight_SidebarWidget_(d);
+    //    animateSlidingSheetHeight_SidebarWidget_(d);
 }
 
 static iBool handleSidebarCommand_SidebarWidget_(iSidebarWidget *d, const char *cmd) {
     iWidget *w = as_Widget(d);
     if (equal_Command(cmd, "width")) {
-        setWidth_SidebarWidget(d, arg_Command(cmd) *
-                               (argLabel_Command(cmd, "gaps") ? 1.0f : (1.0f / gap_UI)));
+        setWidth_SidebarWidget(
+            d, arg_Command(cmd) * (argLabel_Command(cmd, "gaps") ? 1.0f : (1.0f / gap_UI)));
         return iTrue;
     }
     else if (equal_Command(cmd, "mode")) {
-        const iBool wasChanged = setMode_SidebarWidget(d, arg_Command(cmd));
+        const int mode = arg_Command(cmd);
+        if (!argLabel_Command(cmd, "force") && !prefs_App()->sidebarModeEnabled[d->side][mode] &&
+            prefs_App()->sidebarModeEnabled[d->side ^ 1][mode]) {
+            /* Make it affect the other side instead. */
+            postCommand_Widget(w, "%s.mode arg:%d show:%d toggle:%d",
+                               d->side == 0 ? "sidebar2" : "sidebar",
+                               mode,
+                               argLabel_Command(cmd, "show"),
+                               argLabel_Command(cmd, "toggle"));
+            return iTrue;
+        }
+        const iBool wasChanged = setMode_SidebarWidget(d, mode);
         updateItems_SidebarWidget_(d);
         if ((argLabel_Command(cmd, "show") && !isVisible_Widget(w)) ||
             (argLabel_Command(cmd, "toggle") && (!isVisible_Widget(w) || !wasChanged))) {
@@ -1808,9 +1866,9 @@ static iBool handleSidebarCommand_SidebarWidget_(iSidebarWidget *d, const char *
         /* The sidebar will appear/disappear and UI elements will change position. Stop any
            ongoing touch interactions based on the old arrangement. */
         clear_Touch();
-        const iBool isAnimated = prefs_App()->uiAnimations &&
-                                 argLabel_Command(cmd, "noanim") == 0 &&
-                                 (d->side == left_SidebarSide || deviceType_App() != phone_AppDeviceType);
+        const iBool isAnimated =
+            prefs_App()->uiAnimations && argLabel_Command(cmd, "noanim") == 0 &&
+            (d->side == left_SidebarSide || deviceType_App() != phone_AppDeviceType);
         int visX = 0;
         if (isVisible_Widget(w)) {
             visX = left_Rect(bounds_Widget(w)) - left_Rect(w->root->widget->rect);
@@ -1903,9 +1961,8 @@ static void bookmarkMoved_SidebarWidget_(iSidebarWidget *d, size_t index, size_t
                                          iBool isBefore) {
     const iSidebarItem *movingItem = item_ListWidget(d->list, index);
     const iBool         isLast     = (dstIndex == numItems_ListWidget(d->list));
-    const iSidebarItem *dstItem    = item_ListWidget(d->list,
-                                                     isLast ? numItems_ListWidget(d->list) - 1
-                                                            : dstIndex);
+    const iSidebarItem *dstItem =
+        item_ListWidget(d->list, isLast ? numItems_ListWidget(d->list) - 1 : dstIndex);
     if (isLast && isBefore) isBefore = iFalse;
     const iBookmark *dst = get_Bookmarks(bookmarks_App(), dstItem->id);
     if (hasParent_Bookmark(dst, movingItem->id) || dst->flags & remote_BookmarkFlag) {
@@ -1917,15 +1974,16 @@ static void bookmarkMoved_SidebarWidget_(iSidebarWidget *d, size_t index, size_t
     updateItems_SidebarWidget_(d);
     /* Don't confuse the user: keep the dragged item in hover state. */
     setHoverItem_ListWidget(d->list, dstIndex + (isBefore ? 0 : 1) + (index < dstIndex ? -1 : 0));
-    postCommandf_App("bookmarks.changed nosidebar:%p", d); /* skip this sidebar since we updated already */
+    postCommandf_App("bookmarks.changed nosidebar:%p",
+                     d); /* skip this sidebar since we updated already */
 }
 
 static void bookmarkMovedOntoFolder_SidebarWidget_(iSidebarWidget *d, size_t index,
                                                    size_t folderIndex) {
     const iSidebarItem *movingItem = item_ListWidget(d->list, index);
     const iSidebarItem *dstItem    = item_ListWidget(d->list, folderIndex);
-    iBookmark *bm = get_Bookmarks(bookmarks_App(), movingItem->id);
-    bm->parentId = dstItem->id;
+    iBookmark          *bm         = get_Bookmarks(bookmarks_App(), movingItem->id);
+    bm->parentId                   = dstItem->id;
     postCommand_App("bookmarks.changed");
 }
 
@@ -1941,19 +1999,19 @@ static size_t numBookmarks_(const iPtrArray *bmList) {
 }
 
 static iRangei SlidingSheetMiddleRegion_SidebarWidget_(const iSidebarWidget *d) {
-    const iWidget *w = constAs_Widget(d);
-    const iRect safeRect = safeRect_Root(w->root);
-    const int midY = bottom_Rect(safeRect) - d->midHeight;
-    const int topHalf = (top_Rect(safeRect) + midY) / 2;
-    const int bottomHalf = (bottom_Rect(safeRect) + midY * 2) / 3;
-    return (iRangei){ topHalf, bottomHalf };
+    const iWidget *w          = constAs_Widget(d);
+    const iRect    safeRect   = safeRect_Root(w->root);
+    const int      midY       = bottom_Rect(safeRect) - d->midHeight;
+    const int      topHalf    = (top_Rect(safeRect) + midY) / 2;
+    const int      bottomHalf = (bottom_Rect(safeRect) + midY * 2) / 3;
+    return (iRangei) { topHalf, bottomHalf };
 }
 
 static void gotoNearestSlidingSheetPos_SidebarWidget_(iSidebarWidget *d) {
     const iRangei midRegion = SlidingSheetMiddleRegion_SidebarWidget_(d);
-    const int pos = top_Rect(d->widget.rect);
-    setSlidingSheetPos_SidebarWidget_(d, pos < midRegion.start
-                                      ? top_SlidingSheetPos
+    const int     pos       = top_Rect(d->widget.rect);
+    setSlidingSheetPos_SidebarWidget_(d,
+                                      pos < midRegion.start ? top_SlidingSheetPos
                                       : pos > midRegion.end ? bottom_SlidingSheetPos
                                                             : middle_SlidingSheetPos);
 }
@@ -1992,8 +2050,10 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         checkModeButtonLayout_SidebarWidget_(d);
         if (deviceType_App() == phone_AppDeviceType) {
             setPadding_Widget(d->actions, 0, 0, 0, 0);
-            setFlags_Widget(findChild_Widget(w, "sidebar.title"), hidden_WidgetFlag, isLandscape_App());
-            setFlags_Widget(findChild_Widget(w, "sidebar.close"), hidden_WidgetFlag, isLandscape_App());
+            setFlags_Widget(
+                findChild_Widget(w, "sidebar.title"), hidden_WidgetFlag, isLandscape_App());
+            setFlags_Widget(
+                findChild_Widget(w, "sidebar.close"), hidden_WidgetFlag, isLandscape_App());
             /* In landscape, visibility of the toolbar is controlled separately. */
             if (isVisible_Widget(w)) {
                 postCommand_Widget(w, "sidebar.toggle");
@@ -2007,10 +2067,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             setFlags_Widget(as_Widget(d->list),
                             drawBackgroundToHorizontalSafeArea_WidgetFlag,
                             isLandscape_App());
-            setFlags_Widget(w,
-                            drawBackgroundToBottom_WidgetFlag,
-                            isPortrait_App());
-            setBackgroundColor_Widget(w, isPortrait_App() ? uiBackgroundSidebar_ColorId : none_ColorId);
+            setFlags_Widget(w, drawBackgroundToBottom_WidgetFlag, isPortrait_App());
+            setBackgroundColor_Widget(
+                w, isPortrait_App() ? uiBackgroundSidebar_ColorId : none_ColorId);
         }
         /* Padding under the action bar depends on whether there are other UI elements next
            to the bottom of the window. This is surprisingly convoluted; perhaps there is a
@@ -2021,8 +2080,8 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             setPadding_Widget(d->actions, 0, 0, 0, 0);
         }
         else if (deviceType_App() == tablet_AppDeviceType) {
-            setPadding_Widget(d->actions, 0, 0, 0,
-                              prefs_App()->bottomNavBar ? 0 : bottomSafeInset_Mobile());
+            setPadding_Widget(
+                d->actions, 0, 0, 0, prefs_App()->bottomNavBar ? 0 : bottomSafeInset_Mobile());
         }
         else if (deviceType_App() == phone_AppDeviceType) {
             if (isPortrait_App()) {
@@ -2033,7 +2092,10 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 setPadding_Widget(d->actions, 0, 0, 0, bottomSafeInset_Mobile());
             }
             else {
-                setPadding_Widget(d->actions, 0, 0, 0,
+                setPadding_Widget(d->actions,
+                                  0,
+                                  0,
+                                  0,
                                   (prefs_App()->bottomNavBar && !prefs_App()->hideToolbarOnScroll
                                        ? height_Widget(findChild_Widget(root_Widget(w), "navbar"))
                                        : 0) +
@@ -2057,6 +2119,10 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             if (d->mode != siteStructure_SidebarMode) {
                 scrollOffset_ListWidget(d->list, 0);
             }
+        }
+        else if (equal_Command(cmd, "sidebar.modes.changed")) {
+            checkModeButtonLayout_SidebarWidget_(d);
+            arrange_Widget(parent_Widget(d->modeButtons[0]));
         }
         else if (d->mode == openDocuments_SidebarMode &&
                  equal_Command(cmd, "document.openurls.changed")) {
@@ -2155,14 +2221,15 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         }
         else if (isCommand_Widget(w, ev, "mouse.moved")) {
             if (isResizing_SidebarWidget_(d)) {
-                const iInt2 inner = windowToInner_Widget(w, coord_Command(cmd));
-                const int resMid = d->resizer->rect.size.x / 2;
+                const iInt2 inner  = windowToInner_Widget(w, coord_Command(cmd));
+                const int   resMid = d->resizer->rect.size.x / 2;
                 setWidth_SidebarWidget(
                     d,
                     ((d->side == left_SidebarSide
-                         ? inner.x
+                          ? inner.x
                           : (right_Rect(rect_Root(w->root)) - coord_Command(cmd).x)) +
-                     resMid) / (float) gap_UI);
+                     resMid) /
+                        (float) gap_UI);
                 resizeSplits_MainWindow(as_MainWindow(window_Widget(d)), iFalse);
             }
             return iTrue;
@@ -2185,16 +2252,16 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             if (d->mode == bookmarks_SidebarMode) {
                 if (hasLabel_Command(cmd, "onto")) {
                     /* Dragged onto a folder. */
-                    bookmarkMovedOntoFolder_SidebarWidget_(d,
-                                                        argU32Label_Command(cmd, "arg"),
-                                                        argU32Label_Command(cmd, "onto"));
+                    bookmarkMovedOntoFolder_SidebarWidget_(
+                        d, argU32Label_Command(cmd, "arg"), argU32Label_Command(cmd, "onto"));
                 }
                 else {
                     const iBool isBefore = hasLabel_Command(cmd, "before");
-                    bookmarkMoved_SidebarWidget_(d,
-                                                argU32Label_Command(cmd, "arg"),
-                                                argU32Label_Command(cmd, isBefore ? "before" : "after"),
-                                                isBefore);
+                    bookmarkMoved_SidebarWidget_(
+                        d,
+                        argU32Label_Command(cmd, "arg"),
+                        argU32Label_Command(cmd, isBefore ? "before" : "after"),
+                        isBefore);
                 }
             }
             else if (d->mode == openDocuments_SidebarMode) {
@@ -2202,10 +2269,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 const int           srcIndex = argU32Label_Command(cmd, "arg");
                 const iSidebarItem *item     = constItem_ListWidget(d->list, srcIndex);
                 /* Dragging onto is the same as dragging before. */
-                const int dstIndex =
-                    hasLabel_Command(cmd, "onto")     ? argU32Label_Command(cmd, "onto")
-                    : hasLabel_Command(cmd, "before") ? argU32Label_Command(cmd, "before")
-                                                      : argU32Label_Command(cmd, "after");
+                const int dstIndex = hasLabel_Command(cmd, "before")
+                                         ? argU32Label_Command(cmd, "before")
+                                         : argU32Label_Command(cmd, "after");
                 /* Must be the current tab to move. */
                 postCommandf_App("tabs.switch id:%s", cstr_String(&item->meta));
                 postCommandf_App("tabs.move arg:%d", dstIndex - srcIndex);
@@ -2219,12 +2285,12 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 if (bm) {
                     if (isFolder_Bookmark(bm)) {
                         iRoot *openingInRoot = get_Root();
-                        iBool isNewWindow = iFalse;
+                        iBool  isNewWindow   = iFalse;
                         if (argLabel_Command(cmd, "newwindow")) {
                             /* First open a new window. */
                             iMainWindow *newWin = newMainWindow_App();
-                            openingInRoot = newWin->base.roots[0];
-                            isNewWindow = iTrue;
+                            openingInRoot       = newWin->base.roots[0];
+                            isNewWindow         = iTrue;
                         }
                         iBool isFirst = iTrue;
                         iConstForEach(PtrArray,
@@ -2269,17 +2335,18 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             return iTrue;
         }
         else if (isCommand_Widget(w, ev, "bookmark.edit")) {
-            const iSidebarItem *item = d->contextItem;
+            const iSidebarItem *item  = d->contextItem;
             const int           argId = argLabel_Command(cmd, "id");
             if (((d->mode == bookmarks_SidebarMode || d->mode == subscriptions_SidebarMode) &&
-                 item) || argId) {
-                iBookmark *bm  = get_Bookmarks(bookmarks_App(), argId ? argId : item->id);
+                 item) ||
+                argId) {
+                iBookmark  *bm    = get_Bookmarks(bookmarks_App(), argId ? argId : item->id);
                 const char *dlgId = format_CStr("bmed.%u", id_Bookmark(bm));
                 if (findWidget_Root(dlgId)) {
                     return iTrue;
                 }
-                iWidget *dlg = makeBookmarkEditor_Widget(isFolder_Bookmark(bm)
-                                                         ? id_Bookmark(bm) : 0, iTrue);
+                iWidget *dlg =
+                    makeBookmarkEditor_Widget(isFolder_Bookmark(bm) ? id_Bookmark(bm) : 0, iTrue);
                 setId_Widget(dlg, dlgId);
                 setText_InputWidget(findChild_Widget(dlg, "bmed.title"), &bm->title);
                 if (!isFolder_Bookmark(bm)) {
@@ -2287,9 +2354,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                     iInputWidget *tagsInput       = findChild_Widget(dlg, "bmed.tags");
                     iInputWidget *notesInput      = findChild_Widget(dlg, "bmed.notes");
                     iInputWidget *iconInput       = findChild_Widget(dlg, "bmed.icon");
-                    iWidget *     homeTag         = findChild_Widget(dlg, "bmed.tag.home");
-                    iWidget *     remoteSourceTag = findChild_Widget(dlg, "bmed.tag.remote");
-                    iWidget *     linkSplitTag    = findChild_Widget(dlg, "bmed.tag.linksplit");
+                    iWidget      *homeTag         = findChild_Widget(dlg, "bmed.tag.home");
+                    iWidget      *remoteSourceTag = findChild_Widget(dlg, "bmed.tag.remote");
+                    iWidget      *linkSplitTag    = findChild_Widget(dlg, "bmed.tag.linksplit");
                     setText_InputWidget(urlInput, &bm->url);
                     setText_InputWidget(tagsInput, &bm->tags);
                     setText_InputWidget(notesInput, &bm->notes);
@@ -2300,9 +2367,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                     setToggle_Widget(homeTag, bm->flags & homepage_BookmarkFlag);
                     setToggle_Widget(remoteSourceTag, bm->flags & remoteSource_BookmarkFlag);
                     setToggle_Widget(linkSplitTag, bm->flags & linkSplit_BookmarkFlag);
-                    updateDropdownSelection_LabelWidget(findChild_Widget(dlg, "bmed.setident"),
-                                                        format_CStr(" fp:%s",
-                                                                    cstr_String(&bm->identity)));
+                    updateDropdownSelection_LabelWidget(
+                        findChild_Widget(dlg, "bmed.setident"),
+                        format_CStr(" fp:%s", cstr_String(&bm->identity)));
                 }
                 setBookmarkEditorParentFolder_Widget(dlg, bm ? bm->parentId : 0);
                 setCommandHandler_Widget(dlg, handleBookmarkEditorCommands_SidebarWidget_);
@@ -2315,10 +2382,10 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (isCommand_Widget(w, ev, "bookmark.dup")) {
             const iSidebarItem *item = d->contextItem;
             if (d->mode == bookmarks_SidebarMode && item) {
-                iBookmark *bm = get_Bookmarks(bookmarks_App(), item->id);
+                iBookmark  *bm       = get_Bookmarks(bookmarks_App(), item->id);
                 const iBool isRemote = (bm->flags & remote_BookmarkFlag) != 0;
-                iChar icon = isRemote ? 0x1f588 : bm->icon;
-                iWidget *dlg = makeBookmarkCreation_Widget(&bm->url, &bm->title, icon);
+                iChar       icon     = isRemote ? 0x1f588 : bm->icon;
+                iWidget    *dlg      = makeBookmarkCreation_Widget(&bm->url, &bm->title, icon);
                 setId_Widget(dlg, format_CStr("bmed.%s", cstr_String(id_Widget(w))));
                 if (!isRemote) {
                     setText_InputWidget(findChild_Widget(dlg, "bmed.tags"), &bm->tags);
@@ -2349,8 +2416,8 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             if (d->mode == bookmarks_SidebarMode && item) {
                 iBookmark *bm = get_Bookmarks(bookmarks_App(), item->id);
                 if (bm && isFolder_Bookmark(bm)) {
-                    const iPtrArray *list = list_Bookmarks(bookmarks_App(), NULL,
-                                                           filterInsideFolder_Bookmark, bm);
+                    const iPtrArray *list =
+                        list_Bookmarks(bookmarks_App(), NULL, filterInsideFolder_Bookmark, bm);
                     /* Folder deletion requires confirmation because folders can contain
                        any number of bookmarks and other folders. */
                     if (argLabel_Command(cmd, "confirmed") || isEmpty_PtrArray(list)) {
@@ -2363,14 +2430,19 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                     else {
                         setFocus_Widget(NULL);
                         const size_t numBookmarks = numBookmarks_(list);
-                        makeQuestion_Widget(uiHeading_ColorEscape "${heading.confirm.bookmarks.delete}",
-                                            formatCStrs_Lang("dlg.confirm.bookmarks.delete.n", numBookmarks),
-                                            (iMenuItem[]){
-                            { "${cancel}" },
-                            { format_CStr(uiTextCaution_ColorEscape "%s",
-                                          formatCStrs_Lang("dlg.bookmarks.delete.n", numBookmarks)),
-                                          0, 0, format_CStr("!bookmark.delete confirmed:1 ptr:%p", d) },
-                        }, 2);
+                        makeQuestion_Widget(
+                            uiHeading_ColorEscape "${heading.confirm.bookmarks.delete}",
+                            formatCStrs_Lang("dlg.confirm.bookmarks.delete.n", numBookmarks),
+                            (iMenuItem[]) {
+                                { "${cancel}" },
+                                { format_CStr(
+                                      uiTextCaution_ColorEscape "%s",
+                                      formatCStrs_Lang("dlg.bookmarks.delete.n", numBookmarks)),
+                                  0,
+                                  0,
+                                  format_CStr("!bookmark.delete confirmed:1 ptr:%p", d) },
+                            },
+                            2);
                     }
                 }
                 else {
@@ -2407,8 +2479,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (isCommand_Widget(w, ev, "bookmark.foldall")) {
             clear_IntSet(d->closedFolders);
             if (arg_Command(cmd)) {
-                iConstForEach(PtrArray, i,
-                              list_Bookmarks(bookmarks_App(), NULL, isFolder_, NULL)) {
+                iConstForEach(PtrArray, i, list_Bookmarks(bookmarks_App(), NULL, isFolder_, NULL)) {
                     insert_IntSet(d->closedFolders, id_Bookmark(i.ptr));
                 }
             }
@@ -2432,10 +2503,13 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (equal_Command(cmd, "feeds.markallread") && d->mode == feedEntries_SidebarMode) {
             if (argLabel_Command(cmd, "confirm")) {
                 /* This is used on mobile. */
-                iWidget *menu = makeMenu_Widget(w->root->widget, (iMenuItem[]){
-                    check_Icon " " uiTextCaution_ColorEscape "${feeds.markallread}", 0, 0,
-                    "feeds.markallread"
-                }, 1);
+                iWidget *menu = makeMenu_Widget(
+                    w->root->widget,
+                    (iMenuItem[]) { check_Icon " " uiTextCaution_ColorEscape "${feeds.markallread}",
+                                    0,
+                                    0,
+                                    "feeds.markallread" },
+                    1);
                 openMenu_Widget(menu, topLeft_Rect(bounds_Widget(d->actions)));
                 return iTrue;
             }
@@ -2468,8 +2542,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                     return iTrue;
                 }
                 else if (isCommand_Widget(w, ev, "feed.entry.markread")) {
-                    iBool isBelow = iFalse;
-                    const iBool markingBelow = argLabel_Command(command_UserEvent(ev), "below") != 0;
+                    iBool       isBelow = iFalse;
+                    const iBool markingBelow =
+                        argLabel_Command(command_UserEvent(ev), "below") != 0;
                     iConstForEach(PtrArray, i, listFeedEntries_SidebarWidget_(d)) {
                         const iFeedEntry *entry = i.ptr;
                         if (isBelow) {
@@ -2537,7 +2612,11 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
             if (isCommand_Widget(w, ev, "sideitem.show")) {
                 const size_t pos = arg_Command(cmd);
-                scrollToItem_ListWidget(d->list, pos, 500);
+                /* Sliding sheet and the list both animating at the same time is confusing. */
+                scrollToItem_ListWidget(
+                    d->list,
+                    pos,
+                    !prefs_App()->uiAnimations || isSlidingSheet_SidebarWidget_(d) ? 0 : 400);
                 return iTrue;
             }
         }
@@ -2589,12 +2668,15 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         }
         else if (equal_Command(cmd, "history.clear")) {
             if (argLabel_Command(cmd, "confirm")) {
-                makeQuestion_Widget(uiTextCaution_ColorEscape "${heading.history.clear}",
-                                    "${dlg.confirm.history.clear}",
-                                    (iMenuItem[]){ { "${cancel}", 0, 0, NULL },
-                                                   { uiTextCaution_ColorEscape "${dlg.history.clear}",
-                                                     0, 0, "history.clear confirm:0" } },
-                                    2);
+                makeQuestion_Widget(
+                    uiTextCaution_ColorEscape "${heading.history.clear}",
+                    "${dlg.confirm.history.clear}",
+                    (iMenuItem[]) { { "${cancel}", 0, 0, NULL },
+                                    { uiTextCaution_ColorEscape "${dlg.history.clear}",
+                                      0,
+                                      0,
+                                      "history.clear confirm:0" } },
+                    2);
             }
             else {
                 clear_Visited(visited_App());
@@ -2646,9 +2728,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             return iTrue;
         }
         else if (isEdgeSwipable_SidebarWidget_(d) && hasAffinity_Touch(w) &&
-                 equal_Command(cmd, "edgeswipe.moved") &&
-                 argLabel_Command(cmd, "edge") && !isVisible_Widget(w)) {
-            const int side = argLabel_Command(cmd, "side");
+                 equal_Command(cmd, "edgeswipe.moved") && argLabel_Command(cmd, "edge") &&
+                 !isVisible_Widget(w)) {
+            const int side  = argLabel_Command(cmd, "side");
             const int delta = arg_Command(cmd);
             if (d->side == left_SidebarSide && side == 1 && delta > 0) {
                 postCommand_Widget(w, "sidebar.toggle");
@@ -2669,7 +2751,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
             return iTrue;
         }
-#if defined (iPlatformTerminal)
+#if defined(iPlatformTerminal)
         else if (equal_Command(cmd, "zoom.set") && isVisible_Widget(w)) {
             setWidth_SidebarWidget(d, 35.0f * arg_Command(cmd) / 100.0f);
             invalidate_ListWidget(list_SidebarWidget_(d));
@@ -2677,7 +2759,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         }
         else if (equal_Command(cmd, "zoom.delta") && isVisible_Widget(w)) {
             setWidth_SidebarWidget(d, d->widthAsGaps + arg_Command(cmd) * 2 / 10);
-//            invalidate_ListWidget(list_SidebarWidget_(d));
+            //            invalidate_ListWidget(list_SidebarWidget_(d));
             refresh_Widget(d);
             return iTrue;
         }
@@ -2687,7 +2769,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             return iTrue;
         }
 #endif
-        }
+    }
     if (ev->type == SDL_MOUSEMOTION &&
         (!isVisible_Widget(d->menu) && !isVisible_Widget(d->modeMenu))) {
         const iInt2 mouse = init_I2(ev->motion.x, ev->motion.y);
@@ -2697,7 +2779,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         /* Update cursor. */
         else if (contains_Widget(w, mouse)) {
             const iSidebarItem *item = constHoverItem_ListWidget(d->list);
-                setCursor_Window(get_Window(),
+            setCursor_Window(get_Window(),
                              item ? (item->listItem.isSeparator ? SDL_SYSTEM_CURSOR_ARROW
                                                                 : SDL_SYSTEM_CURSOR_HAND)
                                   : SDL_SYSTEM_CURSOR_ARROW);
@@ -2709,10 +2791,8 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
     }
     /* Update context menu items. */
     if (d->menu && ev->type == SDL_MOUSEBUTTONDOWN) {
-        if (isSlidingSheet_SidebarWidget_(d) &&
-            ev->button.button == SDL_BUTTON_LEFT &&
-            isVisible_Widget(d) &&
-            !contains_Widget(w, init_I2(ev->button.x, ev->button.y))) {
+        if (isSlidingSheet_SidebarWidget_(d) && ev->button.button == SDL_BUTTON_LEFT &&
+            isVisible_Widget(d) && !contains_Widget(w, init_I2(ev->button.x, ev->button.y))) {
             setSlidingSheetPos_SidebarWidget_(d, bottom_SlidingSheetPos);
             return iTrue;
         }
@@ -2790,9 +2870,9 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             if (touchMode == momentum_WidgetTouchMode) {
                 /* We don't do momentum. */
                 float swipe = stopWidgetMomentum_Touch(w) / gap_UI;
-//                printf("swipe: %f\n", swipe);
+                //                printf("swipe: %f\n", swipe);
                 const iRangei midRegion = SlidingSheetMiddleRegion_SidebarWidget_(d);
-                const int pos = top_Rect(w->rect);
+                const int     pos       = top_Rect(w->rect);
                 if (swipe < 170) {
                     gotoNearestSlidingSheetPos_SidebarWidget_(d);
                 }
@@ -2815,12 +2895,12 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 adjustEdges_Rect(&w->rect, ev->wheel.y, 0, 0, 0);
                 /* Upon reaching the top, scrolling is switched back to the list. */
                 const iRect rootRect = safeRect_Root(w->root);
-                const int top = top_Rect(rootRect);
+                const int   top      = top_Rect(rootRect);
                 if (w->rect.pos.y < top) {
                     setScrollMode_ListWidget(d->list, disabledAtTopUpwards_ScrollMode);
                     setScrollPos_ListWidget(d->list, top - w->rect.pos.y);
                     transferAffinity_Touch(w, as_Widget(d->list));
-                    w->rect.pos.y = top;
+                    w->rect.pos.y  = top;
                     w->rect.size.y = height_Rect(rootRect);
                 }
                 else {
@@ -2867,9 +2947,10 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                                                            "bookmark.tag tag:homepage",
                                                            "bookmark.tag tag:remotesource" };
                     iForIndices(i, localOnlyCmds) {
-                        setFlags_Widget(as_Widget(findMenuItem_Widget(contextMenu, localOnlyCmds[i])),
-                                        disabled_WidgetFlag, /* Remote bookmarks have limitations. */
-                                        isRemote);
+                        setFlags_Widget(
+                            as_Widget(findMenuItem_Widget(contextMenu, localOnlyCmds[i])),
+                            disabled_WidgetFlag, /* Remote bookmarks have limitations. */
+                            isRemote);
                     }
                 }
             }
@@ -2891,9 +2972,10 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
 static void draw_SidebarWidget_(const iSidebarWidget *d) {
     const iWidget *w      = constAs_Widget(d);
     const iRect    bounds = bounds_Widget(w);
-    iPaint p;
+    iPaint         p;
     init_Paint(&p);
-    if (!isPortraitPhone_App()) { /* this would erase page contents during transition on the phone */
+    if (!isPortraitPhone_App()) { /* this would erase page contents during transition on the phone
+                                   */
         if (flags_Widget(w) & visualOffset_WidgetFlag &&
             flags_Widget(w) & horizontalOffset_WidgetFlag && isVisible_Widget(w)) {
             fillRect_Paint(&p, boundsWithoutVisualOffset_Widget(w), tmBackground_ColorId);
@@ -2911,40 +2993,37 @@ static void draw_SidebarWidget_(const iSidebarWidget *d) {
 
 static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                               const iListWidget *list) {
-    const iSidebarWidget *sidebar = findParentClass_Widget(constAs_Widget(list),
-                                                           &Class_SidebarWidget);
-    const iBool isListFocus  = isFocused_Widget(list);
+    const iSidebarWidget *sidebar =
+        findParentClass_Widget(constAs_Widget(list), &Class_SidebarWidget);
+    const iBool isListFocus   = isFocused_Widget(list);
     const iBool isMenuVisible = isVisible_Widget(sidebar->menu);
-    const iBool isDragging   = constDragItem_ListWidget(list) == d;
-    const iBool isEditing    = sidebar->isEditing; /* only on mobile */
-    const iBool isPressing   = isMouseDown_ListWidget(list) && !isDragging;
-    const iBool isHover      =
-            (!isMenuVisible &&
-            isHover_Widget(constAs_Widget(list)) &&
-            constHoverItem_ListWidget(list) == d) ||
-            (isMenuVisible && sidebar->contextItem == d) ||
-            (isFocused_Widget(list) && constCursorItem_ListWidget(list) == d) ||
-            isDragging;
+    const iBool isDragging    = constDragItem_ListWidget(list) == d;
+    const iBool isEditing     = sidebar->isEditing; /* only on mobile */
+    const iBool isPressing    = isMouseDown_ListWidget(list) && !isDragging;
+    const iBool isHover       = (!isMenuVisible && isHover_Widget(constAs_Widget(list)) &&
+                           constHoverItem_ListWidget(list) == d) ||
+                          (isMenuVisible && sidebar->contextItem == d) ||
+                          (isFocused_Widget(list) && constCursorItem_ListWidget(list) == d) ||
+                          isDragging;
     const int scrollBarWidth = scrollBarWidth_ListWidget(list);
     const int blankWidth     = isApple_Platform() ? 0 : scrollBarWidth;
     const int itemHeight     = height_Rect(itemRect);
     const int font           = sidebar->itemFonts[d->isBold ? 1 : 0];
-    const int iconColor      = isHover ? (isPressing ? uiTextPressed_ColorId : uiIconHover_ColorId)
-                                       : uiIcon_ColorId;
+    const int iconColor =
+        isHover ? (isPressing ? uiTextPressed_ColorId : uiIconHover_ColorId) : uiIcon_ColorId;
     /* Draw item background. */
     int bg = uiBackgroundSidebar_ColorId;
     if (isHover) {
-        bg = isPressing ? uiBackgroundPressed_ColorId
-                        : uiBackgroundFramelessHover_ColorId;
+        bg = isPressing ? uiBackgroundPressed_ColorId : uiBackgroundFramelessHover_ColorId;
         fillRect_Paint(p, itemRect, bg);
     }
-    else if (d->listItem.isSelected &&
-             (sidebar->mode == feedEntries_SidebarMode || sidebar->mode == identities_SidebarMode)) {
+    else if (d->listItem.isSelected && (sidebar->mode == feedEntries_SidebarMode ||
+                                        sidebar->mode == identities_SidebarMode)) {
         bg = uiBackgroundUnfocusedSelection_ColorId;
         fillRect_Paint(p, itemRect, bg);
     }
     else if (sidebar->mode == bookmarks_SidebarMode) {
-        if (d->indent) /* remote icon */  {
+        if (d->indent) /* remote icon */ {
             bg = uiBackgroundFolder_ColorId;
             fillRect_Paint(p, itemRect, bg);
         }
@@ -2990,11 +3069,11 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                 range_String(&d->meta));
         }
         else {
-            const iBool isUnread = (d->indent != 0);
-            const int titleFont = sidebar->itemFonts[isUnread ? 1 : 0];
-            const int h1 = lineHeight_Text(uiLabel_FontId);
-            const int h2 = lineHeight_Text(titleFont);
-            iRect iconArea = { addY_I2(pos, 0), init_I2(iconPad * aspect_UI, itemHeight) };
+            const iBool isUnread  = (d->indent != 0);
+            const int   titleFont = sidebar->itemFonts[isUnread ? 1 : 0];
+            const int   h1        = lineHeight_Text(uiLabel_FontId);
+            const int   h2        = lineHeight_Text(titleFont);
+            iRect       iconArea  = { addY_I2(pos, 0), init_I2(iconPad * aspect_UI, itemHeight) };
             /* Icon. */ {
                 /* TODO: Use the primary hue from the theme of this site. */
                 iString str;
@@ -3006,39 +3085,42 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                 drawCentered_Text(uiLabelLarge_FontId,
                                   adjusted_Rect(iconArea, init_I2(gap_UI, 0), zero_I2()),
                                   iTrue,
-                                  isHover && isPressing
-                                      ? iconColor
-                                      : isUnread ? unreadIconColor
-                                      : d->listItem.isSelected ? iconColor
-                                      : readIconColor,
+                                  isHover && isPressing    ? iconColor
+                                  : isUnread               ? unreadIconColor
+                                  : d->listItem.isSelected ? iconColor
+                                                           : readIconColor,
                                   "%s",
                                   cstr_String(&str));
                 deinit_String(&str);
             }
             /* Select the layout based on how the title fits. */
-            int         metaFg    = isPressing ? fg : uiSubheading_ColorId;
-            iInt2       titleSize = measureRange_Text(titleFont, range_String(&d->label)).bounds.size;
-            const iInt2 metaSize  = measureRange_Text(uiLabel_FontId, range_String(&d->meta)).bounds.size;
+            int   metaFg    = isPressing ? fg : uiSubheading_ColorId;
+            iInt2 titleSize = measureRange_Text(titleFont, range_String(&d->label)).bounds.size;
+            const iInt2 metaSize =
+                measureRange_Text(uiLabel_FontId, range_String(&d->meta)).bounds.size;
             pos.x += iconPad * aspect_UI;
             const int avail = width_Rect(itemRect) - iconPad - 3 * gap_UI;
-            const int labelFg = isPressing ? fg : (isUnread ? uiTextStrong_ColorId : uiText_ColorId);
+            const int labelFg =
+                isPressing ? fg : (isUnread ? uiTextStrong_ColorId : uiText_ColorId);
             if (titleSize.x > avail && metaSize.x < avail * 0.75f) {
                 /* Must wrap the title. */
                 pos.y += (itemHeight - h2 - h2) / 2;
-                draw_Text(
-                    uiLabel_FontId, addY_I2(pos, h2 - h1 - gap_UI / 8), metaFg, "%s \u2014 ", cstr_String(&d->meta));
-                int skip  = metaSize.x + measure_Text(uiLabel_FontId, " \u2014 ").advance.x;
-                iInt2 cur = addX_I2(pos, skip);
+                draw_Text(uiLabel_FontId,
+                          addY_I2(pos, h2 - h1 - gap_UI / 8),
+                          metaFg,
+                          "%s \u2014 ",
+                          cstr_String(&d->meta));
+                int         skip = metaSize.x + measure_Text(uiLabel_FontId, " \u2014 ").advance.x;
+                iInt2       cur  = addX_I2(pos, skip);
                 const char *endPos;
                 tryAdvance_Text(titleFont, range_String(&d->label), avail - skip, &endPos);
-                drawRange_Text(titleFont,
-                               cur,
-                               labelFg,
-                               (iRangecc){ constBegin_String(&d->label), endPos });
+                drawRange_Text(
+                    titleFont, cur, labelFg, (iRangecc) { constBegin_String(&d->label), endPos });
                 if (endPos < constEnd_String(&d->label)) {
                     drawRange_Text(titleFont,
-                                   addY_I2(pos, h2), labelFg,
-                                   (iRangecc){ endPos, constEnd_String(&d->label) });
+                                   addY_I2(pos, h2),
+                                   labelFg,
+                                   (iRangecc) { endPos, constEnd_String(&d->label) });
                 }
             }
             else {
@@ -3056,9 +3138,10 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         iString str;
         init_String(&str);
         appendChar_String(&str, d->icon ? d->icon : 0x1f588);
-        const int leftIndent = d->indent * gap_UI * 4 * aspect_UI;
-        const iRect iconArea = { addX_I2(pos, aspect_UI * gap_UI + leftIndent),
-                                 init_I2(!isTerminal_Platform() ? 1.75f * lineHeight_Text(font) : 5, itemHeight) };
+        const int   leftIndent = d->indent * gap_UI * 4 * aspect_UI;
+        const iRect iconArea   = { addX_I2(pos, aspect_UI * gap_UI + leftIndent),
+                                   init_I2(!isTerminal_Platform() ? 1.75f * lineHeight_Text(font) : 5,
+                                           itemHeight) };
         drawCentered_Text(font,
                           iconArea,
                           iTrue,
@@ -3068,25 +3151,22 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                           "%s",
                           cstr_String(&str));
         deinit_String(&str);
-        const iInt2 textPos = addY_I2(topRight_Rect(iconArea), (itemHeight - lineHeight_Text(font)) / 2);
+        const iInt2 textPos =
+            addY_I2(topRight_Rect(iconArea), (itemHeight - lineHeight_Text(font)) / 2);
         drawRange_Text(font, textPos, fg, range_String(&d->label));
-        const int metaFont = uiLabel_FontId;
+        const int metaFont      = uiLabel_FontId;
         const int metaIconWidth = 4.5f * gap_UI * aspect_UI;
         if (isEditing) {
-            iRect dragRect = {
-                addX_I2(topRight_Rect(itemRect), -itemHeight * 3 / 2),
-                init_I2(itemHeight * 3 / 2, itemHeight)
-            };
+            iRect dragRect = { addX_I2(topRight_Rect(itemRect), -itemHeight * 3 / 2),
+                               init_I2(itemHeight * 3 / 2, itemHeight) };
             fillRect_Paint(p, dragRect, bg);
             drawVLine_Paint(p, topLeft_Rect(dragRect), height_Rect(dragRect), uiSeparator_ColorId);
             drawCentered_Text(uiContent_FontId, dragRect, iTrue, uiAnnotation_ColorId, menu_Icon);
             adjustEdges_Rect(&itemRect, 0, -width_Rect(dragRect), 0, 0);
         }
         const iInt2 metaPos =
-            init_I2(right_Rect(itemRect) -
-                        length_String(&d->meta) *
-                            metaIconWidth
-                        - 2 * gap_UI - (blankWidth ? blankWidth - 1.5f * gap_UI : (gap_UI / 2)),
+            init_I2(right_Rect(itemRect) - length_String(&d->meta) * metaIconWidth - 2 * gap_UI -
+                        (blankWidth ? blankWidth - 1.5f * gap_UI : (gap_UI / 2)),
                     textPos.y);
         if (!isDragging) {
             fillRect_Paint(p,
@@ -3096,14 +3176,14 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                                      height_Rect(itemRect)),
                            bg);
         }
-        iInt2 mpos = metaPos;
+        iInt2                mpos = metaPos;
         iStringConstIterator iter;
         init_StringConstIterator(&iter, &d->meta);
         iRangecc range = { cstr_String(&d->meta), iter.pos };
         while (iter.value) {
             next_StringConstIterator(&iter);
-            range.end = iter.pos;
-            iRect iconArea = { mpos, init_I2(metaIconWidth, lineHeight_Text(metaFont)) };
+            range.end       = iter.pos;
+            iRect iconArea  = { mpos, init_I2(metaIconWidth, lineHeight_Text(metaFont)) };
             iRect visBounds = visualBounds_Text(metaFont, range);
             drawRange_Text(metaFont,
                            sub_I2(mid_Rect(iconArea), mid_Rect(visBounds)),
@@ -3126,15 +3206,17 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                     uiLabelLargeBold_FontId,
                     add_I2(drawPos,
                            init_I2(3 * gap_UI * aspect_UI,
-                                   1 + (itemHeight - lineHeight_Text(uiLabelLargeBold_FontId)) / 2.0f)),
+                                   1 + (itemHeight - lineHeight_Text(uiLabelLargeBold_FontId)) /
+                                           2.0f)),
                     uiIcon_ColorId,
                     range_String(&d->meta));
             }
         }
         else {
-            const int fg = isHover ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
-                                   : uiTextDim_ColorId;
-            iUrl parts;
+            const int fg = isHover
+                               ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
+                               : uiTextDim_ColorId;
+            iUrl      parts;
             init_Url(&parts, &d->label);
             const iBool isAbout    = equalCase_Rangecc(parts.scheme, "about");
             const iBool isGemini   = equalCase_Rangecc(parts.scheme, "gemini");
@@ -3150,23 +3232,22 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                     font, textPos, fg, range_String(prettyDataUrl_String(&d->label, queryColor)));
             }
             else {
-                draw_Text(
-                    font,
-                    textPos,
-                    fg,
-                    "%s%s%s%s%s%s%s%s",
-                    isGemini ? "" : cstr_Rangecc(parts.scheme),
-                    isGemini  ? ""
-                    : isAbout ? ":"
-                              : "://",
-                    escape_Color(isHover ? (isPressing ? uiTextPressed_ColorId
-                                                       : uiTextFramelessHover_ColorId)
-                                         : uiTextStrong_ColorId),
-                    cstr_Rangecc(parts.host),
-                    escape_Color(fg),
-                    cstr_Rangecc(parts.path),
-                    !isEmpty_Range(&parts.query) ? escape_Color(queryColor) : "",
-                    !isEmpty_Range(&parts.query) ? cstr_Rangecc(parts.query) : "");
+                draw_Text(font,
+                          textPos,
+                          fg,
+                          "%s%s%s%s%s%s%s%s",
+                          isGemini ? "" : cstr_Rangecc(parts.scheme),
+                          isGemini  ? ""
+                          : isAbout ? ":"
+                                    : "://",
+                          escape_Color(isHover ? (isPressing ? uiTextPressed_ColorId
+                                                             : uiTextFramelessHover_ColorId)
+                                               : uiTextStrong_ColorId),
+                          cstr_Rangecc(parts.host),
+                          escape_Color(fg),
+                          cstr_Rangecc(parts.path),
+                          !isEmpty_Range(&parts.query) ? escape_Color(queryColor) : "",
+                          !isEmpty_Range(&parts.query) ? cstr_Rangecc(parts.query) : "");
             }
         }
         iEndCollect();
@@ -3198,8 +3279,9 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             if (isUnfolded || d->count > 0) {
                 drawCenteredRange_Text(
                     font,
-                    initCorners_Rect(addX_I2(pos, -6 * gap_UI),
-                                     init_I2(pos.x, pos.y + lineHeight_Text(font))),
+                    initCorners_Rect(
+                        addX_I2(pos, gap_UI * (isSlidingSheet_SidebarWidget_(sidebar) ? -7 : -6)),
+                        init_I2(pos.x, pos.y + lineHeight_Text(font))),
                     iTrue,
                     fg3,
                     range_CStr(isUnfolded ? downAngle_Icon : rightAngle_Icon));
@@ -3226,7 +3308,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         }
         const iInt2 textPos = add_I2(topLeft_Rect(itemRect),
                                      init_I2(3 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
-        iString label;
+        iString     label;
         init_String(&label);
         set_String(&label, &d->label);
         const iRangecc host = urlHost_String(&d->url);
@@ -3243,12 +3325,15 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         deinit_String(&label);
         /* Status icons appear on the right. */
         const int metaIconWidth = 7.0f * gap_UI * aspect_UI + blankWidth;
-        iInt2     metaIconPos   = init_I2(right_Rect(itemRect) - metaIconWidth + 0.5f * gap_UI * aspect_UI, textPos.y);
-        iRect     metaIconRect  = initCorners_Rect(addX_I2(topRight_Rect(itemRect), -metaIconWidth),
+        iInt2     metaIconPos =
+            init_I2(right_Rect(itemRect) - metaIconWidth + 0.5f * gap_UI * aspect_UI, textPos.y);
+        iRect metaIconRect = initCorners_Rect(addX_I2(topRight_Rect(itemRect), -metaIconWidth),
                                               bottomRight_Rect(itemRect));
         if (d->id) { /* used for status flags */
-            fillRect_Paint(p, metaIconRect, d->indent && !isPressing && !isHover ?
-                uiBackgroundUnfocusedSelection_ColorId : bg);
+            fillRect_Paint(
+                p,
+                metaIconRect,
+                d->indent && !isPressing && !isHover ? uiBackgroundUnfocusedSelection_ColorId : bg);
             draw_Text(font,
                       metaIconPos,
                       uiTextAction_ColorId,
@@ -3260,8 +3345,9 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                           : d->isBold ? uiTextStrong_ColorId
                                       : uiText_ColorId;
         const int fg2   = isPressing ? uiTextPressed_ColorId : uiText_ColorId;
-        const int fg3   = isPressing ? uiTextPressed_ColorId : d->isBold ? uiIcon_ColorId
-                                                                         : uiTextDim_ColorId;
+        const int fg3   = isPressing  ? uiTextPressed_ColorId
+                          : d->isBold ? uiIcon_ColorId
+                                      : uiTextDim_ColorId;
         const int font2 = uiLabel_FontId;
         iString   str;
         init_String(&str);
@@ -3290,7 +3376,6 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
     }
 }
 
-iBeginDefineSubclass(SidebarWidget, Widget)
-    .processEvent = (iAny *) processEvent_SidebarWidget_,
-    .draw         = (iAny *) draw_SidebarWidget_,
-iEndDefineSubclass(SidebarWidget)
+iBeginDefineSubclass(SidebarWidget, Widget).processEvent = (iAny *) processEvent_SidebarWidget_,
+                                    .draw                = (iAny *) draw_SidebarWidget_,
+                                    iEndDefineSubclass(SidebarWidget)

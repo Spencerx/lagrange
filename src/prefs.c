@@ -21,6 +21,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "prefs.h"
+#include "ui/sidebarwidget.h"
 #include "app.h"
 
 #include <assert.h>
@@ -61,7 +62,16 @@ void init_Prefs(iPrefs *d) {
 #else
     d->toolbarActions[0] = back_ToolbarAction;
 #endif
-    d->toolbarActions[1]   = forward_ToolbarAction;
+    d->toolbarActions[1] = forward_ToolbarAction;
+    iZap(d->sidebarModeEnabled);
+    d->sidebarModeEnabled[0][bookmarks_SidebarMode] = iTrue;
+    d->sidebarModeEnabled[0][feedEntries_SidebarMode] = iTrue;
+    d->sidebarModeEnabled[0][subscriptions_SidebarMode] = iTrue;
+    d->sidebarModeEnabled[0][identities_SidebarMode] = iTrue;
+    d->sidebarModeEnabled[1][documentOutline_SidebarMode] = iTrue;
+    d->sidebarModeEnabled[1][siteStructure_SidebarMode] = iTrue;
+    d->sidebarModeEnabled[1][openDocuments_SidebarMode] = iTrue;
+    d->sidebarModeEnabled[1][history_SidebarMode] = iTrue;
     d->sideIcon            = iTrue;
     d->hideToolbarOnScroll = iTrue;
     d->blinkingCursor      = iTrue;

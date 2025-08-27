@@ -233,10 +233,15 @@ void scrollToItem_ListWidget(iListWidget *d, size_t index, uint32_t span) {
     const iRect rect    = innerBoundsWithoutVisualOffset_Widget(as_Widget(d));
     int         yTop    = d->itemHeight * index - pos_SmoothScroll(&d->scrollY);
     int         yBottom = yTop + d->itemHeight;
-    if (yBottom > height_Rect(rect)) {
-        scrollOffsetSpan_ListWidget(d, yBottom - height_Rect(rect), span);
+    if (height_Rect(rect) > d->itemHeight) {
+        if (yBottom > height_Rect(rect)) {
+            scrollOffsetSpan_ListWidget(d, yBottom - height_Rect(rect), span);
+        }
+        else if (yTop < 0) {
+            scrollOffsetSpan_ListWidget(d, yTop, span);
+        }
     }
-    else if (yTop < 0) {
+    else {
         scrollOffsetSpan_ListWidget(d, yTop, span);
     }
 }

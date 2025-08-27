@@ -277,6 +277,9 @@ msgstr "Toggle Left Sidebar"
 msgid "menu.sidebar.right"
 msgstr "Toggle Right Sidebar"
 
+msgid "menu.sidebar.configure"
+msgstr "Configure…"
+
 msgid "menu.zoom.in"
 msgstr "Zoom In"
 
@@ -325,8 +328,9 @@ msgstr "List Bookmarks by Creation Time"
 msgid "macos.menu.bookmarks.bytime"
 msgstr "List by Creation Time"
 
+# This opens "about:feeds" and should have a different label than `menu.show.feeds`.
 msgid "menu.feeds.entrylist"
-msgstr "Show Feed Entries"
+msgstr "List Feed Entries"
 
 msgid "menu.preferences"
 msgstr "Preferences…"
@@ -399,7 +403,7 @@ msgstr "Show Bookmarks"
 
 # Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.feeds"
-msgstr "Show Feeds"
+msgstr "Show Feed Entries"
 
 # Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.history"
@@ -417,12 +421,15 @@ msgstr "Hide Identities"
 msgid "menu.show.outline"
 msgstr "Show Page Outline"
 
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.structure"
-msgstr "Show Structure"
+msgstr "Show Site Structure"
 
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.subscriptions"
 msgstr "Show Subscriptions"
 
+# Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.opendocs"
 msgstr "Show Tabs"
 
@@ -538,7 +545,7 @@ msgid "sidebar.bookmarks"
 msgstr "Bookmarks"
 
 msgid "sidebar.feeds"
-msgstr "Feeds"
+msgstr "Feed Entries"
 
 msgid "sidebar.history"
 msgstr "History"
@@ -556,7 +563,7 @@ msgid "sidebar.documents"
 msgstr "Tabs"
 
 msgid "sidebar.subscriptions"
-msgstr "Subs"
+msgstr "Subscriptions"
 
 msgid "sidebar.gempub"
 msgstr "Gempub"
@@ -601,7 +608,7 @@ msgstr[1] "Unread"
 msgid "sidebar.sub.empty"
 msgstr "Empty feed"
 
-msgid "menu.feed.edit"
+msgid "feed.edit"
 msgstr "Feed Settings…"
 
 msgid "menu.sub.edit"
@@ -1872,12 +1879,21 @@ msgstr "General"
 msgid "heading.prefs.appearance"
 msgstr "Appearance"
 
+# tab button
+msgid "heading.prefs.interface"
+msgstr "Behavior"
+
 msgid "heading.prefs.theme"
 msgstr "Theme"
 
-# tab button
-msgid "heading.prefs.interface"
-msgstr "UI"
+msgid "heading.prefs.sidebars"
+msgstr "Sidebars"
+
+msgid "prefs.sidebar.left"
+msgstr "Left"
+
+msgid "prefs.sidebar.right"
+msgstr "Right"
 
 # tab button
 msgid "heading.prefs.keys"
