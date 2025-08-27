@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-01-25 09:20+0000\n"
-"PO-Revision-Date: 2025-08-21 12:42+0000\n"
+"PO-Revision-Date: 2025-08-27 08:54+0000\n"
 "Last-Translator: josé m. <correoxm@disroot.org>\n"
 "Language-Team: Galician <http://weblate.skyjake.fi/projects/lagrange/ui/gl/>"
 "\n"
@@ -2870,3 +2870,62 @@ msgstr "Foco"
 # Keyboard shortcut for the terminal. Should be very short or abbreviated.
 msgid "term.hover"
 msgstr "Foco na ligazón"
+
+msgid "menu.fold"
+msgstr "Pregar"
+
+msgid "prefs.quote.italic"
+msgstr "Citar texto en cursiva:"
+
+msgid "sidebar.structure"
+msgstr "Estrutura"
+
+msgid "sidebar.gempub"
+msgstr "Gempub"
+
+msgid "sidebar.page"
+msgstr "Personalizado"
+
+msgid "sidebar.sub.empty"
+msgstr "Canle baleira"
+
+msgid "num.entries"
+msgid_plural "num.entries.n"
+msgstr[0] "%u entrada"
+msgstr[1] "%u entradas"
+
+msgid "feeds.reset"
+msgstr "Restablecer entradas coñecidas"
+
+msgid "hint.filter.bookmark"
+msgstr "filtrar marcadores"
+
+msgid "menu.show.structure"
+msgstr "Mostrar estrutura"
+
+msgid "menu.show.subscriptions"
+msgstr "Mostrar susbscricións"
+
+msgid "menu.show.opendocs"
+msgstr "Mostrar pestanas"
+
+msgid "sidebar.documents"
+msgstr "Pestanas"
+
+msgid "sidebar.subscriptions"
+msgstr "Subscricións"
+
+msgid "menu.feed.edit"
+msgstr "Axustes da canle…"
+
+msgid "menu.sub.edit"
+msgstr "Editar marcador…"
+
+msgid "heading.prefs.theme"
+msgstr "Decorado"
+
+msgid "menu.closetab.above"
+msgstr "Fechar Pestanas de arriba"
+
+msgid "menu.closetab.below"
+msgstr "Fechar Pestanas de abaixo"
