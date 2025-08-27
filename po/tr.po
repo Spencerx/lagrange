@@ -2906,9 +2906,6 @@ msgstr "Özel"
 msgid "sidebar.sub.empty"
 msgstr "Boş besleme"
 
-msgid "menu.feed.edit"
-msgstr "Besleme ayarları…"
-
 msgid "menu.sub.edit"
 msgstr "Yer imini düzenle…"
 

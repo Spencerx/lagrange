@@ -2915,9 +2915,6 @@ msgstr "Pestanas"
 msgid "sidebar.subscriptions"
 msgstr "Subscricións"
 
-msgid "menu.feed.edit"
-msgstr "Axustes da canle…"
-
 msgid "menu.sub.edit"
 msgstr "Editar marcador…"
 
