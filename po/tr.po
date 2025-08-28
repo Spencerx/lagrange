@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-22 20:15+0000\n"
-"PO-Revision-Date: 2025-08-27 08:54+0000\n"
+"PO-Revision-Date: 2025-08-28 06:05+0000\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <http://weblate.skyjake.fi/projects/lagrange/ui/tr/>\n"
 "Language: tr\n"
@@ -176,7 +176,7 @@ msgid "macos.menu.bookmarks.bytag"
 msgstr "Etikete göre listele"
 
 msgid "menu.feeds.entrylist"
-msgstr "Besleme girdilerini göster"
+msgstr "Besleme girdilerini listele"
 
 msgid "menu.preferences"
 msgstr "Tercihler…"
@@ -214,7 +214,7 @@ msgstr "Sayfa bağlantısını kopyala"
 
 # Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.feeds"
-msgstr "Beslemeleri göster"
+msgstr "Besleme girdilerini göster"
 
 # Used in the View menu on macOS. Shows sidebar and switches sidebar tab.
 msgid "menu.show.outline"
@@ -275,7 +275,7 @@ msgid "sidebar.bookmarks"
 msgstr "Yer imleri"
 
 msgid "sidebar.feeds"
-msgstr "Beslemeler"
+msgstr "Besleme girdileri"
 
 msgid "sidebar.history"
 msgstr "Geçmiş"
@@ -911,7 +911,7 @@ msgstr "Genel"
 
 # tab button
 msgid "heading.prefs.interface"
-msgstr "Arayüz"
+msgstr "Davranış"
 
 # tab button
 msgid "heading.prefs.keys"
@@ -2927,7 +2927,7 @@ msgid "feeds.reset"
 msgstr "Bilinen girdileri sıfırla"
 
 msgid "menu.show.structure"
-msgstr "Yapıyı göster"
+msgstr "Site yapısını göster"
 
 msgid "menu.show.subscriptions"
 msgstr "Abonelikleri göster"
@@ -2937,3 +2937,27 @@ msgstr "Sekmeleri göster"
 
 msgid "menu.fold"
 msgstr "Katla"
+
+msgid "heading.prefs.ui"
+msgstr "Kullanıcı arayüzü"
+
+msgid "prefs.hidetabs"
+msgstr "Sekme çubuğunu gizle:"
+
+msgid "heading.prefs.toolbartabs"
+msgstr "Araç çubuğu sekmeleri"
+
+msgid "menu.feed.edit"
+msgstr "Besleme ayarları…"
+
+msgid "menu.sidebar.configure"
+msgstr "Yapılandır…"
+
+msgid "heading.prefs.sidebars"
+msgstr "Kenar çubukları"
+
+msgid "prefs.sidebar.left"
+msgstr "Sol"
+
+msgid "prefs.sidebar.right"
+msgstr "Sağ"
