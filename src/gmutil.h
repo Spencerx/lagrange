@@ -158,6 +158,7 @@ const iString * prettyDataUrl_String    (const iString *, int contentColor);
 const char *    mediaType_Path                      (const iString *path);
 const char *    mediaTypeFromFileExtension_String   (const iString *);
 iRangecc        mediaTypeWithoutParameters_Rangecc  (iRangecc mime);
+iBool           equalMediaType_String               (const iString *, const char *mediaType);
 
 const iString * findContainerArchive_Path           (const iString *path);
 

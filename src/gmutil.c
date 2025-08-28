@@ -239,7 +239,7 @@ iRangecc urlHost_String(const iString *d) {
 iRangecc urlHostWithPort_String(const iString *d) {
     iUrl url;
     init_Url(&url, d);
-    return (iRangecc){ url.host.start, url.port.end };
+    return (iRangecc){ url.host.start, !isEmpty_Range(&url.port) ? url.port.end : url.host.end };
 }
 
 iRangecc urlDirectory_String(const iString *d) {
@@ -767,6 +767,10 @@ iRangecc mediaTypeWithoutParameters_Rangecc(iRangecc mime) {
     iRangecc part = iNullRange;
     nextSplit_Rangecc(mime, ";", &part);
     return part;
+}
+
+iBool equalMediaType_String(const iString *d, const char *mediaType) {
+    return equal_Rangecc(mediaTypeWithoutParameters_Rangecc(range_String(d)), mediaType);
 }
 
 const iString *feedEntryOpenCommand_String(const iString *url, int newTab, int newWindow) {
