@@ -1110,6 +1110,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             };
             d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
             if (isMobile && !keepActions) {
+                addActionButton_SidebarWidget_(d, "${close}", "tabs.close", 0);
                 addChildFlags_Widget(d->actions, iClob(new_Widget()), expand_WidgetFlag);
                 addActionButton_SidebarWidget_(d, openTab_Icon, "tabs.new", 0);
             }
