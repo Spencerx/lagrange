@@ -1209,23 +1209,16 @@ void setTextUndoable_InputWidget(iInputWidget *d, const iString *text, iBool isU
 #endif
     if (d->inFlags & isUrl_InputWidgetFlag) {
         if (prefs_App()->decodeUserVisibleURLs) {
-            iString *enc = collect_String(copy_String(text));
-            urlDecodePath_String(enc);
-            text = enc;
+            text = collect_String(urlDecodeExclude_String(text, URL_DECODE_EXCLUDE_CHARS));
         }
         else {
             /* The user wants URLs encoded, also Punycode the domain. */
-            iString *enc = collect_String(copy_String(text));
-            urlEncodePath_String(enc);
+            iString *enc = urlEncodeExclude_String(text, URL_ENCODE_EXCLUDE_CHARS);
             /* Prevent address bar spoofing (mentioned as IDN homograph attack in
                https://github.com/skyjake/lagrange/issues/73) */
             punyEncodeUrlHost_String(enc);
             text = enc;
         }
-        /* Omit the default (Gemini) scheme if there isn't much space. */
-        /*if (isNarrow_InputWidget_(d)) {
-            text = omitDefaultScheme_(collect_String(copy_String(text)));
-        }*/
     }
     iString *nfcText = collect_String(copy_String(text));
     normalize_String(nfcText);
@@ -1794,12 +1787,12 @@ static void paste_InputWidget_(iInputWidget *d) {
         if (d->inFlags & isUrl_InputWidgetFlag) {
             trim_String(paste);
             if (prefs_App()->decodeUserVisibleURLs) {
-                paste = collect_String(urlDecodeExclude_String(paste, URL_RESERVED_CHARS));
+                paste = collect_String(urlDecodeExclude_String(paste, URL_DECODE_EXCLUDE_CHARS));
                 replace_String(paste, "\n", "%0A");
                 replace_String(paste, "\t", "%09");
             }
             else {
-                urlEncodePath_String(paste);
+                paste = collect_String(urlEncodeExclude_String(paste, URL_ENCODE_EXCLUDE_CHARS));
             }
         }
         SDL_free(text);
@@ -1928,6 +1921,7 @@ static void markWordAtCursor_InputWidget_(iInputWidget *d) {
 
 static void showClipMenu_InputWidget_(const iInputWidget *d, iInt2 coord) {
     iWidget *clipMenu = findChild_Widget(root_Widget(constAs_Widget(d)), "clipmenu");
+    if (!clipMenu) return; /* all main/extra windows have a clipmenu, but popups do not */
     if (isVisible_Widget(clipMenu)) {
         closeMenu_Widget(clipMenu);
     }
@@ -2972,7 +2966,7 @@ static void draw_InputWidget_(const iInputWidget *d) {
     /* `lines` is already up to date and ready for drawing. */
     fillRect_Paint(
         &p, bounds, isFocused ? uiInputBackgroundFocused_ColorId : uiInputBackground_ColorId);
-    if (!isTerminal_Platform()) {
+    if (!isTerminal_Platform() && ~w->flags & frameless_WidgetFlag) {
         drawRectThickness_Paint(&p,
                                 adjusted_Rect(bounds, neg_I2(one_I2()), zero_I2()),
                                 isFocused ? gap_UI / 4 : 1,

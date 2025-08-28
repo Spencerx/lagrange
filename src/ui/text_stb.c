@@ -70,7 +70,7 @@ Optimization notes:
 #endif
 
 #if defined (LAGRANGE_ENABLE_FRIBIDI)
-#   include <fribidi/fribidi.h>
+#   include <fribidi.h>
 #endif
 
 #if SDL_VERSION_ATLEAST(2, 0, 10)
@@ -197,7 +197,6 @@ iDefineTypeConstruction(GlyphTable)
 
 struct Impl_Font {
     iBaseFont    font;
-    int          baseline;
     int          vertOffset; /* offset due to glyph scaling */
     float        xScale, yScale;
     float        emAdvance;
@@ -221,8 +220,8 @@ static void init_Font(iFont *d, const iFontSpec *fontSpec, const iFontFile *font
             d->xScale *= floorf(advance) / advance;
         }
     }
-    d->emAdvance  = fontFile->emAdvance * d->xScale;
-    d->baseline   = fontFile->ascent * d->yScale;
+    d->emAdvance     = fontFile->emAdvance * d->xScale;
+    d->font.baseline = fontFile->ascent * d->yScale;
     d->vertOffset = d->font.height * (1.0f - glyphScale) / 2 * fontSpec->vertOffsetScale[scaleType];
     d->table = NULL;
 }
@@ -417,7 +416,7 @@ static void initCache_StbText_(iStbText *d) {
                               : get_Window()->pixelRatio < 2.5f ? 3
                                                                 : 2;
     rasterizedAll_GlyphFlag_ = makeRasterizedAll_GlyphFlag_(numOffsetSteps_Glyph_);
-#if !defined(NDEBUG)
+#if !defined (NDEBUG)
     printf("[Text] subpixel offsets: %d\n", numOffsetSteps_Glyph_);
 #endif
     const iInt2 cacheDims = init_I2(8 * numOffsetSteps_Glyph_, 40);
@@ -746,7 +745,7 @@ struct Impl_RasterGlyph {
 static void cacheGlyphs_Font_(iFont *d, const uint32_t *glyphIndices, size_t numGlyphIndices) {
     /* TODO: Make this an object so it can be used sequentially without reallocating buffers. */
     SDL_Surface *buf     = NULL;
-    const iInt2  bufSize = init_I2(iMin(512, d->font.height * iMin(2 * numGlyphIndices, 20)),
+    const iInt2  bufSize = init_I2(iMin(1024, d->font.height * iMin(5 * numGlyphIndices, 20)),
                                    d->font.height * 4 / 3);
     int          bufX    = 0;
     iArray *     rasters = NULL;
@@ -792,8 +791,9 @@ static void cacheGlyphs_Font_(iFont *d, const uint32_t *glyphIndices, size_t num
                 iBool outOfSpace = iFalse;
                 iForIndices(i, surfaces) {
                     if (surfaces[i]) {
-                        const int w = surfaces[i]->w;
+                        const int w = iMin(surfaces[i]->w, bufSize.x);
                         const int h = surfaces[i]->h;
+                        iAssert(w <= bufSize.x);
                         if (bufX + w <= bufSize.x) {
                             SDL_BlitSurface(surfaces[i],
                                             NULL,
@@ -1298,15 +1298,16 @@ void process_RunLayer_(iRunLayer *d, int layerIndex) {
             }
             /* Output position for the glyph. */
             SDL_Rect dst = { d->orig.x + d->xCursor + xOffset + glyph->d[hoff].x,
-                             d->orig.y + d->yCursor - yOffset + glyph->font->baseline + glyph->d[hoff].y,
+                             d->orig.y + d->yCursor - yOffset + glyph->font->font.baseline +
+                                 glyph->d[hoff].y,
                              glyph->rect[hoff].size.x,
                              glyph->rect[hoff].size.y };
             /* Align baselines of different fonts. */
             if (run->font != attrText->baseFont &&
                 ~run->font->spec->flags & auxiliary_FontSpecFlag) {
-                const int bl1 = ((iFont *) attrText->baseFont)->baseline +
+                const int bl1 = ((iFont *) attrText->baseFont)->font.baseline +
                                 ((iFont *) attrText->baseFont)->vertOffset;
-                const int bl2 = runFont->baseline + runFont->vertOffset;
+                const int bl2 = runFont->font.baseline + runFont->vertOffset;
                 dst.y += bl1 - bl2;
             }
             /* Update the bounding box. */

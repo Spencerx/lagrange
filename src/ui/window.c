@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "touch.h"
 #include "util.h"
 
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
 #   include "../win32.h"
 #endif
 #if defined (iPlatformAppleDesktop)
@@ -45,6 +45,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #endif
 #if defined (iPlatformAppleMobile)
 #   include "ios.h"
+#endif
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+#  include "../x11.h"
 #endif
 
 #include <the_Foundation/file.h>
@@ -113,16 +116,19 @@ static const iMenuItem editMenuItems_[] = {
     { "---" },
     { "${menu.copy.pagelink}", SDLK_c, KMOD_PRIMARY | KMOD_SHIFT, "document.copylink" },
     { "---" },
-    { "${macos.menu.find}", SDLK_f, KMOD_PRIMARY, "focus.set id:find.input" },
+    { "${macos.menu.find}", SDLK_f, KMOD_PRIMARY, "focus.set id:find.input id2:filter.bookmark.input" },
     { NULL }
 };
 
 static const iMenuItem viewMenuItems_[] = {
     { "${menu.show.bookmarks}", '1', leftSidebarTab_KeyModifier, "sidebar.mode arg:0 toggle:1" },
     { "${menu.show.feeds}", '2', leftSidebarTab_KeyModifier, "sidebar.mode arg:1 toggle:1" },
-    { "${menu.show.history}", '3', leftSidebarTab_KeyModifier, "sidebar.mode arg:2 toggle:1" },
+    { "${menu.show.subscriptions}", '3', leftSidebarTab_KeyModifier, "sidebar.mode arg:2 toggle:1" },
     { "${menu.show.identities}", '4', leftSidebarTab_KeyModifier, "sidebar.mode arg:3 toggle:1" },
     { "${menu.show.outline}", '5', leftSidebarTab_KeyModifier, "sidebar.mode arg:4 toggle:1" },
+    { "${menu.show.structure}", '6', leftSidebarTab_KeyModifier, "sidebar.mode arg:5 toggle:1" },
+    { "${menu.show.opendocs}", '7', leftSidebarTab_KeyModifier, "sidebar.mode arg:6 toggle:1" },
+    { "${menu.show.history}", '8', leftSidebarTab_KeyModifier, "sidebar.mode arg:7 toggle:1" },
     { "---" },
     { "${menu.sidebar.left}", leftSidebar_KeyShortcut, "sidebar.toggle" },
     { "${menu.sidebar.right}", rightSidebar_KeyShortcut, "sidebar2.toggle" },
@@ -254,6 +260,17 @@ int numRoots_Window(const iWindow *d) {
     return num;
 }
 
+static void windowSizeChanged_Window_(iWindow *d) {
+    setCurrent_Window(d);
+    iRoot *root = d->roots[0];
+    iRect *rect = &root->widget->rect;
+    rect->pos   = zero_I2();
+    rect->size  = d->size;
+    setCurrent_Root(root);
+    updatePadding_Root(root);
+    arrange_Widget(root->widget);
+}
+
 static void windowSizeChanged_MainWindow_(iMainWindow *d) {
     const int numRoots = numRoots_Window(as_Window(d));
     const iInt2 rootSize = d->base.size;
@@ -345,6 +362,24 @@ static void setupUserInterface_MainWindow(iMainWindow *d) {
 #endif
 }
 
+static iBool updateSize_Window_(iWindow *d, iBool notifyAlways) {
+    iInt2 *size = &d->size;
+    const iInt2 oldSize = *size;
+    SDL_GetRendererOutputSize(d->render, &size->x, &size->y);
+    const iBool hasChanged = !isEqual_I2(oldSize, *size);
+    if (hasChanged) {
+        windowSizeChanged_Window_(d);
+        postRefresh_Window(d);
+    }
+    if (!isResizing_ && (hasChanged || notifyAlways)) {
+        iRoot *root = d->roots[0];
+        postCommandf_Root(root, "window.resized width:%d height:%d", size->x, size->y);
+        postCommand_Root(root, "widget.overflow"); /* check bounds with updated sizes */
+        postRefresh_Window(d);
+    }
+    return hasChanged;
+}
+
 static iBool updateSize_MainWindow_(iMainWindow *d, iBool notifyAlways) {
     iInt2 *size = &d->base.size;
     const iInt2 oldSize = *size;
@@ -408,6 +443,15 @@ static float pixelRatio_Window_(const iWindow *d) {
 float displayDensity_Android(void);
 #endif
 
+#if defined (iPlatformWindows)
+static void setenv(const char *name, const char *value, int overwrite) {
+    iUnused(overwrite);
+    SetEnvironmentVariableW(
+        data_Block(collect_Block(toUtf16_String(collectNewCStr_String(name)))),
+        data_Block(collect_Block(toUtf16_String(collectNewCStr_String(value)))));
+}
+#endif
+
 static float displayScale_Window_(const iWindow *d) {
 #if !defined (iPlatformTerminal)
     /* The environment variable LAGRANGE_OVERRIDE_DPI can be used to override the automatic
@@ -433,7 +477,7 @@ static float displayScale_Window_(const iWindow *d) {
     /* Apple UI sizes are fixed and only scaled by pixel ratio. */
     /* TODO: iOS text size setting? */
     return 1.0f;
-#elif defined (iPlatformMsys)
+#elif defined (iPlatformMsys) || defined (iPlatformWindows)
     iUnused(d);
     return desktopDPI_Win32();
 #elif defined (iPlatformAndroidMobile)
@@ -524,7 +568,7 @@ SDL_HitTestResult hitTest_MainWindow(const iMainWindow *d, iInt2 pos) {
 
 void create_Window_(iWindow *d, iRect rect, uint32_t flags) {
     flags |= SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN;
-    if (d->type == main_WindowType) {
+    if (d->type == main_WindowType || d->type == extra_WindowType) {
         flags |= SDL_WINDOW_RESIZABLE;
 #if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
         if (prefs_App()->customFrame) {
@@ -574,7 +618,7 @@ void create_Window_(iWindow *d, iRect rect, uint32_t flags) {
             exit(-4);
         }
     }
-#if defined(LAGRANGE_ENABLE_CUSTOM_FRAME)
+#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
     if (type_Window(d) == main_WindowType && prefs_App()->customFrame) {
         /* Register a handler for window hit testing (drag, resize). */
         SDL_SetWindowHitTest(d->win, hitTest_MainWindow_, d);
@@ -641,7 +685,7 @@ void init_Window(iWindow *d, enum iWindowType type, iRect rect, uint32_t flags) 
                info.flags & SDL_RENDERER_ACCELERATED ? " (accelerated)" : "");
 #   endif
     }
-#   if defined (iPlatformMsys)
+#   if defined (iPlatformMsys) || defined (iPlatformWindows)
     if (type == extra_WindowType) {
         enableDarkMode_SDLWindow(d->win);
     }
@@ -692,7 +736,7 @@ void deinit_Window(iWindow *d) {
 
 static void setWindowIcon_Window_(iWindow *d) {
 #if !defined (iPlatformTerminal)
-#   if defined (iPlatformMsys)
+#   if defined (iPlatformMsys) || defined (iPlatformWindows)
     useExecutableIconResource_SDLWindow(d->win);
 #   endif
 #   if defined (iPlatformLinux)
@@ -710,6 +754,9 @@ void init_MainWindow(iMainWindow *d, iRect rect) {
     theMainWindow_ = d;
     d->enableBackBuf = iFalse;
     uint32_t flags = 0;
+
+    d->place.desktop = -1; // init to unknown
+
 #if defined (iPlatformAppleDesktop)
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, shouldDefaultToMetalRenderer_MacOS() ? "metal" : "opengl");
     flags |= shouldDefaultToMetalRenderer_MacOS() ? SDL_WINDOW_METAL : SDL_WINDOW_OPENGL;
@@ -735,7 +782,7 @@ void init_MainWindow(iMainWindow *d, iRect rect) {
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     init_Window(&d->base, main_WindowType, rect, flags);
     d->isDrawFrozen           = iTrue;
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
     /* It is less glitchy to allow drawing as early as possible, to avoid white
        flashes when windows are created. */
     d->isDrawFrozen           = iFalse;
@@ -761,7 +808,7 @@ void init_MainWindow(iMainWindow *d, iRect rect) {
         SDL_RendererInfo info;
         SDL_GetRendererInfo(d->base.render, &info);
         isOpenGLRenderer_ = !iCmpStr(info.name, "opengl");
-#if !defined(NDEBUG) && !defined (iPlatformTerminal)
+#if !defined (NDEBUG) && !defined (iPlatformTerminal)
         printf("[window] max texture size: %d x %d\n",
                info.max_texture_width,
                info.max_texture_height);
@@ -772,7 +819,7 @@ void init_MainWindow(iMainWindow *d, iRect rect) {
 #endif
     }
 #if !defined (iPlatformTerminal)
-#   if defined (iPlatformMsys)
+#   if defined (iPlatformMsys) || defined (iPlatformWindows)
     SDL_SetWindowMinimumSize(
         d->base.win, minSize.x * d->base.displayScale, minSize.y * d->base.displayScale);
     enableDarkMode_SDLWindow(d->base.win);
@@ -1025,6 +1072,15 @@ static iBool handleWindowEvent_Window_(iWindow *d, const SDL_WindowEvent *ev) {
                 checkPixelRatioChange_Window_(d);
             }
             return iFalse;
+        case SDL_WINDOWEVENT_RESIZED:
+            if (d->isMinimized) {
+                return iTrue;
+            }
+            closePopups_App(iFalse);
+            checkPixelRatioChange_Window_(d);
+            updateSize_Window_(d, iTrue);
+            postRefresh_Window(d);
+            return iTrue;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             if (d->type == extra_WindowType) {
                 d->focusGainedAt = SDL_GetTicks();
@@ -1081,13 +1137,19 @@ static void savePlace_MainWindow_(iAny *mainWindow) {
         SDL_GetWindowPosition(d->base.win, &newPos.x, &newPos.y);
         d->place.normalRect.pos = newPos;
         iInt2 border = zero_I2();
-#if !defined(iPlatformApple) && !defined (iPlatformTerminal)
+#if !defined (iPlatformApple) && !defined (iPlatformTerminal)
         SDL_GetWindowBordersSize(d->base.win, &border.y, &border.x, NULL, NULL);
         iAssert(~SDL_GetWindowFlags(d->base.win) & SDL_WINDOW_MAXIMIZED);
 #endif
         d->place.normalRect.pos =
             max_I2(zero_I2(), sub_I2(d->place.normalRect.pos, border));
     }
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+    unsigned long desk;
+    if (getWindowDesktop_X11(d->base.win, &desk)) {
+        d->place.desktop = (int) desk;
+    }
+#endif
 }
 
 static void notifyHovered_Window_(iWindow *d) {
@@ -1115,7 +1177,7 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
         return iFalse;
     }
     switch (ev->event) {
-#if defined(iPlatformDesktop)
+#if defined (iPlatformDesktop)
         case SDL_WINDOWEVENT_EXPOSED:
             d->base.isExposed = iTrue;
             /* Since we are manually controlling when to redraw the window, we are responsible
@@ -1123,7 +1185,7 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
                circumstances (e.g., under openbox), not doing this would mean that the window
                is missing contents until other events trigger a refresh. */
             postRefresh_Window(d);
-#if defined(LAGRANGE_ENABLE_WINDOWPOS_FIX)
+#if defined (LAGRANGE_ENABLE_WINDOWPOS_FIX)
             if (d->place.initialPos.x >= 0) {
                 /* Must not move a maximized window. */
                 if (snap_MainWindow(d) == 0) {
@@ -1149,7 +1211,7 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
                 d->base.isMinimized = iTrue;
                 return iFalse;
             }
-#if defined(LAGRANGE_ENABLE_CUSTOM_FRAME)
+#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
             /* Set the snap position depending on where the mouse cursor is. */
             if (prefs_App()->customFrame) {
                 SDL_Rect usable;
@@ -1188,7 +1250,6 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
         }
         case SDL_WINDOWEVENT_RESIZED:
             if (d->base.isMinimized) {
-                // updateSize_Window_(d, iTrue);
                 return iTrue;
             }
             closePopups_App(iFalse);
@@ -1692,23 +1753,18 @@ void draw_MainWindow(iMainWindow *d) {
        when the custom frame is being used. */ {
         setCurrent_Root(w->roots[0]);
         iColor back;
-        if (isMobile_Platform()) {
-            back = get_Color(uiBackground_ColorId);
-            if (deviceType_App() == phone_AppDeviceType) {
-                /* Page background extends to safe area, so fill it completely. */
-                back = get_Color(tmBackground_ColorId);
-            }
-        }
-        else {
 #if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
-            back = get_Color(gotFocus && d->place.snap != maximized_WindowSnap &&
-                                     ~winFlags & SDL_WINDOW_FULLSCREEN_DESKTOP
-                                 ? uiAnnotation_ColorId
-                                 : uiSeparator_ColorId);
+        back = get_Color(gotFocus && d->place.snap != maximized_WindowSnap &&
+                                    ~winFlags & SDL_WINDOW_FULLSCREEN_DESKTOP
+                                ? uiAnnotation_ColorId
+                                : uiSeparator_ColorId);
 #else
-            back = get_Color(uiBackground_ColorId);
-#endif
+        back = get_Color(uiBackground_ColorId);
+        if (deviceType_App() == phone_AppDeviceType) {
+            /* Page background extends to safe area, so fill it completely. */
+            back = get_Color(tmBackground_ColorId);
         }
+#endif
         unsetClip_Paint(&p); /* update clip to full window */
         SDL_SetRenderDrawColor(w->render, back.r, back.g, back.b, 255);
         SDL_RenderClear(w->render);
@@ -2234,7 +2290,7 @@ iWindow *newPopup_Window(iInt2 screenPos, iWidget *rootWidget) {
     setForceSoftwareRender_App(iTrue);
 #endif
     SDL_Rect usableRect;
-    SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(get_MainWindow()->base.win),
+    SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(get_Window()->win),
                                &usableRect);
     const float pixelRatio = get_Window()->pixelRatio;
     iRect winRect = (iRect){ screenPos,
@@ -2269,7 +2325,7 @@ iWindow *newPopup_Window(iInt2 screenPos, iWidget *rootWidget) {
     setRoot_Widget(rootWidget, root);
     setDrawBufferEnabled_Widget(rootWidget, iFalse);
     setForceSoftwareRender_App(oldSw);
-#if !defined(NDEBUG)
+#if !defined (NDEBUG)
     stop_PerfTimer(newPopup_Window);
 #endif
     return win;
@@ -2289,6 +2345,7 @@ iWindow *newExtra_Window(iWidget *rootWidget) {
     setCurrent_Window(win);
     iWidget *frameRoot = new_Widget();
     setFlags_Widget(frameRoot, arrangeSize_WidgetFlag | focusRoot_WidgetFlag, iTrue);
+    setFrameColor_Widget(rootWidget, none_ColorId);
     setCommandHandler_Widget(frameRoot, handleRootCommands_Widget);
     setRoot_Widget(rootWidget, root);
     addChild_Widget(frameRoot, rootWidget);

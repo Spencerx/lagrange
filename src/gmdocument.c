@@ -232,7 +232,9 @@ static void initTheme_GmDocument_(iGmDocument *d) {
     theme->fonts[text_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, contentRegular_FontSize);
     theme->fonts[bullet_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, contentRegular_FontSize);
     theme->fonts[preformatted_GmLineType] = preformatted_FontId;
-    theme->fonts[quote_GmLineType] = isMono ? monospaceParagraph_FontId : quote_FontId;
+    theme->fonts[quote_GmLineType] = isMono               ? monospaceParagraph_FontId
+                                     : prefs->italicQuote ? quote_FontId
+                                                          : paragraph_FontId;
     theme->fonts[heading1_GmLineType] = FONT_ID(headingFont, bold_FontStyle, contentHuge_FontSize);
     theme->fonts[heading2_GmLineType] = FONT_ID(headingFont, regular_FontStyle, contentLarge_FontSize);
     theme->fonts[heading3_GmLineType] = FONT_ID(headingFont, bold_FontStyle, contentBig_FontSize);
@@ -938,7 +940,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             else if (type == quote_GmLineType && !prefs->quoteIcon) {
                 /* For quote indicators we still need to produce a run. */
                 run.visBounds.pos  = addX_I2(pos, indents[type] * gap_Text);
-                run.visBounds.size = init_I2(gap_Text, lineHeight_Text(run.font));
+                run.visBounds.size = init_I2(lineHeight_Text(run.font), lineHeight_Text(run.font));
                 run.bounds         = zero_Rect(); /* just visual */
                 run.text           = iNullRange;
                 run.flags          = ruler_GmRunFlag | decoration_GmRunFlag;
@@ -2516,7 +2518,7 @@ static void import_GmDocument_(iGmDocument *d) {
             if (*ch == 0) {
                 remove_Block(&d->source.chars, pos, 1);
                 pos--;
-                ch--;
+                ch = constBegin_String(&d->source) + pos;
             }
         }
     }
@@ -2782,6 +2784,14 @@ const iGmRun *findRunAtLoc_GmDocument(const iGmDocument *d, const char *textCStr
         }
     }
     return NULL;
+}
+
+const iGmRun *precedingRun_GmDocument(const iGmDocument *d, const iGmRun *run) {
+    run--;
+    if (indexOf_Array(&d->layout, run) == iInvalidPos) {
+        return NULL;
+    }
+    return run;
 }
 
 static const iGmLink *link_GmDocument_(const iGmDocument *d, iGmLinkId id) {

@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #endif
 
 #if defined (LAGRANGE_ENABLE_FRIBIDI)
-#   include <fribidi/fribidi.h>
+#   include <fribidi.h>
 #endif
 
 static iText *current_Text_;
@@ -95,6 +95,10 @@ iRegExp *makeAnsiEscapePattern_Text(iBool includeEscChar) {
 
 int lineHeight_Text(int fontId) {
     return font_Text(fontId)->height;
+}
+
+int ascent_Text(int fontId) {
+    return font_Text(fontId)->baseline;
 }
 
 iTextMetrics measureRange_Text(int fontId, iRangecc text) {

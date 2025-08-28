@@ -103,6 +103,7 @@ SDL_Texture *   imageTexture_Media      (const iMedia *, iMediaId imageId, iBool
 size_t          numAudio_Media          (const iMedia *);
 iPlayer *       audioPlayer_Media       (const iMedia *, iMediaId audioId);
 void            pauseAllPlayers_Media   (const iMedia *, iBool setPaused);
+size_t          numActivePlayers_Media  (const iMedia *);
 
 void            downloadStats_Media     (const iMedia *, iMediaId downloadId, const iString **path_out,
                                          float *bytesPerSecond_out, iBool *isFinished_out);
@@ -118,15 +119,15 @@ iDeclareClass(MediaRequest)
 struct Impl_MediaRequest {
     iObject          object;
     iDocumentWidget *doc;
-    unsigned int     linkId;    
+    unsigned int     linkId;
     iGmRequest *     req;
 };
 
 iDeclareObjectConstructionArgs(MediaRequest, iDocumentWidget *doc, unsigned int linkId,
                                const iString *url, iBool enableFilters,
                                const iGmIdentity *overrideDefaultIdentity)
-    
+
 void    resubmitWithUrl_MediaRequest    (iMediaRequest *, const iString *url);
-    
+
 iMediaRequest * newReused_MediaRequest  (iDocumentWidget *doc, unsigned int linkId,
                                          iGmRequest *request);

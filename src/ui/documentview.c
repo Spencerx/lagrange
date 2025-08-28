@@ -411,8 +411,16 @@ void updateHover_DocumentView(iDocumentView *d, iInt2 mouse) {
         }
         iConstForEach(PtrArray, i, &d->visibleLinks) {
             const iGmRun *run = i.ptr;
+            const iGmRun *precedingRun = precedingRun_GmDocument(d->doc, run);
+            iRect linkBounds = run->bounds;
+            /* Include the link icon in the interactable region. */
+            if (precedingRun && precedingRun->flags & decoration_GmRunFlag &&
+                precedingRun->flags & startOfLine_GmRunFlag &&
+                precedingRun->linkId == run->linkId) {
+                linkBounds = union_Rect(linkBounds, precedingRun->visBounds);
+            }
             /* Click targets are slightly expanded so there are no gaps between links. */
-            if (contains_Rect(expanded_Rect(run->bounds, init1_I2(gap_Text / 2)), hoverPos)) {
+            if (contains_Rect(expanded_Rect(linkBounds, init1_I2(gap_Text / 2)), hoverPos)) {
                 d->hoverLink = run;
                 break;
             }
@@ -949,14 +957,6 @@ static void drawRun_DrawContext_(void *context, const iGmRun *run) {
                                  runOffset_DocumentView_(d->view, run));
     const iRect visRect = { visPos, run->visBounds.size };
     /* Fill the background. */ {
-#if 0
-        iBool isInlineImageCaption = run->linkId && linkFlags & content_GmLinkFlag &&
-                                     ~linkFlags & permanent_GmLinkFlag;
-        if (run->flags & decoration_GmRunFlag && ~run->flags & startOfLine_GmRunFlag) {
-            /* This is the metadata. */
-            isInlineImageCaption = iFalse;
-        }
-#endif
         iBool isMobileHover = deviceType_App() != desktop_AppDeviceType &&
                               (isPartOfHover || contains_PtrSet(d->view->invalidRuns, run)) &&
                               (~run->flags & decoration_GmRunFlag || run->flags & startOfLine_GmRunFlag
@@ -1011,11 +1011,20 @@ static void drawRun_DrawContext_(void *context, const iGmRun *run) {
             fillRect_Paint(&d->paint, wideRect, tmBackground_ColorId);
         }
         else {
-            /* Normal background for other runs. There are cases when runs get drawn multiple times,
-               e.g., at the buffer boundary, and there are slightly overlapping characters in
-               monospace blocks. Clearing the background here ensures a cleaner visual appearance
-               since only one glyph is visible at any given point. */
-            fillRect_Paint(&d->paint, visRect, tmBackground_ColorId);
+            /* Normal background for other runs. There are cases when runs get drawn multiple
+               times, e.g., at the buffer boundary, and there are slightly overlapping characters
+               in monospace blocks. Clearing the background here ensures a cleaner visual
+               appearance since only one glyph is visible at any given point.
+
+               Link icons with custom symbols may have unexpected width, so clear the background
+               a bit more to the left to erase any leftovers from link numbering circles. */
+            const iBool isLinkIcon =
+                (run->linkId && run->flags & decoration_GmRunFlag &&
+                 run->flags & startOfLine_GmRunFlag && ~run->flags & caption_GmRunFlag);
+            fillRect_Paint(
+                &d->paint,
+                adjusted_Rect(visRect, init_I2(isLinkIcon ? -2 * gap_Text : 0, 0), zero_I2()),
+                tmBackground_ColorId);
         }
     }
     if (run->linkId) {
@@ -1073,8 +1082,7 @@ static void drawRun_DrawContext_(void *context, const iGmRun *run) {
             }
         }
         if (run->flags & ruler_GmRunFlag) {
-            if (height_Rect(run->visBounds) > 0 &&
-                height_Rect(run->visBounds) <= width_Rect(run->visBounds)) {
+            if (height_Rect(run->visBounds) > 0) {
                 /* This is used for block quotes. */
                 drawVLine_Paint(&d->paint,
                                 addX_I2(visPos,

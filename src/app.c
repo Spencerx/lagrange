@@ -85,7 +85,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #   include "android.h"
 #   include <SDL_log.h>
 #endif
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
 #   include "win32.h"
 #endif
 #if defined (LAGRANGE_ENABLE_X11_XLIB)
@@ -107,7 +107,7 @@ static const char *defaultDataDir_App_ = "~/Library/Application Support/fi.skyja
 static const char *defaultDataDir_App_ = "~/Library/Application Support";
 #endif
 
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
 #define EMB_BIN "../resources.lgr"
 static const char *defaultDataDir_App_ = "~/AppData/Roaming/fi.skyjake.Lagrange";
 
@@ -198,6 +198,7 @@ struct Impl_App {
     iBool        commandEcho;         /* --echo */
     iBool        forceSoftwareRender; /* --sw */
     iArray       initialWindowRects;  /* one per window */
+    iArray       initialWindowDesktops;
     iPrefs       prefs;
 };
 
@@ -272,6 +273,18 @@ static iString *serializePrefs_App_(const iApp *d) {
             y = win->place.normalRect.pos.y;
             w = win->place.normalRect.size.x;
             h = win->place.normalRect.size.y;
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+            int deskOut = win->place.desktop;
+            if (deskOut < 0) {
+                unsigned long dk;
+                if (getWindowDesktop_X11(win->base.win, &dk)) {
+                    deskOut = (int) dk;
+                }
+            }
+            if (deskOut >= 0) {  /* only save if we have a valid desktop */
+                appendFormat_String(str, "window.desktop index:%zu desk:%d\n", winIndex, deskOut);
+            }
+#endif
             /* On macOS, maximization should be applied at creation time or the window will take
                a moment to animate to its maximized size. */
             const int winSnap = (isApple_Platform() || isMobile_Platform() ? 0 : snap_MainWindow(win));
@@ -283,27 +296,6 @@ static iString *serializePrefs_App_(const iApp *d) {
                                 x,
                                 y,
                                 winSnap);
-#if 0
-#i f defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
-            if (snap_MainWindow(win)) {
-                if (snap_MainWindow(win) == maximized_WindowSnap) {
-                    appendFormat_String(str, "~window.maximize index:%zu\n", winIndex);
-                }
-                else if (~SDL_GetWindowFlags(win->base.win) & SDL_WINDOW_MINIMIZED) {
-                    /* Save the actual visible window position, too, because snapped windows may
-                       still be resized/moved without affecting normalRect. */
-                    SDL_GetWindowPosition(win->base.win, &x, &y);
-                    SDL_GetWindowSize(win->base.win, &w, &h);
-                    appendFormat_String(
-                        str, "~window.setrect index:%zu snap:%d width:%d height:%d coord:%d %d\n",
-                        winIndex, snap_MainWindow(d->window), w, h, x, y);
-                }
-            }
-//#elif !defined (iPlatformApple)
-//            if (snap_MainWindow(win) == maximized_WindowSnap) {
-//                appendFormat_String(str, "~window.maximize index:%zu\n", winIndex);
-//            }
-#endif
         }
     }
     appendFormat_String(str, "uilang id:%s\n", cstr_String(&d->prefs.strings[uiLanguage_PrefsString]));
@@ -344,6 +336,15 @@ static iString *serializePrefs_App_(const iApp *d) {
         appendFormat_String(str, "toolbar.action.set arg:%d button:0\n", d->prefs.toolbarActions[0]);
         appendFormat_String(str, "toolbar.action.set arg:%d button:1\n", d->prefs.toolbarActions[1]);
     }
+    for (size_t i = 0; i < 2; i++) {
+        for (size_t j = 0; j < maxSidebarModes_Prefs; j++) {
+            appendFormat_String(str,
+                                "sidebar.modes.set arg:%d side:%u mode:%u\n",
+                                d->prefs.sidebarModeEnabled[i][j],
+                                i,
+                                j);
+        }
+    }
     iConstForEach(StringSet, fp, d->prefs.disabledFontPacks) {
         appendFormat_String(str, "fontpack.disable id:%s\n", cstr_String(fp.value));
     }
@@ -372,6 +373,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         { "prefs.font.smooth", &d->prefs.fontSmoothing },
         { "prefs.font.warnmissing", &d->prefs.warnAboutMissingGlyphs },
         { "prefs.gopher.gemstyle", &d->prefs.geminiStyledGopher },
+        { "prefs.hidetabs", &d->prefs.hideTabBar },
         { "prefs.hoverlink", &d->prefs.hoverLink },
         { "prefs.justify", &d->prefs.justifyParagraph },
         { "prefs.markdown.viewsource", &d->prefs.markdownAsSource },
@@ -379,6 +381,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         { "prefs.mono.gemini", &d->prefs.monospaceGemini },
         { "prefs.mono.gopher", &d->prefs.monospaceGopher },
         { "prefs.plaintext.wrap", &d->prefs.plainTextWrap },
+        { "prefs.quote.italic", &d->prefs.italicQuote },
         { "prefs.redirect.allowscheme", &d->prefs.allowSchemeChangingRedirect },
         { "prefs.retaintabs", &d->prefs.retainTabs },
         { "prefs.sideicon", &d->prefs.sideIcon },
@@ -443,7 +446,7 @@ static const char *dataDir_App_(void) {
         return concatPath_CStr(configHome, "lagrange");
     }
 #endif
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
     /* Check for a portable userdata directory. */
     const char *userDir = concatPath_CStr(cstr_String(d->execPath), "..\\userdata");
     if (fileExistsCStr_FileInfo(userDir)) {
@@ -629,6 +632,14 @@ static void loadPrefs_App_(iApp *d) {
                     set_Array(&d->initialWindowRects, index, &winRect);
                 }
             }
+            else if (equal_Command(cmd, "window.desktop")) {
+                 const int index = argLabel_Command(cmd, "index");
+                 const int desk  = argLabel_Command(cmd, "desk");
+                 if (index >= 0 && index < 100 && desk >= 0) {  // Validate desk >= 0
+                     resize_Array(&d->initialWindowDesktops, index + 1);
+                     set_Array(&d->initialWindowDesktops, index, &((int){ desk }));
+                 }
+             }
             else if (equal_Command(cmd, "fontpack.disable")) {
                 insert_StringSet(d->prefs.disabledFontPacks,
                                  collect_String(suffix_Command(cmd, "id")));
@@ -701,6 +712,19 @@ static void loadPrefs_App_(iApp *d) {
 }
 
 static void savePrefs_App_(const iApp *d) {
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+    /* Update current workspace for all windows before saving. */ {
+        iConstForEach(PtrArray, it, &app_.mainWindows) {
+            const iMainWindow *win = it.ptr;
+            if (win && win->base.win) {
+                unsigned long dk;
+                if (getWindowDesktop_X11(win->base.win, &dk)) {
+                    ((iMainWindow *) win)->place.desktop = (int) dk;
+                }
+            }
+        }
+    }
+#endif
     iString *cfg = serializePrefs_App_(d);
     iFile *f = new_File(prefsFileName_());
     if (open_File(f, writeOnly_FileMode | text_FileMode)) {
@@ -732,7 +756,7 @@ static iRect initialWindowRect_App_(const iApp *d, size_t windowIndex) {
     /* The default window rectangle. */
     iRect rect = init_Rect(-1, -1, 900, 560);
 #if !defined (iPlatformTerminal)
-#   if defined (iPlatformMsys)
+#   if defined (iPlatformMsys) || defined (iPlatformWindows)
     /* Must scale by UI scaling factor. */
     mulfv_I2(&rect.size, desktopDPI_Win32());
 #   endif
@@ -905,12 +929,41 @@ static iBool loadState_App_(iApp *d) {
             }
 //            postCommand_Root(win->base.roots[0], "window.unfreeze");
             win->isDrawFrozen = iFalse;
+            win->base.isExposed = iTrue;
+
             SDL_ShowWindow(win->base.win);
         }
-        if (numWindows_App() > 1) {
-            SDL_RaiseWindow(currentWin->base.win);
-            setActiveWindow_App(currentWin);
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+        /* Set desktop properties after everything is loaded. */
+        iForEach(Array, j, currentTabs) {
+            iMainWindow *win = at_PtrArray(&d->mainWindows, index_ArrayIterator(&j));
+            const size_t idx = index_ArrayIterator(&j);
+            if (idx < size_Array(&d->initialWindowDesktops)) {
+                const int *desk = (const int *) at_Array(&d->initialWindowDesktops, idx);
+                if (desk && *desk >= 0) {
+                    win->place.desktop = *desk;
+                     postCommandf_App("~window.setdesktop window:%u arg:%d",
+                                    id_Window(as_Window(win)), *desk);
+                }
+            }
+            win->isDrawFrozen = iFalse;
+            win->base.isExposed = iTrue;
         }
+#else
+        /* On non-X11 platforms, just unfreeze normally. */
+        iForEach(Array, j, currentTabs) {
+            iMainWindow *win = at_PtrArray(&d->mainWindows, index_ArrayIterator(&j));
+            win->isDrawFrozen = iFalse;
+            win->base.isExposed = iTrue;
+        }
+#endif
+
+    if (currentWin) {
+        SDL_RaiseWindow(currentWin->base.win);
+        SDL_SetWindowInputFocus(currentWin->base.win);
+        setActiveWindow_App(currentWin);
+    }
+
         setCurrent_Root(NULL);
         return iTrue;
     }
@@ -1172,6 +1225,7 @@ static void init_App_(iApp *d, int argc, char **argv) {
     d->overrideDataPath = NULL;
     d->didCheckDataPathOption = iFalse;
     init_Array(&d->initialWindowRects, sizeof(iRect));
+    init_Array(&d->initialWindowDesktops, sizeof(int));
     init_CommandLine(&d->args, argc, argv);
     /* Where was the app started from? We ask SDL first because the command line alone
        cannot be relied on (behavior differs depending on OS). */ {
@@ -1415,6 +1469,16 @@ static void init_App_(iApp *d, int argc, char **argv) {
     load_Bookmarks(d->bookmarks, dataDir_App_());
     d->window = (iWindow *) new_MainWindow(*winRect0); /* first window is always created */
     addWindow_App(as_MainWindow(d->window));
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+    int desk = -1;
+    if (size_Array(&d->initialWindowDesktops) > 0) {
+        desk = *(const int *) at_Array(&d->initialWindowDesktops, 0);
+    }
+    if (desk >= 0) {
+        iMainWindow *mw = as_MainWindow(d->window);
+        mw->place.desktop = desk;
+    }
+#endif
     load_Visited(d->visited, dataDir_App_());
     load_MimeHooks(d->mimehooks, dataDir_App_());
     if (isFirstRun) {
@@ -1497,6 +1561,16 @@ static void init_App_(iApp *d, int argc, char **argv) {
     /* See if there is something to import from backup. */
     javaCommand_Android("backup.load");
 #endif
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+    if (d->window) {
+        iMainWindow *mw = as_MainWindow(d->window);
+        if (mw->place.desktop >= 0) {
+            /* Use a delayed command to set workspace after everything is ready. */
+            postCommandf_App("~window.setdesktop window:%u arg:%d",
+                             id_Window(d->window), mw->place.desktop);
+        }
+    }
+#endif
 }
 
 static void deinit_App(iApp *d) {
@@ -1561,6 +1635,7 @@ static void deinit_App(iApp *d) {
         remove(cstr_String(tmp.value));
     }
     deinit_Array(&d->initialWindowRects);
+    deinit_Array(&d->initialWindowDesktops);
     iRelease(d->savedWidths);
     iRelease(d->recentlySubmittedInput);
     iRelease(d->recentlyClosedTabUrls);
@@ -1650,7 +1725,7 @@ const iString *downloadPathForUrl_App(const iString *url, const iString *mime) {
 
 const iString *temporaryPathForUrl_App(const iString *url, const iString *mime) {
     iApp *d = &app_;
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
     iString *      tmpPath = collectNew_String();
     const iRangecc tmpDir  = range_String(collect_String(tempDirectory_Win32()));
 #elif defined (iPlatformAppleMobile)
@@ -1679,12 +1754,18 @@ const iString *temporaryPathForUrl_App(const iString *url, const iString *mime) 
 }
 
 const iString *debugInfo_App(void) {
+#if !defined (iPlatformWindows)
     extern char **environ; /* The environment variables. */
+#endif
     iApp *d = &app_;
     iString *msg = collectNew_String();
     iObjectList *docs = iClob(listDocuments_App(NULL));
     format_String(msg, "# Debug information\n");
-    appendFormat_String(msg, "## Memory usage\n"); {
+    if (isDesktop_Platform()) {
+        appendFormat_String(msg, "\n## User directory\n%s\n", cstr_String(dataDir_App()));
+        appendFormat_String(msg, "\n## Executable path\n%s\n", cstr_String(execPath_App()));
+    }
+    appendFormat_String(msg, "\n## Memory usage\n"); {
         iMemInfo total = { 0, 0 };
         iForEach(ObjectList, i, docs) {
             iDocumentWidget *doc = i.object;
@@ -1695,7 +1776,7 @@ const iString *debugInfo_App(void) {
         appendFormat_String(msg, "Total cache: %.3f MB\n", total.cacheSize / 1.0e6f);
         appendFormat_String(msg, "Total memory: %.3f MB\n", total.memorySize / 1.0e6f);
     }
-    appendFormat_String(msg, "## Documents\n");
+    appendFormat_String(msg, "\n## Documents\n");
     iForEach(ObjectList, k, docs) {
         iDocumentWidget *doc = k.object;
         appendFormat_String(msg, "### Tab %d.%zu: %s\n",
@@ -2115,7 +2196,7 @@ void processEvents_App(enum iAppEventMode eventMode) {
                     continue;
                 }
 #endif /* iPlatformAndroidMobile */
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
                 /* Scroll events may be per-pixel or mouse wheel steps. */
                 if (ev.type == SDL_MOUSEWHEEL) {
                     ev.wheel.x = -ev.wheel.x;
@@ -2212,13 +2293,23 @@ void processEvents_App(enum iAppEventMode eventMode) {
                             break;
                         }
                         window->lastHover = window->hover;
+                        /* When clicking a mouse button, we need to be able to close previously
+                           existing popup windows. However, after the event has been processed,
+                           a new popup menu may have just opened, so we first take a copy
+                           of the existing list of popups. */
+                        const iPtrArray *lastPopupWindows = ev.type == SDL_MOUSEBUTTONDOWN ?
+                            collect_PtrArray(copy_PtrArray(&d->popupWindows)) : NULL;
                         wasUsed = processEvent_Window(window, &ev);
                         if (wasUsed) {
-                            if (!isEmpty_Array(&d->popupWindows) && window->type != popup_WindowType) {
+                            if (ev.type == SDL_MOUSEBUTTONDOWN && window->type != popup_WindowType &&
+                                !isEmpty_Array(lastPopupWindows)) {
                                 /* Clicking outside the open popups is supposed to close all of them. */
-                                if (ev.type == SDL_MOUSEBUTTONDOWN) {
-                                    postCommand_App("menu.cancel");
-                                    break;
+                                iConstForEach(PtrArray, i, lastPopupWindows) {
+                                    iWindow *pop = i.ptr;
+                                    iRoot *popRoot = pop->roots[0];
+                                    if (popRoot && !isRecentlyDeleted_Widget(popRoot->widget)) {
+                                        postCommandf_Root(popRoot, "menu.cancel");
+                                    }
                                 }
                             }
                             break;
@@ -2300,7 +2391,7 @@ void processEvents_App(enum iAppEventMode eventMode) {
 #   if defined (iPlatformAndroidMobile)
                     handleCommand_Android(command_UserEvent(&ev));
 #   endif
-#   if defined (iPlatformMsys)
+#   if defined (iPlatformMsys) || defined (iPlatformWindows)
                     handleCommand_Win32(command_UserEvent(&ev));
 #   endif
 #   if defined (LAGRANGE_ENABLE_X11_XLIB)
@@ -2405,7 +2496,7 @@ static int resizeWatcher_(void *user, SDL_Event *event) {
     iApp *d = user;
     if (event->type == SDL_WINDOWEVENT && event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
         const SDL_WindowEvent *winev = &event->window;
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
         /* TODO: Investigate if this is still necessary. */
         setCurrent_Window(d->window);
         resetFontCache_Text(text_Window(d->window)); {
@@ -3656,6 +3747,28 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         }
         return iTrue;
     }
+    else if (startsWith_CStr(cmd, "prefs.sidebar.enabled.")) {
+        const int mode = atoi(cmd + 22);
+        postCommandf_App("sidebar.modes.set arg:%d side:0 mode:%d", arg_Command(cmd), mode);
+        return iTrue;
+    }
+    else if (startsWith_CStr(cmd, "prefs.sidebar2.enabled.")) {
+        const int mode = atoi(cmd + 23);
+        postCommandf_App("sidebar.modes.set arg:%d side:1 mode:%d", arg_Command(cmd), mode);
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "sidebar.modes.set")) {
+        const int side = iClamp(argLabel_Command(cmd, "side"), 0, 1);
+        const int mode = iClamp(argLabel_Command(cmd, "mode"), 0, maxSidebarModes_Prefs - 1);
+        const iBool newValue = arg_Command(cmd) != 0;
+        if (d->prefs.sidebarModeEnabled[side][mode] != newValue) {
+            d->prefs.sidebarModeEnabled[side][mode] = newValue;
+            if (!isFrozen) {
+                postCommand_App("~sidebar.modes.changed");
+            }
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "toolbar.action.set")) {
         d->prefs.toolbarActions[iClamp(argLabel_Command(cmd, "button"), 0, 1)] =
             iClamp(arg_Command(cmd), 0, max_ToolbarAction - 1);
@@ -3673,6 +3786,13 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "prefs.bottomtabbar.changed")) {
         d->prefs.bottomTabBar = arg_Command(cmd) != 0;
+        if (!isFrozen) {
+            postCommand_App("~root.movable");
+        }
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "prefs.hidetabs.changed")) {
+        d->prefs.hideTabBar = arg_Command(cmd) != 0;
         if (!isFrozen) {
             postCommand_App("~root.movable");
         }
@@ -3718,6 +3838,25 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "window.retain")) {
         d->prefs.retainWindowSize = arg_Command(cmd);
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "window.setdesktop")) {
+#if defined (LAGRANGE_ENABLE_X11_XLIB)
+        const int      desk  = arg_Command(cmd);
+        const uint32_t winId = argLabel_Command(cmd, "window");
+        if (desk >= 0) {
+            /* Find the window by ID. */
+            iConstForEach(PtrArray, i, &d->mainWindows) {
+                iMainWindow *win = i.ptr;
+                if (id_Window(as_Window(win)) == winId) {
+                    win->place.desktop = desk;
+                    /* Use the active desktop switching function. */
+                    setWindowDesktop_X11(win->base.win, (unsigned long) desk);
+                    break;
+                }
+            }
+        }
+#endif
         return iTrue;
     }
     else if (equal_Command(cmd, "customframe")) {
@@ -3771,6 +3910,17 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "prefs.swipe.page.changed")) {
         d->prefs.pageSwipe = arg_Command(cmd) != 0;
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "prefs.quote.italic.changed")) {
+        const iBool isSet = arg_Command(cmd) != 0;
+        if (d->prefs.italicQuote != isSet) {
+            d->prefs.italicQuote = isSet;
+            if (!isFrozen) {
+                postCommand_App("font.changed");
+                postCommand_App("window.unfreeze");
+            }
+        }
         return iTrue;
     }
     else if (equal_Command(cmd, "prefs.font.smooth.changed")) {
@@ -4177,7 +4327,13 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         if (hasLabel_Command(cmd, "url")) {
             const char *urlAndArgs = cmd + 11; /* all arguments to "window.new" passed on */
             if (strlen(suffixPtr_Command(cmd, "url")) /* not empty URL */) {
-                postCommandf_Root(newWin->base.roots[0], "~open %s", urlAndArgs);
+                /* We pass a pointer to the correct DocumentWidget because if the 
+                   event queue is busy, the active window may still switch away from
+                   `newWin` before the "open" is handled. ("open" is an app-level 
+                   command so it isn't handled by any widget directly.) */
+                postCommandf_App("~open doc:%p %s",
+                                  document_Root(newWin->base.roots[0]), 
+                                  urlAndArgs);
             }
         }
         else {
@@ -4215,6 +4371,11 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "feeds.refresh")) {
         refresh_Feeds();
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "feeds.reset")) {
+        resetKnownEntries_Feeds();
+        postCommand_App("feeds.update.finished"); /* not really, but we have zero entries now */
         return iTrue;
     }
     else if (equal_Command(cmd, "visited.changed")) {
@@ -4793,7 +4954,8 @@ iBool handleCommand_App(const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "tabs.close") && isMainWin) {
-        iWidget *tabs = findWidget_App("doctabs");
+        iWidget *tabs = hasLabel_Command(cmd, "tabs") ? pointerLabel_Command(cmd, "tabs") 
+                                                      : findWidget_App("doctabs");
         /* Can't close the last tab on mobile. */
         if (isMobile_Platform() && tabCount_Widget(tabs) == 1 && numRoots_Window(get_Window()) == 1) {
             postCommand_App("document.unsetident"); /* implicit unpinning since a tab is closing */
@@ -4801,7 +4963,7 @@ iBool handleCommand_App(const char *cmd) {
             return iTrue;
         }
         const iRangecc tabId = range_Command(cmd, "id");
-        iWidget *      doc   = !isEmpty_Range(&tabId) ? findWidget_App(cstr_Rangecc(tabId))
+        iWidget *      doc   = !isEmpty_Range(&tabId) ? findChild_Widget(tabs, cstr_Rangecc(tabId))
                                                       : document_App();
         iBool          wasCurrent       = (doc == (iWidget *) document_App());
         size_t         index            = tabPageIndex_Widget(tabs, doc);
@@ -4921,6 +5083,7 @@ iBool handleCommand_App(const char *cmd) {
         setToggle_Widget(findChild_Widget(dlg, "prefs.animate"), d->prefs.uiAnimations);
         setToggle_Widget(findChild_Widget(dlg, "prefs.bottomnavbar"), d->prefs.bottomNavBar);
         setToggle_Widget(findChild_Widget(dlg, "prefs.bottomtabbar"), d->prefs.bottomTabBar);
+        setToggle_Widget(findChild_Widget(dlg, "prefs.hidetabs"), d->prefs.hideTabBar);
         setToggle_Widget(findChild_Widget(dlg, "prefs.menubar"), d->prefs.menuBar);
         setToggle_Widget(findChild_Widget(dlg, "prefs.blink"), d->prefs.blinkingCursor);
         setToggle_Widget(findChild_Widget(dlg, "prefs.evensplit"), d->prefs.evenSplit);
@@ -4936,11 +5099,21 @@ iBool handleCommand_App(const char *cmd) {
         updateDropdownSelection_LabelWidget(findChild_Widget(dlg, "prefs.collapsepre"),
                                             format_CStr(" arg:%d", d->prefs.collapsePre));
         setToggle_Widget(findChild_Widget(dlg, "prefs.time.24h"), d->prefs.time24h);
+        setToggle_Widget(findChild_Widget(dlg, "prefs.quote.italic"), d->prefs.italicQuote);
         updateDropdownSelection_LabelWidget(
             findChild_Widget(dlg, "prefs.returnkey"),
             format_CStr("returnkey.set arg:%d", d->prefs.returnKey));
         updatePrefsToolBarActionButton_(dlg, 0, d->prefs.toolbarActions[0]);
         updatePrefsToolBarActionButton_(dlg, 1, d->prefs.toolbarActions[1]);
+        for (int side = 0; side < 2; side++) {
+            for (int barMode = 0; barMode < maxSidebarModes_Prefs; barMode++) {
+                setToggle_Widget(findChild_Widget(dlg,
+                                                  format_CStr("prefs.%s.enabled.%d",
+                                                              side == 0 ? "sidebar" : "sidebar2",
+                                                              barMode)),
+                                 d->prefs.sidebarModeEnabled[side][barMode]);
+            }
+        }
         setToggle_Widget(findChild_Widget(dlg, "prefs.retainwindow"), d->prefs.retainWindowSize);
         setText_InputWidget(findChild_Widget(dlg, "prefs.uiscale"),
                             collectNewFormat_String("%g", uiScale_Window(as_Window(d->window))));
@@ -5037,6 +5210,17 @@ iBool handleCommand_App(const char *cmd) {
             else {
                 /* TODO: Don't hardcode the panel index. */
                 iWidget *snippetPanel = panel_Mobile(dlg, 8);
+                iWidget *button  = findUserData_Widget(findChild_Widget(dlg, "panel.top"), snippetPanel);
+                postCommand_Widget(button, "panel.open");
+            }
+        }
+        if (argLabel_Command(cmd, "sidecfg")) {
+            if (deviceType_App() == desktop_AppDeviceType) {
+                postCommand_Widget(dlg, "tabs.switch id:sidecfg");
+            }
+            else {
+                /* TODO: Don't hardcode the panel index. */
+                iWidget *snippetPanel = panel_Mobile(dlg, 1);
                 iWidget *button  = findUserData_Widget(findChild_Widget(dlg, "panel.top"), snippetPanel);
                 postCommand_Widget(button, "panel.open");
             }
@@ -5355,7 +5539,7 @@ void openInDefaultBrowser_App(const iString *url, const iString *mime) {
         "/usr/bin/env",
         "xdg-open",
         cstr_String(url),
-#elif defined (iPlatformMsys)
+#elif defined (iPlatformMsys) || defined (iPlatformWindows)
         concatPath_CStr(cstr_String(execPath_App()), "../urlopen.bat"),
         cstr_String(url),
         /* TODO: The prompt window is shown momentarily... */

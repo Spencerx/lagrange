@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #if defined (iPlatformAppleMobile)
 #  include "ios.h"
 #endif
-#if defined (iPlatformMsys)
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
 #  include "win32.h"
 #  define SDL_MAIN_HANDLED
 #endif
@@ -44,13 +44,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <signal.h>
 
 int main(int argc, char **argv) {
+#if !defined (iPlatformWindows)
     signal(SIGPIPE, SIG_IGN);
+#endif
 #if !defined (iPlatformTerminal)
 #   if defined (iPlatformAppleDesktop)
     enableMomentumScroll_MacOS();
     registerURLHandler_MacOS();
 #   endif
-#   if defined (iPlatformMsys)
+#   if defined (iPlatformMsys) || defined (iPlatformWindows)
     init_Win32(); /* DPI awareness, dark mode */
     SDL_SetMainReady(); /* MSYS runtime takes care of WinMain. */
 #   endif
@@ -81,7 +83,7 @@ int main(int argc, char **argv) {
 #if 0
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1"); /* debugging! */
 #endif
-#if defined (iPlatformAppleMobile)
+#if !defined (iPlatformTerminal)
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)) {

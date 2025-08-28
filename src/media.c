@@ -312,12 +312,12 @@ iBool makeTexture_GmImage(iGmImage *d, iBool isPartial, __attribute__((unused)) 
     d->numBytes      = size_Block(data);
     uint8_t *imgData = NULL;
     iBool isNew      = iFalse;
-    if (!isPartial && cmp_String(&d->props.mime, "image/webp") == 0) {
+    if (!isPartial && equalMediaType_String(&d->props.mime, "image/webp")) {
 #if defined (LAGRANGE_ENABLE_WEBP)
         imgData = WebPDecodeRGBA(constData_Block(data), size_Block(data), &d->size.x, &d->size.y);
 #endif
     }
-    else if (cmp_String(&d->props.mime, "image/jxl") == 0) {
+    else if (equalMediaType_String(&d->props.mime, "image/jxl")) {
 #if defined (LAGRANGE_ENABLE_JXL)
         imgData = loadJxl_(data, &d->size, d->props.linkId, isPartial, media);
 #endif
@@ -799,6 +799,19 @@ void pauseAllPlayers_Media(const iMedia *d, iBool setPaused) {
         }
     }
 #endif
+}
+
+size_t numActivePlayers_Media(const iMedia *d) {
+    size_t n = 0;
+#if defined (LAGRANGE_ENABLE_AUDIO)
+    for (size_t i = 0; i < size_PtrArray(&d->items[audio_MediaType]); ++i) {
+        const iGmAudio *audio = constAt_PtrArray(&d->items[audio_MediaType], i);
+        if (audio->player && isStarted_Player(audio->player) && !isPaused_Player(audio->player)) {
+            n++;
+        }
+    }
+#endif
+    return n;
 }
 
 void downloadStats_Media(const iMedia *d, iMediaId downloadId, const iString **path_out,
