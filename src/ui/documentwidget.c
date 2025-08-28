@@ -2736,7 +2736,7 @@ static iBool handleSwipe_DocumentWidget_(iDocumentWidget *d, const char *cmd) {
                     setValue_Anim(&d->swipeOffset, width_Widget(w), 100);
                     animate_DocumentWidget(d);
                     return iTrue;
-                }   
+                }
             }
             setFlags_Anim(&d->swipeOffset, easeOut_AnimFlag, iTrue);
             setValue_Anim(&d->swipeOffset, 0, 150);
@@ -4928,7 +4928,7 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                                 return iTrue;
                             }
                             else {
-                                /* Show the existing content again if we have it */
+                                /* Show the existing content again if we have it. */
                                 iMediaRequest *req = findMediaRequest_DocumentWidget(d, linkId);
                                 if (req && isFinished_GmRequest(req->req)) {
                                     setData_Media(media_GmDocument(view->doc),

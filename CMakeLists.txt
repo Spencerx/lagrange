@@ -328,6 +328,9 @@ list (APPEND SOURCES
     src/audio/player.h
     src/audio/stb_vorbis.c
 )
+if (ENABLE_JXL)
+    list (APPEND SOURCES src/jpegxl.c src/jpegxl.h)
+endif ()
 if (ENABLE_X11_XLIB AND XLIB_FOUND AND NOT APPLE AND NOT MSYS)
     list (APPEND SOURCES
         src/x11.c
