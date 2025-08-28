@@ -5228,3 +5228,51 @@ uint64_t elapsedMicroseconds_PerfTimer(const iPerfTimer *d) {
 void print_PerfTimer(const iPerfTimer *d, const char *msg) {
     printf("[%s] %llu \u03bcs\n", msg, (unsigned long long) elapsedMicroseconds_PerfTimer(d));
 }
+
+/*-----------------------------------------------------------------------------------------------*/
+
+#if defined(iPlatformApple)
+
+const char *systemImageName_Apple(iChar ch) {
+    /* clang-format off */
+    static const struct { iChar c; const char *name; } sysImages[] = {
+        { 0x10117,  "list.bullet" },
+        { 0x1f310,  "globe" },
+        { 0x1f3e0,  "house.fill" },
+        { 0x1f464,  "person.fill" },
+        { 0x1f4c1,  "folder" },
+        { 0x1f4e4,  "square.and.arrow.up" },
+        { 0x1f503,  "arrow.clockwise" },
+        { 0x1f50d,  "magnifyingglass" },
+        { 0x1f516,  "bookmark" },
+        { 0x1f553,  "clock" },
+        { 0x1f56e,  "book" },
+        { 0x1f871,  "arrow.up" },
+        { 0x22f0,   "list.bullet.indent" },
+        { 0x23f2,   "clock.arrow.2.circlepath" },
+        { 0x2398,   "doc.on.doc.fill" },
+        { 0x25e7,   "rectangle.lefthalf.filled" },
+        { 0x25e8,   "rectangle.righthalf.filled" },
+        { 0x2605,   "star" },
+        { 0x2606,   "star.fill" },
+        { 0x2699,   "gear" },
+        { 0x270e,   "pencil" },
+        { 0x2750,   "square.on.square" },
+        { 0x2795,   "plus" },
+        { 0x2912,   "arrow.up.to.line" },
+        { 0x2913,   "arrow.down.to.line" },
+        { 0x2a2f,   "xmark" },
+        { 0x2b71,   "arrow.up.to.line" },
+        { 0x2ba5,   "paperplane" },
+        { 0x2ba7,   "square.and.arrow.down" },
+    };
+    /* clang-format on */
+    iForIndices(i, sysImages) {
+        if (sysImages[i].c == ch) {
+            return sysImages[i].name;
+        }
+    }
+    return NULL;
+}
+
+#endif

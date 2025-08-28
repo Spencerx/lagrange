@@ -445,3 +445,10 @@ void        print_PerfTimer                 (const iPerfTimer *, const char *msg
 #define start_PerfTimer(name) iPerfTimer _##name##_PerfTimer; init_PerfTimer(&_##name##_PerfTimer)
 #define stop_PerfTimer(name)  print_PerfTimer(&_##name##_PerfTimer, #name)
 
+/*-----------------------------------------------------------------------------------------------*/
+
+#if defined (iPlatformApple)
+
+const char *    systemImageName_Apple   (iChar ch);
+
+#endif
