@@ -2991,10 +2991,11 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
         setCurrent_Root(oldRoot);
         if (newWin) {
             /* Get rid of the default blank tab. */
+            iWidget *otherDocTabs = findChild_Widget(otherRoot->widget, "doctabs");
             postCommandf_Root(otherRoot,
-                              "tabs.close id:%s",
-                              cstr_String(id_Widget(tabPage_Widget(
-                                  findChild_Widget(otherRoot->widget, "doctabs"), 0))));
+                              "tabs.close tabs:%p id:%s",
+                              otherDocTabs,
+                              cstr_String(id_Widget(tabPage_Widget(otherDocTabs, 0))));
             postCommand_Root(otherRoot, "window.unfreeze");
             setCurrent_Window(oldWin);
         }

@@ -4327,7 +4327,13 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         if (hasLabel_Command(cmd, "url")) {
             const char *urlAndArgs = cmd + 11; /* all arguments to "window.new" passed on */
             if (strlen(suffixPtr_Command(cmd, "url")) /* not empty URL */) {
-                postCommandf_Root(newWin->base.roots[0], "~open %s", urlAndArgs);
+                /* We pass a pointer to the correct DocumentWidget because if the 
+                   event queue is busy, the active window may still switch away from
+                   `newWin` before the "open" is handled. ("open" is an app-level 
+                   command so it isn't handled by any widget directly.) */
+                postCommandf_App("~open doc:%p %s",
+                                  document_Root(newWin->base.roots[0]), 
+                                  urlAndArgs);
             }
         }
         else {
@@ -4948,7 +4954,8 @@ iBool handleCommand_App(const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "tabs.close") && isMainWin) {
-        iWidget *tabs = findWidget_App("doctabs");
+        iWidget *tabs = hasLabel_Command(cmd, "tabs") ? pointerLabel_Command(cmd, "tabs") 
+                                                      : findWidget_App("doctabs");
         /* Can't close the last tab on mobile. */
         if (isMobile_Platform() && tabCount_Widget(tabs) == 1 && numRoots_Window(get_Window()) == 1) {
             postCommand_App("document.unsetident"); /* implicit unpinning since a tab is closing */
@@ -4956,7 +4963,7 @@ iBool handleCommand_App(const char *cmd) {
             return iTrue;
         }
         const iRangecc tabId = range_Command(cmd, "id");
-        iWidget *      doc   = !isEmpty_Range(&tabId) ? findWidget_App(cstr_Rangecc(tabId))
+        iWidget *      doc   = !isEmpty_Range(&tabId) ? findChild_Widget(tabs, cstr_Rangecc(tabId))
                                                       : document_App();
         iBool          wasCurrent       = (doc == (iWidget *) document_App());
         size_t         index            = tabPageIndex_Widget(tabs, doc);
