@@ -356,13 +356,13 @@ static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
         }
         iSidebarItem *item = new_SidebarItem();
         setupFromBookmark_SidebarItem_(item, bm);
-        item->listItem.isDraggable = iTrue;
-        item->isBold = item->listItem.isDropTarget = isFolder_Bookmark(bm);
+        item->listItem.flags.isDraggable = iTrue;
+        item->isBold = item->listItem.flags.isDropTarget = isFolder_Bookmark(bm);
         if (isFolder_Bookmark(bm)) {
             item->icon = contains_IntSet(d->closedFolders, item->id) ? 0x27e9 : 0xfe40;
         }
         if (bm->flags & remote_BookmarkFlag) {
-            item->listItem.isDraggable = iFalse;
+            item->listItem.flags.isDraggable = iFalse;
         }
         addItem_ListWidget(d->list, item);
         iRelease(item);
@@ -562,7 +562,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                         on.day != entryDate.day) {
                         on                        = entryDate;
                         iSidebarItem *sep         = new_SidebarItem();
-                        sep->listItem.isSeparator = iTrue;
+                        sep->listItem.flags.isSeparator = iTrue;
                         iString *text             = format_Date(&on,
                                                     cstr_Lang(on.year == today.year
                                                                   ? "sidebar.date.thisyear"
@@ -579,7 +579,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     }
                 }
                 iSidebarItem *item        = new_SidebarItem();
-                item->listItem.isSelected = isOpen; /* currently being viewed */
+                item->listItem.flags.isSelected = isOpen; /* currently being viewed */
                 item->indent              = isUnread;
                 set_String(&item->url, &entry->url);
                 set_String(&item->label, &entry->title);
@@ -1004,7 +1004,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     on = date;
                     /* Date separator. */
                     iSidebarItem *sep         = new_SidebarItem();
-                    sep->listItem.isSeparator = iTrue;
+                    sep->listItem.flags.isSeparator = iTrue;
                     const iString *text       = collect_String(
                         format_Date(&date,
                                     cstr_Lang(date.year != thisYear ? "sidebar.date.otheryear"
@@ -1016,7 +1016,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     iRelease(sep);
                     /* Date separators are two items tall. */
                     sep                       = new_SidebarItem();
-                    sep->listItem.isSeparator = iTrue;
+                    sep->listItem.flags.isSeparator = iTrue;
                     sep->id                   = -itemHeight_ListWidget(d->list) + yOffset;
                     set_String(&sep->meta, text);
                     addItem_ListWidget(d->list, sep);
@@ -1090,7 +1090,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     item->id |= 2;
                 }
                 addItem_ListWidget(d->list, item);
-                item->listItem.isDraggable = iTrue;
+                item->listItem.flags.isDraggable = iTrue;
                 iRelease(item);
             }
             /* We can provide both tab and page related items in the menu. */
@@ -1109,6 +1109,10 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 { bookmark_Icon " ${sidebar.entry.bookmark}", 0, 0, "opendocs.bookmark" },
             };
             d->menu = makeMenu_Widget(as_Widget(d), menuItems, iElemCount(menuItems));
+            if (isMobile && !keepActions) {
+                addChildFlags_Widget(d->actions, iClob(new_Widget()), expand_WidgetFlag);
+                addActionButton_SidebarWidget_(d, openTab_Icon, "tabs.new", 0);
+            }
             break;
         }
         default:
@@ -1119,6 +1123,11 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
     scrollOffset_ListWidget(list_SidebarWidget_(d), 0);
     updateVisible_ListWidget(list_SidebarWidget_(d));
     invalidate_ListWidget(list_SidebarWidget_(d));
+    setDragHandleWidth_ListWidget(d->list, isMobile_Platform() &&
+                                  (d->mode == openDocuments_SidebarMode ||
+                                   (d->mode == bookmarks_SidebarMode && d->isEditing)) ?
+                                  itemHeight_ListWidget(d->list) * 3 / 2 : 0);
+    d->list->hideItemOnDrag = (isMobile_Platform() && d->mode == openDocuments_SidebarMode);
     /* Content for a blank tab. */
     if (isEmpty) {
         const int rightPad = (isTerminal_Platform() ? 5 : (3 * gap_UI));
@@ -2451,7 +2460,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             if (d->mode == bookmarks_SidebarMode) {
                 postCommandf_App("bookmarks.addfolder parent:%zu",
                                  !item ? 0
-                                 : item->listItem.isDropTarget
+                                 : item->listItem.flags.isDropTarget
                                      ? item->id
                                      : get_Bookmarks(bookmarks_App(), item->id)->parentId);
             }
@@ -2461,7 +2470,7 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             const iSidebarItem *item = d->contextItem;
             if (d->mode == bookmarks_SidebarMode && item) {
                 postCommandf_App("bookmarks.sort arg:%zu",
-                                 item->listItem.isDropTarget
+                                 item->listItem.flags.isDropTarget
                                      ? item->id
                                      : get_Bookmarks(bookmarks_App(), item->id)->parentId);
             }
@@ -2771,8 +2780,8 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         else if (contains_Widget(w, mouse)) {
             const iSidebarItem *item = constHoverItem_ListWidget(d->list);
             setCursor_Window(get_Window(),
-                             item ? (item->listItem.isSeparator ? SDL_SYSTEM_CURSOR_ARROW
-                                                                : SDL_SYSTEM_CURSOR_HAND)
+                             item ? (item->listItem.flags.isSeparator ? SDL_SYSTEM_CURSOR_ARROW
+                                                                      : SDL_SYSTEM_CURSOR_HAND)
                                   : SDL_SYSTEM_CURSOR_ARROW);
         }
         if (d->contextIndex != iInvalidPos) {
@@ -2982,6 +2991,17 @@ static void draw_SidebarWidget_(const iSidebarWidget *d) {
     }
 }
 
+static void drawDragHandle_(iPaint *p, iRect *itemRect, int bg) {
+    const int itemHeight = height_Rect(*itemRect);
+    iRect dragRect = { addX_I2(topRight_Rect(*itemRect), -itemHeight * 3 / 2),
+                       init_I2(itemHeight * 3 / 2, itemHeight) };
+    fillRect_Paint(p, dragRect, bg);
+    drawVLine_Paint(p, topLeft_Rect(dragRect), height_Rect(dragRect), uiSeparator_ColorId);
+    drawCentered_Text(uiContent_FontId, dragRect, iTrue, uiAnnotation_ColorId, menu_Icon);
+    /* Adjust the item rectangle to account for the handle. */
+    adjustEdges_Rect(itemRect, 0, -width_Rect(dragRect), 0, 0);
+}
+
 static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                               const iListWidget *list) {
     const iSidebarWidget *sidebar =
@@ -3008,8 +3028,8 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         bg = isPressing ? uiBackgroundPressed_ColorId : uiBackgroundFramelessHover_ColorId;
         fillRect_Paint(p, itemRect, bg);
     }
-    else if (d->listItem.isSelected && (sidebar->mode == feedEntries_SidebarMode ||
-                                        sidebar->mode == identities_SidebarMode)) {
+    else if (d->listItem.flags.isSelected && (sidebar->mode == feedEntries_SidebarMode ||
+                                              sidebar->mode == identities_SidebarMode)) {
         bg = uiBackgroundUnfocusedSelection_ColorId;
         fillRect_Paint(p, itemRect, bg);
     }
@@ -3044,7 +3064,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         const int fg = isHover ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
                                : uiText_ColorId;
         const int iconPad = 12 * gap_UI;
-        if (d->listItem.isSeparator) {
+        if (d->listItem.flags.isSeparator) {
             if (d != constItem_ListWidget(list, 0)) {
                 drawHLine_Paint(p,
                                 addY_I2(pos, 2 * gap_UI),
@@ -3076,10 +3096,10 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                 drawCentered_Text(uiLabelLarge_FontId,
                                   adjusted_Rect(iconArea, init_I2(gap_UI, 0), zero_I2()),
                                   iTrue,
-                                  isHover && isPressing    ? iconColor
-                                  : isUnread               ? unreadIconColor
-                                  : d->listItem.isSelected ? iconColor
-                                                           : readIconColor,
+                                  isHover && isPressing          ? iconColor
+                                  : isUnread                     ? unreadIconColor
+                                  : d->listItem.flags.isSelected ? iconColor
+                                                                 : readIconColor,
                                   "%s",
                                   cstr_String(&str));
                 deinit_String(&str);
@@ -3123,8 +3143,8 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
     }
     else if (sidebar->mode == bookmarks_SidebarMode) {
         const int fg = isHover ? (isPressing ? uiTextPressed_ColorId : uiTextFramelessHover_ColorId)
-                       : d->listItem.isDropTarget ? uiHeading_ColorId
-                                                  : uiText_ColorId;
+                       : d->listItem.flags.isDropTarget ? uiHeading_ColorId
+                                                        : uiText_ColorId;
         /* The icon. */
         iString str;
         init_String(&str);
@@ -3148,12 +3168,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         const int metaFont      = uiLabel_FontId;
         const int metaIconWidth = 4.5f * gap_UI * aspect_UI;
         if (isEditing) {
-            iRect dragRect = { addX_I2(topRight_Rect(itemRect), -itemHeight * 3 / 2),
-                               init_I2(itemHeight * 3 / 2, itemHeight) };
-            fillRect_Paint(p, dragRect, bg);
-            drawVLine_Paint(p, topLeft_Rect(dragRect), height_Rect(dragRect), uiSeparator_ColorId);
-            drawCentered_Text(uiContent_FontId, dragRect, iTrue, uiAnnotation_ColorId, menu_Icon);
-            adjustEdges_Rect(&itemRect, 0, -width_Rect(dragRect), 0, 0);
+            drawDragHandle_(p, &itemRect, bg);
         }
         const iInt2 metaPos =
             init_I2(right_Rect(itemRect) - length_String(&d->meta) * metaIconWidth - 2 * gap_UI -
@@ -3186,7 +3201,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
     }
     else if (sidebar->mode == history_SidebarMode) {
         iBeginCollect();
-        if (d->listItem.isSeparator) {
+        if (d->listItem.flags.isSeparator) {
             if (!isEmpty_String(&d->meta)) {
                 iInt2 drawPos = addY_I2(topLeft_Rect(itemRect), d->id);
                 drawHLine_Paint(p,
@@ -3295,7 +3310,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                        : isHover   ? uiTextFramelessHover_ColorId
                                    : uiText_ColorId;
         if (d->indent && !isPressing && !isHover) {
-            fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
+            fillRect_Paint(p, itemRect, bg = uiBackgroundUnfocusedSelection_ColorId);
         }
         const iInt2 textPos = add_I2(topLeft_Rect(itemRect),
                                      init_I2(3 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
@@ -3314,6 +3329,9 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                             cstr_Rangecc(host));
         drawRange_Text(font, textPos, fg, range_String(&label));
         deinit_String(&label);
+        if (isMobile_Platform()) {
+            drawDragHandle_(p, &itemRect, bg);
+        }
         /* Status icons appear on the right. */
         const int metaIconWidth = 7.0f * gap_UI * aspect_UI + blankWidth;
         iInt2     metaIconPos =
