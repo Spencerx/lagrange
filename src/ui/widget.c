@@ -2577,7 +2577,7 @@ void setMouseGrab_Widget(iWidget *d) {
 }
 
 iWidget *mouseGrab_Widget(void) {
-    const iWindow *win = get_Window();    
+    const iWindow *win = get_Window();
     return win ? win->mouseGrab : NULL;
 }
 

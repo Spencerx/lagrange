@@ -260,6 +260,17 @@ int numRoots_Window(const iWindow *d) {
     return num;
 }
 
+static void windowSizeChanged_Window_(iWindow *d) {
+    setCurrent_Window(d);
+    iRoot *root = d->roots[0];
+    iRect *rect = &root->widget->rect;
+    rect->pos   = zero_I2();
+    rect->size  = d->size;
+    setCurrent_Root(root);
+    updatePadding_Root(root);
+    arrange_Widget(root->widget);
+}
+
 static void windowSizeChanged_MainWindow_(iMainWindow *d) {
     const int numRoots = numRoots_Window(as_Window(d));
     const iInt2 rootSize = d->base.size;
@@ -349,6 +360,24 @@ static void setupUserInterface_MainWindow(iMainWindow *d) {
 #if defined (LAGRANGE_MAC_MENUBAR)
     insertMacMenus_(); /* TODO: Shouldn't this be in the App? */
 #endif
+}
+
+static iBool updateSize_Window_(iWindow *d, iBool notifyAlways) {
+    iInt2 *size = &d->size;
+    const iInt2 oldSize = *size;
+    SDL_GetRendererOutputSize(d->render, &size->x, &size->y);
+    const iBool hasChanged = !isEqual_I2(oldSize, *size);
+    if (hasChanged) {
+        windowSizeChanged_Window_(d);
+        postRefresh_Window(d);
+    }
+    if (!isResizing_ && (hasChanged || notifyAlways)) {
+        iRoot *root = d->roots[0];
+        postCommandf_Root(root, "window.resized width:%d height:%d", size->x, size->y);
+        postCommand_Root(root, "widget.overflow"); /* check bounds with updated sizes */
+        postRefresh_Window(d);
+    }
+    return hasChanged;
 }
 
 static iBool updateSize_MainWindow_(iMainWindow *d, iBool notifyAlways) {
@@ -539,7 +568,7 @@ SDL_HitTestResult hitTest_MainWindow(const iMainWindow *d, iInt2 pos) {
 
 void create_Window_(iWindow *d, iRect rect, uint32_t flags) {
     flags |= SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN;
-    if (d->type == main_WindowType) {
+    if (d->type == main_WindowType || d->type == extra_WindowType) {
         flags |= SDL_WINDOW_RESIZABLE;
 #if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
         if (prefs_App()->customFrame) {
@@ -1043,6 +1072,15 @@ static iBool handleWindowEvent_Window_(iWindow *d, const SDL_WindowEvent *ev) {
                 checkPixelRatioChange_Window_(d);
             }
             return iFalse;
+        case SDL_WINDOWEVENT_RESIZED:
+            if (d->isMinimized) {
+                return iTrue;
+            }
+            closePopups_App(iFalse);
+            checkPixelRatioChange_Window_(d);
+            updateSize_Window_(d, iTrue);
+            postRefresh_Window(d);
+            return iTrue;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             if (d->type == extra_WindowType) {
                 d->focusGainedAt = SDL_GetTicks();
@@ -1212,7 +1250,6 @@ static iBool handleWindowEvent_MainWindow_(iMainWindow *d, const SDL_WindowEvent
         }
         case SDL_WINDOWEVENT_RESIZED:
             if (d->base.isMinimized) {
-                // updateSize_Window_(d, iTrue);
                 return iTrue;
             }
             closePopups_App(iFalse);
@@ -2308,6 +2345,7 @@ iWindow *newExtra_Window(iWidget *rootWidget) {
     setCurrent_Window(win);
     iWidget *frameRoot = new_Widget();
     setFlags_Widget(frameRoot, arrangeSize_WidgetFlag | focusRoot_WidgetFlag, iTrue);
+    setFrameColor_Widget(rootWidget, none_ColorId);
     setCommandHandler_Widget(frameRoot, handleRootCommands_Widget);
     setRoot_Widget(rootWidget, root);
     addChild_Widget(frameRoot, rootWidget);

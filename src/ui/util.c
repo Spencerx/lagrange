@@ -1733,6 +1733,10 @@ iWindow *promoteDialogToWindow_Widget(iWidget *dlg) {
         iRelease(removeChild_Widget(dlg, heading));
         arrange_Widget(dlg);
     }
+    // setFlags_Widget(dlg, resizeChildren_WidgetFlag, iTrue);
+    const float pixelRatio = x->pixelRatio;
+    SDL_SetWindowMinimumSize(
+        x->win, width_Widget(dlg) / pixelRatio, height_Widget(dlg) / pixelRatio);
     addExtraWindow_App(x);
     SDL_ShowWindow(x->win);
     SDL_RaiseWindow(x->win);
