@@ -796,7 +796,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
         case siteStructure_SidebarMode: {
             const iString *docUrl = url_DocumentWidget(document_App());
             /* We look for the protocol in addition to the domain. */
-            const iRangecc urlHost = urlHost_String(docUrl);
+            const iRangecc urlHost = urlHostWithPort_String(docUrl);
             if (isEmpty_Range(&urlHost)) {
                 break;
             }
@@ -1218,7 +1218,6 @@ static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
     const float heights[max_SidebarMode] = { 1, 3, 1, 1, 0, 1, 1, 1 };
 #endif
     if (d->list) {
-        iAssert(heights[d->mode] != 0);
         setItemHeight_ListWidget(d->list, heights[d->mode] * lineHeight_Text(d->itemFonts[0]));
     }
     if (d->certList) {
@@ -1414,20 +1413,22 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     }
     /* Dropdown menu for changing the mode. */
     if (!isSlidingSheet_SidebarWidget_(d)) {
+        const char *barId = cstr_String(id_Widget(w));
         // clang-format off
         const iMenuItem modeDropItems[] = {
-            { "${sidebar.bookmarks}",     0, 0, format_CStr("%s.mode force:1 arg:0", cstr_String(id_Widget(w))) },
-            { "${sidebar.feeds}",         0, 0, format_CStr("%s.mode force:1 arg:1", cstr_String(id_Widget(w))) },
-            { "${sidebar.subscriptions}", 0, 0, format_CStr("%s.mode force:1 arg:2", cstr_String(id_Widget(w))) },
+            { normalModeLabels_[0], 0, 0, format_CStr("%s.mode force:1 arg:0", barId) },
+            { normalModeLabels_[1], 0, 0, format_CStr("%s.mode force:1 arg:1", barId) },
+            { normalModeLabels_[2], 0, 0, format_CStr("%s.mode force:1 arg:2", barId) },
             { "---" },
-            { "${sidebar.identities}",    0, KMOD_DESKTOP, format_CStr("%s.mode force:1 arg:3", cstr_String(id_Widget(w))) },
-            { "${sidebar.outline}",       0, 0, format_CStr("%s.mode force:1 arg:4", cstr_String(id_Widget(w))) },
-            { "${sidebar.structure}",     0, 0, format_CStr("%s.mode force:1 arg:5", cstr_String(id_Widget(w))) },
+            { normalModeLabels_[3], 0, KMOD_DESKTOP, format_CStr("%s.mode force:1 arg:3", barId) },
+            { normalModeLabels_[4], 0, 0, format_CStr("%s.mode force:1 arg:4", barId) },
+            { normalModeLabels_[5], 0, 0, format_CStr("%s.mode force:1 arg:5", barId) },
             { "---" },
-            { "${sidebar.documents}",     0, 0, format_CStr("%s.mode force:1 arg:6", cstr_String(id_Widget(w))) },
-            { "${sidebar.history}",       0, 0, format_CStr("%s.mode force:1 arg:7", cstr_String(id_Widget(w))) },
+            { normalModeLabels_[6], 0, 0, format_CStr("%s.mode force:1 arg:6", barId) },
+            { normalModeLabels_[7], 0, 0, format_CStr("%s.mode force:1 arg:7", barId) },
             { "---" },
-            { "${menu.sidebar.configure}", 0, 0, "preferences sidecfg:1" },
+            { gear_Icon " ${menu.sidebar.configure}", 0, 0, "preferences sidecfg:1" },
+            { close_Icon " ${close}", 0, 0, format_CStr("%s.toggle", barId) },
         };
         // clang-format on
         addChildFlags_Widget(buttons,

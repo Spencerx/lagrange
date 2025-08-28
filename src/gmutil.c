@@ -236,6 +236,12 @@ iRangecc urlHost_String(const iString *d) {
     return url.host;
 }
 
+iRangecc urlHostWithPort_String(const iString *d) {
+    iUrl url;
+    init_Url(&url, d);
+    return (iRangecc){ url.host.start, url.port.end };
+}
+
 iRangecc urlDirectory_String(const iString *d) {
     iUrl parts;
     init_Url(&parts, d);
