@@ -819,6 +819,9 @@ static NSMenuItem *makeMenuItems_(NSMenu *menu, MenuCommands *commands, int atIn
     atIndex = iMin(atIndex, menu.numberOfItems);
     NSMenuItem *selectedItem = nil;
     for (size_t i = 0; i < n && items[i].label; ++i) {
+        if (!checkDevice_MenuItem(&items[i])) {
+            continue;
+        }
         const char *label = translateCStr_Lang(items[i].label);
         if (equal_CStr(label, "---")) {
             [menu insertItem:[NSMenuItem separatorItem] atIndex:atIndex++];

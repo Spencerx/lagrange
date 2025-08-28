@@ -4299,7 +4299,7 @@ static iWidget *makeLinkContextMenuWithParameters_DocumentWidget_(iDocumentWidge
                                           cstr_String(linkUrl)) },
                             { openWindow_Icon " ${link.newwindow}",
                               0,
-                              0,
+                              KMOD_DESKTOP,
                               format_CStr("!open query:%d newwindow:1 origin:%s%s url:%s",
                                           spartanQuery,
                                           cstr_String(id_Widget(w)),
@@ -4307,7 +4307,7 @@ static iWidget *makeLinkContextMenuWithParameters_DocumentWidget_(iDocumentWidge
                                           cstr_String(linkUrl)) },
                             { "${link.side}",
                               0,
-                              0,
+                              KMOD_DESKTOP | KMOD_TABLET,
                               format_CStr("!open query:%d newtab:4 origin:%s%s url:%s",
                                           spartanQuery,
                                           cstr_String(id_Widget(w)),
@@ -4315,7 +4315,7 @@ static iWidget *makeLinkContextMenuWithParameters_DocumentWidget_(iDocumentWidge
                                           cstr_String(linkUrl)) },
                             { "${link.side.newtab}",
                               0,
-                              0,
+                              KMOD_DESKTOP | KMOD_TABLET,
                               format_CStr("!open query:%d newtab:5 origin:%s%s url:%s",
                                           spartanQuery,
                                           cstr_String(id_Widget(w)),
@@ -4323,14 +4323,6 @@ static iWidget *makeLinkContextMenuWithParameters_DocumentWidget_(iDocumentWidge
                                           cstr_String(linkUrl)) },
                         },
                         5);
-        if (deviceType_App() == phone_AppDeviceType) {
-            /* Phones don't do windows or splits. */
-            removeN_Array(items, size_Array(items) - 3, iInvalidSize);
-        }
-        else if (deviceType_App() == tablet_AppDeviceType) {
-            /* Tablets only do splits. */
-            removeN_Array(items, size_Array(items) - 3, 1);
-        }
         if (equalCase_Rangecc(scheme, "file")) {
             pushBack_Array(items, &(iMenuItem){ "---" });
             pushBack_Array(

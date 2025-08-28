@@ -308,6 +308,7 @@ void            releaseNativeMenu_Widget        (iWidget *);
 void            setMenuUpdateItemsFunc_Widget   (iWidget *menu, const iArray *(*func)(iWidget *));
 
 size_t          count_MenuItem                  (const iMenuItem *itemsNullTerminated);
+iBool           checkDevice_MenuItem            (const iMenuItem *);
 size_t          findWidestLabel_MenuItem        (const iMenuItem *items, size_t num);
 size_t          findCommand_MenuItem            (const iMenuItem *items, size_t num, const char *command);
 void            setSelected_NativeMenuItem      (iMenuItem *item, iBool isSelected);

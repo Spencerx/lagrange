@@ -995,6 +995,9 @@ void makeMenuItems_Widget(iWidget *menu, const iMenuItem *items, size_t n) {
         if (!item->label) {
             break;
         }
+        if (!checkDevice_MenuItem(item)) {
+            continue;
+        }
         const char *labelText = item->label;
         iArray *submenuItems = NULL;
         iString *submenuId = NULL;

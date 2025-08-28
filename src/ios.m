@@ -1226,6 +1226,9 @@ static NSArray<UIMenuElement *> *makeMenuElements_(iWidget *owner, PopupData *su
         init_String(&sepTitle);
         for (size_t i = 0; i < n && items[i].label; i++) {
             const iMenuItem *item = &items[i];
+            if (!checkDevice_MenuItem(item)) {
+                continue;
+            }
             if (startsWith_CStr(item->label, "---")) { /* separator or submenu */
                 if ([subElems count] > 0) {
                     haveSep = iTrue;

@@ -478,6 +478,15 @@ size_t count_MenuItem(const iMenuItem *itemsNullTerminated) {
     return num;
 }
 
+iBool checkDevice_MenuItem(const iMenuItem *d) {
+    if (d->kmods & (KMOD_DESKTOP | KMOD_TABLET | KMOD_PHONE)) {
+        return (d->kmods & KMOD_DESKTOP && deviceType_App() == desktop_AppDeviceType) ||
+               (d->kmods & KMOD_TABLET && deviceType_App() == tablet_AppDeviceType) ||
+               (d->kmods & KMOD_PHONE && deviceType_App() == phone_AppDeviceType);
+    }
+    return iTrue;
+}
+
 static iBool dropdownHeadingHandler_(iWidget *d, const char *cmd) {
     if (isVisible_Widget(d) &&
         equal_Command(cmd, "mouse.clicked") && contains_Widget(d, coord_Command(cmd)) &&

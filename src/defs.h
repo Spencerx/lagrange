@@ -219,6 +219,12 @@ enum iReturnKeyBehavior {
 
 int     keyMod_ReturnKeyFlag    (int flag);
 
+/* Special keyboard modifier flag to indicate where menu items are valid. */
+#define KMOD_DESKTOP    0x10000
+#define KMOD_TABLET     0x20000
+#define KMOD_PHONE      0x40000
+#define KMOD_MOBILE     (KMOD_TABLET | KMOD_PHONE)
+
 iLocalDef int lineBreakKeyMod_ReturnKeyBehavior(int behavior) {
     return keyMod_ReturnKeyFlag(behavior & mask_ReturnKeyFlag);
 }
