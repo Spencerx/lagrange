@@ -42,7 +42,7 @@ void init_Prefs(iPrefs *d) {
     d->recentMenuBarIndex           = 0;
     d->useSystemTheme               = iTrue;
     d->systemPreferredColorTheme[0] = pureBlack_ColorTheme;
-    d->systemPreferredColorTheme[1] = light_ColorTheme;
+    d->systemPreferredColorTheme[1] = pureWhite_ColorTheme;
     d->theme                        = dark_ColorTheme;
     d->accent                   = isAppleDesktop_Platform() ? system_ColorAccent : cyan_ColorAccent;
     d->customFrame              = iFalse; /* needs some more work to be default */

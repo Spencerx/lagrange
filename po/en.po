@@ -2042,6 +2042,12 @@ msgstr "Toolbar Actions"
 msgid "heading.prefs.toolbartabs"
 msgstr "Toolbar Tabs"
 
+msgid "heading.prefs.toolbartabs.left"
+msgstr "Left Toolbar Tabs"
+
+msgid "heading.prefs.toolbartabs.right"
+msgstr "Right Toolbar Tabs"
+
 msgid "prefs.toolbaraction1"
 msgstr "Button 1"
 

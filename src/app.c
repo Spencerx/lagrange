@@ -5211,6 +5211,12 @@ iBool handleCommand_App(const char *cmd) {
             if (deviceType_App() == desktop_AppDeviceType) {
                 postCommand_Widget(dlg, "tabs.switch id:sidecfg");
             }
+            else {
+                /* TODO: Don't hardcode the panel index. */
+                iWidget *snippetPanel = panel_Mobile(dlg, 1);
+                iWidget *button  = findUserData_Widget(findChild_Widget(dlg, "panel.top"), snippetPanel);
+                postCommand_Widget(button, "panel.open");
+            }
         }
     }
     else if (equal_Command(cmd, "navigate.home") && isMainWin) {
