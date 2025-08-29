@@ -2801,6 +2801,7 @@ static iBool messageHandler_(iWidget *msg, const char *cmd) {
           equal_Command(cmd, "document.reload") ||
           equal_Command(cmd, "document.request.updated") ||
           equal_Command(cmd, "document.linkkeys") ||
+          equal_Command(cmd, "document.openurls.changed") ||
           equal_Command(cmd, "scrollbar.fade") ||
           equal_Command(cmd, "widget.overflow") ||
           equal_Command(cmd, "edgeswipe.ended") ||
@@ -2808,6 +2809,7 @@ static iBool messageHandler_(iWidget *msg, const char *cmd) {
           equal_Command(cmd, "theme.changed") ||
           equal_Command(cmd, "focus.lost") ||
           equal_Command(cmd, "focus.gained") ||
+          equal_Command(cmd, "focus.default") ||
           equal_Command(cmd, "menu.open") ||
           equal_Command(cmd, "menu.opened") ||
           equal_Command(cmd, "menu.closed") ||
@@ -2896,6 +2898,10 @@ iWidget *makeQuestion_Widget(const char *title, const char *msg,
     arrange_Widget(dlg); /* BUG: This extra arrange shouldn't be needed but the dialog won't
                             be arranged correctly unless it's here. */
     setupSheetTransition_Mobile(dlg, iTrue);
+    /* If this prompt is opened as a result of a context menu action, the menu 
+       will switch keyboard focus back to its owner when it closes. This would
+       leave keyboard focus outside the dialog's focus root. */
+    postCommand_Root(dlg->root, "focus.default");
     return dlg;
 }
 
