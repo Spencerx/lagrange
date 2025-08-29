@@ -1660,17 +1660,29 @@ static iBool updateWindowMenu_(iWidget *menuBarItem, const char *cmd) {
     return handleTopLevelMenuBarCommand_Widget(menuBarItem, cmd);
 }
 
-static iBool updateMobilePageMenuItems_(iWidget *menu, const char *cmd) {
-    if (equalWidget_Command(cmd, menu, "menu.opened")) {
-        /* Update the items. */
-        setMenuItemLabel_Widget(menu,
-                                "document.viewformat",
-                                isSourceTextView_DocumentWidget(document_App())
-                                    ? "${menu.viewformat.gemini}"
-                                    : "${menu.viewformat.plain}",
-                                ' ');
-    }
-    return handleMenuCommand_Widget(menu, cmd);
+static const iArray *makeMobilePageMenuItems_(iWidget *menu) {
+    iArray *items = collectNew_Array(sizeof(iMenuItem));
+    pushBackN_Array(items, (iMenuItem[]){
+        { upArrow_Icon " ${menu.parent}", navigateParent_KeyShortcut, "navigate.parent" },
+        { upArrowBar_Icon " ${menu.root}", navigateRoot_KeyShortcut, "navigate.root" },
+        { "---" },
+        { bookmark_Icon " ${menu.page.bookmark}", bookmarkPage_KeyShortcut, "bookmark.add" },
+        { star_Icon " ${menu.page.subscribe}", subscribeToPage_KeyShortcut, "feeds.subscribe" },
+        { "---${menu.tools}" },
+        { globe_Icon " ${menu.page.translate}", 0, 0, "document.translate" },
+        { upload_Icon " ${menu.page.upload}", 0, 0, "document.upload" },
+        { edit_Icon " ${menu.page.upload.edit}", 0, 0, "document.upload copy:1" },
+        { book_Icon " ${menu.page.import}", 0, 0, "bookmark.links confirm:1" },
+        { "${menu.page.visitlinks}", 0, 0, "document.visitlinks" },
+        { timer_Icon " ${menu.autoreload}", 0, 0, "document.autoreload.menu" },
+        { "---" },
+        { download_Icon " " saveToDownloads_Label, SDLK_s, KMOD_PRIMARY, "document.save" },
+        { "${menu.page.copysource}", 'c', KMOD_PRIMARY, "copy" },
+        { isSourceTextView_DocumentWidget(document_App())
+            ? "${menu.viewformat.gemini}"
+            : "${menu.viewformat.plain}", 0, 0, "document.viewformat" } },
+    16);
+    return items;
 }
 
 void createClipMenu_Root(iRoot *d) {
@@ -1980,29 +1992,10 @@ void createUserInterface_Root(iRoot *d) {
                 as_Widget(navCancel)->sizeRef = as_Widget(url);
                 setFont_LabelWidget(navCancel, uiContentBold_FontId);
                 setId_Widget(as_Widget(navCancel), "navbar.cancel");
-                iLabelWidget *pageMenuButton;
                 /* In a mobile layout, the reload button is replaced with the Page/Ellipsis menu. */
-                pageMenuButton = makeMenuButton_LabelWidget(pageMenuCStr_,
-                    (iMenuItem[]){
-                        { upArrow_Icon " ${menu.parent}", navigateParent_KeyShortcut, "navigate.parent" },
-                        { upArrowBar_Icon " ${menu.root}", navigateRoot_KeyShortcut, "navigate.root" },
-                        { "---" },
-                        { bookmark_Icon " ${menu.page.bookmark}", bookmarkPage_KeyShortcut, "bookmark.add" },
-                        { star_Icon " ${menu.page.subscribe}", subscribeToPage_KeyShortcut, "feeds.subscribe" },
-                        { "---${menu.tools}" },
-                        { globe_Icon " ${menu.page.translate}", 0, 0, "document.translate" },
-                        { upload_Icon " ${menu.page.upload}", 0, 0, "document.upload" },
-                        { edit_Icon " ${menu.page.upload.edit}", 0, 0, "document.upload copy:1" },
-                        { book_Icon " ${menu.page.import}", 0, 0, "bookmark.links confirm:1" },
-                        { "${menu.page.visitlinks}", 0, 0, "document.visitlinks" },
-                        { timer_Icon " ${menu.autoreload}", 0, 0, "document.autoreload.menu" },
-                        { "---" },
-                        { download_Icon " " saveToDownloads_Label, SDLK_s, KMOD_PRIMARY, "document.save" },
-                        { "${menu.page.copysource}", 'c', KMOD_PRIMARY, "copy" },
-                        { "${menu.viewformat.plain}", 0, 0, "document.viewformat" } },
-                    16);
-                setCommandHandler_Widget(findChild_Widget(as_Widget(pageMenuButton), "menu"),
-                                         updateMobilePageMenuItems_);
+                iLabelWidget *pageMenuButton = makeMenuButton_LabelWidget(pageMenuCStr_, NULL, 0);
+                setMenuUpdateItemsFunc_Widget(findChild_Widget(as_Widget(pageMenuButton), "menu"),
+                                              makeMobilePageMenuItems_);
                 setId_Widget(as_Widget(pageMenuButton), "pagemenubutton");
                 setFont_LabelWidget(pageMenuButton, uiContentBold_FontId);
                 setAlignVisually_LabelWidget(pageMenuButton, iTrue);

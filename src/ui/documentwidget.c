@@ -5413,7 +5413,7 @@ int documentWidth_DocumentWidget(const iDocumentWidget *d) {
 }
 
 iBool isSourceTextView_DocumentWidget(const iDocumentWidget *d) {
-    return (d->flags & viewSource_DocumentWidgetFlag) != 0;
+    return d && (d->flags & viewSource_DocumentWidgetFlag) != 0;
 }
 
 const iGmIdentity *identity_DocumentWidget(const iDocumentWidget *d) {

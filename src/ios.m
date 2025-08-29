@@ -1219,7 +1219,7 @@ static NSArray<UIMenuElement *> *makeMenuElements_(iWidget *owner, PopupData *su
         if (!superData) {
             [data clearCommands];
         }
-        NSMutableArray<UIMenuElement *> *elems = [[NSMutableArray<UIMenuElement *> alloc] init];
+        NSMutableArray<UIMenuElement *> *elems    = [[NSMutableArray<UIMenuElement *> alloc] init];
         NSMutableArray<UIMenuElement *> *subElems = [[NSMutableArray<UIMenuElement *> alloc] init];
         iBool haveSep = iFalse;
         iString sepTitle;
@@ -1329,6 +1329,8 @@ void updateItems_SystemMenu(iWidget *owner, const iMenuItem *items, size_t n) {
             if (@available(iOS 15.0, *)) {
                 data.menuButton.menu = [UIMenu menuWithChildren:@[
                     [UIDeferredMenuElement elementWithUncachedProvider:^(void (^completion)(NSArray<UIMenuElement *> *)) {
+                    /* We're being called outside the app event loop. */
+                    setCurrent_Root(owner->root);
                     iArray updatedItems;
                     initCopy_Array(&updatedItems, owner->updateMenuItems(owner));
                     completion(makeMenuElements_(owner, NULL,
