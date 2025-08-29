@@ -1329,6 +1329,7 @@ static iBool handleNavBarCommands_(iWidget *navBar, const char *cmd) {
             checkLoadAnimation_Root_(get_Root());
             updateToolbarColors_Root(as_Widget(doc)->root);
             updateNavBarIdentity_(navBar);
+            updateNavDirButtons_(navBar);
         }
         makePaletteGlobal_GmDocument(document_DocumentWidget(doc));
         refresh_Widget(findWidget_Root("doctabs"));

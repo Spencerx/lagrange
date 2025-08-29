@@ -28,6 +28,7 @@ Changes and enhancements:
 
 Fixes:
 * Moving a tab to a new window or opening a link in a new window sometimes confused which window was the target.
+* Update navbar back/forward buttons when switching tabs.
 
 ## 1.18.8
 * Reject Gemini responses that don't use an SP character (ASCII 32) as a separator, as required by the specification.
