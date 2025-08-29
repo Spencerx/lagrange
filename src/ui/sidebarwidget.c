@@ -445,6 +445,24 @@ static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
                                   5 /* only items related to the individual bookmark */);
 }
 
+int cmpGopherStructureUrl_(const iString *a, const iString *b) {
+    /* All of the URLs in the structure tree have the same scheme, host, and port. */
+    const size_t start = indexOfCStrFrom_String(a, "/", 9) + 1; /* skip the "gopher://" */
+    iAssert(size < size_String(a));
+    iAssert(size < size_String(b));
+    const int      kind1 = at_Block(&a->chars, start);
+    const int      kind2 = at_Block(&b->chars, start);
+    const iRangecc sel1  = rangeFrom_String(a, start + 1);
+    const iRangecc sel2  = rangeFrom_String(b, start + 1);
+    const int      cmp   = iCmpStr(sel1.start, sel2.start);
+    if (!cmp) return kind1 - kind2;
+    return cmp;
+}
+
+static iBool isGopherStructure_SidebarWidget_(const iSidebarWidget *d) {
+    return equal_Rangecc(urlScheme_String(&d->structureHost), "gopher");
+}
+
 static void removeStructureUnfold_SidebarWidget_(iSidebarWidget *d, const iString *url) {
     iForEach(Array, i, &d->structureUnfolds->strings.values) {
         iString *str = i.value;
@@ -472,6 +490,8 @@ static iBool isUnfoldedStructurePath_SidebarWidget_(const iSidebarWidget *d, con
         return iTrue;
     }
     if (contains_StringSet(d->structureUnfolds, &sub)) {
+        /* FIXME: We have to check that all the parent directories are also unfolded,
+           or otherwise a nested child item might be visible under a folded parent. */
         deinit_String(&sub);
         return iTrue;
     }
@@ -703,8 +723,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 list_Bookmarks(
                     bookmarks_App(), cmpTitleAscending_Bookmark, isSubscribed_Bookmark_, NULL)) {
                 const iBookmark *bm   = i.ptr;
-                iSidebarItem    *item = new_SidebarItem();
-                {
+                iSidebarItem    *item = new_SidebarItem(); {
                     set_String(&item->label, &bm->title);
                     set_String(&item->url, &bm->url);
                     item->id   = id_Bookmark(bm);
@@ -808,13 +827,17 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             if (isEmpty_Range(&host)) break;
             /* We keep the set of known URLs as long as the host remains the same.
                This allows accumulating entries from unvisited links on pages. */
-            iStringSet *urls = d->structureUrls;
             if (!equal_String(&d->structureHost, hostStr)) {
-                clear_StringSet(urls);
-                clear_StringSet(d->structureUnfolds);
                 set_String(&d->structureHost, hostStr);
+                iRelease(d->structureUrls);
+                d->structureUrls = /* isGopherStructure_SidebarWidget_(d)
+                                       ? newCmp_StringSet(cmpGopherStructureUrl_)
+                                       : */ new_StringSet();
+                clear_StringSet(d->structureUnfolds);
                 scrollOffset_ListWidget(d->list, 0);
             }
+            const iBool isGopher = isGopherStructure_SidebarWidget_(d);
+            iStringSet *urls     = d->structureUrls;
             /* Look through everything we know at the moment: visited URLs, bookmarks,
                feed entries, and links on the page. */
             iConstForEach(PtrArray, i, listMatching_Visited(visited_App(), cstr_String(hostStr))) {
@@ -857,7 +880,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 const iString *url = u.value;
                 /* Compare the structure of this URL compared to the current stack. */
                 iRangecc itemDir = urlPath_String(url);
-                size_t   dirEnd  = lastIndexOfCStr_Rangecc(itemDir, "/");
+                size_t dirEnd = lastIndexOfCStr_Rangecc(itemDir, "/");
                 if (dirEnd == iInvalidPos) continue; /* must be root */
                 itemDir.end = itemDir.start + dirEnd;
                 if (dirEnd > 0 && isEmpty_Range(&itemDir)) {
