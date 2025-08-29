@@ -1377,6 +1377,11 @@ static void init_App_(iApp *d, int argc, char **argv) {
     d->elapsedSinceLastTicker = 0;
     d->commandEcho            = contains_CommandLine(&d->args, "echo;E");
     d->forceSoftwareRender    = contains_CommandLine(&d->args, "sw");
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
+    if (d->commandEcho) {
+        enableConsoleOutput_Win32();
+    }
+#endif
     init_Prefs(&d->prefs);
     d->prefs.detachedPrefs = !contains_CommandLine(&d->args, "prefs-sheet");
     init_SiteSpec(dataDir_App_());
