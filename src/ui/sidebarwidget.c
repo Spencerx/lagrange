@@ -480,20 +480,28 @@ static iBool isUnfoldedStructurePath_SidebarWidget_(const iSidebarWidget *d, con
     iRangecc path = parts.path;
     if (endsWith_Rangecc(path, "/") && isEmpty_Range(&parts.query)) path.end--;
     /* We need to know the parent directory. */
-    size_t slash = lastIndexOfCStr_Rangecc(path, "/");
-    if (slash == iInvalidPos || slash == 0) return iTrue;
-    path.end = path.start + slash + 1; /* keep the slash */
     iString sub;
-    initRange_String(&sub, (iRangecc) { constBegin_String(url), path.end });
-    if (startsWith_String(activeDocumentUrl, cstr_String(&sub))) {
-        /* Everything upwards from current document should be unfolded temporarily. */
-        return iTrue;
-    }
-    if (contains_StringSet(d->structureUnfolds, &sub)) {
-        /* FIXME: We have to check that all the parent directories are also unfolded,
-           or otherwise a nested child item might be visible under a folded parent. */
-        deinit_String(&sub);
-        return iTrue;
+    init_String(&sub);
+    /* We have to check that all the parent directories are also unfolded,
+    or otherwise a nested child item might be visible under a folded parent. */
+    for (;;) {
+        const size_t slash = lastIndexOfCStr_Rangecc(path, "/");
+        if (slash == iInvalidPos || slash == 0) {
+            /* The full hierarchy has been checked, and nothing seems to be folded. */
+            deinit_String(&sub);
+            return iTrue;
+        }
+        path.end = path.start + slash + 1; /* keep the slash */
+        setRange_String(&sub, (iRangecc) { constBegin_String(url), path.end });
+        if (startsWith_String(activeDocumentUrl, cstr_String(&sub))) {
+            /* Everything upwards from current document should be unfolded temporarily. */
+            deinit_String(&sub);
+            return iTrue;
+        }
+        if (!contains_StringSet(d->structureUnfolds, &sub)) {
+            break;
+        }
+        path.end--; /* lose the slash */
     }
     deinit_String(&sub);
     return iFalse;
