@@ -2705,8 +2705,11 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
             }
             else {
                 clear_Visited(visited_App());
-                updateItems_SidebarWidget_(d);
-                scrollOffset_ListWidget(d->list, 0);
+                if (d->mode == history_SidebarMode) {
+                    updateItems_SidebarWidget_(d);
+                    scrollOffset_ListWidget(d->list, 0);
+                }
+                return iFalse; /* all sidebars clear themselves */
             }
             return iTrue;
         }
