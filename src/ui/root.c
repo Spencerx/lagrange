@@ -2076,7 +2076,10 @@ void createUserInterface_Root(iRoot *d) {
                                                         unhittable_WidgetFlag);
         iWidget *docTabs = makeTabs_Widget(mainStack);
         setId_Widget(docTabs, "doctabs");
-//        setBackgroundColor_Widget(docTabs, uiBackground_ColorId);
+        if (isDesktop_Platform()) {
+            setBackgroundColor_Widget(findChild_Widget(docTabs, "tabs.buttons"),
+                                      uiBackground_ColorId);
+        }
         iDocumentWidget *doc;
         appendTabPage_Widget(docTabs, iClob(doc = new_DocumentWidget()), "Document", 0, 0);
         addTabCloseButton_Widget(docTabs, as_Widget(doc), "tabs.close");
