@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-22 20:15+0000\n"
-"PO-Revision-Date: 2025-08-28 06:05+0000\n"
+"PO-Revision-Date: 2025-08-29 02:51+0000\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <http://weblate.skyjake.fi/projects/lagrange/ui/tr/>\n"
 "Language: tr\n"
@@ -2961,3 +2961,9 @@ msgstr "Sol"
 
 msgid "prefs.sidebar.right"
 msgstr "Sağ"
+
+msgid "heading.prefs.toolbartabs.left"
+msgstr "Sol araç çubuğu sekmeleri"
+
+msgid "heading.prefs.toolbartabs.right"
+msgstr "Sağ araç çubuğu sekmeleri"
