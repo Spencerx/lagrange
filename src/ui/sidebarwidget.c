@@ -448,8 +448,8 @@ static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
 int cmpGopherStructureUrl_(const iString *a, const iString *b) {
     /* All of the URLs in the structure tree have the same scheme, host, and port. */
     const size_t start = indexOfCStrFrom_String(a, "/", 9) + 1; /* skip the "gopher://" */
-    iAssert(size < size_String(a));
-    iAssert(size < size_String(b));
+    iAssert(start < size_String(a));
+    iAssert(start < size_String(b));
     const int      kind1 = at_Block(&a->chars, start);
     const int      kind2 = at_Block(&b->chars, start);
     const iRangecc sel1  = rangeFrom_String(a, start + 1);
