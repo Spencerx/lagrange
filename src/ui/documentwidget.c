@@ -1956,6 +1956,9 @@ void refreshWhileScrolling_DocumentWidget(iAny *ptr) {
     if (isFinished_SmoothScroll(&view->scrollY)) {
         iChangeFlags(d->flags, noHoverWhileScrolling_DocumentWidgetFlag, iFalse);
         updateHover_DocumentView(view, mouseCoord_Window(get_Window(), 0));
+        if (d->flags & showLinkNumbers_DocumentWidgetFlag) {
+            invalidateVisibleLinks_DocumentView(view); /* link indicators need renumbering */
+        }
     }
 }
 

@@ -30,6 +30,7 @@ Fixes:
 * Moving a tab to a new window or opening a link in a new window sometimes confused which window was the target.
 * Clearing history did not update sidebars.
 * Updating navbar back/forward buttons when switching tabs.
+* Update link numbers/keys after a scroll stops, if numbering was activated during the scroll.
 
 ## 1.18.8
 * Reject Gemini responses that don't use an SP character (ASCII 32) as a separator, as required by the specification.
