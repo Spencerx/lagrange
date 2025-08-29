@@ -590,7 +590,7 @@ iBool handleRootCommands_Widget(iWidget *root, const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "focus.default")) {
-        iWidget *activeFocusRoot = focusRoot_Widget(NULL);
+        const iWidget *activeFocusRoot = focusRoot_Widget(NULL);
         /* Look backward because the last button is the default action. */
         setFocus_Widget(findFocusable_Widget(activeFocusRoot, backward_WidgetFocusDir));
         return iTrue;
