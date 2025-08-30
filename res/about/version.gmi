@@ -9,7 +9,7 @@
 ## 1.19
 
 New features:
-* Sidebar tab for exploring the directory structure of a capsule. All known URLs (from page links, history, feed entries) is compiled into one navigable hierarchy. This provides an alternative view of the capsule contents, for quick access and an overview.
+* Sidebar tab for exploring the directory structure of a capsule. All known URLs (from page links, history, feed entries) are compiled into one navigable hierarchy. This provides an alternative view of capsule contents, for quick access and an overview.
 * Sidebar tab for listing all open tabs ("vertical tabs"). The list indicates which tabs have not been seen yet. Drag-and-drop can be used to reorder tabs. There are status icons for page loading and audio playback.
 * Filter text field in the Bookmarks sidebar: filters bookmarks based on titles, URLs, and tags. Built-in tags like ".subscribed" can be used to find bookmarks with special behavior (see Help section 1.4.4).
 * Sidebar tab for managing feed subscriptions. Unlike the Feeds tab that shows feed entries, the Subscriptions tab shows higher-level information about each subscription, like the latest post date.
