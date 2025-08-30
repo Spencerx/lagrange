@@ -31,6 +31,8 @@ Fixes:
 * Clearing history did not update sidebars.
 * Updating navbar back/forward buttons when switching tabs.
 * Update link numbers/keys after a scroll stops, if numbering was activated during the scroll.
+* Potential crash when minimizing a window.
+* Gopher: Encode `%` in the selector when forming a link URI.
 
 ## 1.18.8
 * Reject Gemini responses that don't use an SP character (ASCII 32) as a separator, as required by the specification.
