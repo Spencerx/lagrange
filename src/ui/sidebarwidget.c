@@ -508,7 +508,7 @@ static iBool isUnfoldedStructurePath_SidebarWidget_(const iSidebarWidget *d, con
 }
 
 static iSidebarItem *addStructureItem_SidebarWidget_(iSidebarWidget *d, const iString *url,
-                                                     iRangecc label, iArray *stack,
+                                                     const iString *label, iArray *stack,
                                                      const iString *activeDocumentUrl,
                                                      size_t        *highlightedItemPos_out) {
     const int itemIndent = (int) size_Array(stack) + 1;
@@ -520,7 +520,14 @@ static iSidebarItem *addStructureItem_SidebarWidget_(iSidebarWidget *d, const iS
         }
         iSidebarItem *item = new_SidebarItem();
         set_String(&item->url, url);
-        setRange_String(&item->label, label);
+        iString *dec = maybeUrlDecodeExclude_String(label, "");
+        if (dec) {
+            set_String(&item->label, dec);
+            delete_String(dec);
+        }
+        else {
+            set_String(&item->label, label);
+        }
         item->indent = itemIndent;
         if (equal_String(&item->url, activeDocumentUrl)) {
             *highlightedItemPos_out = numItems_ListWidget(d->list);
@@ -821,7 +828,13 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             break;
         }
         case siteStructure_SidebarMode: {
-            const iString *docUrl = url_DocumentWidget(document_App());
+            if (!isVisible_Widget(as_Widget(d))) {
+                /* This is a relatively heavy operation, so don't update unless we are
+                   looking at the structure tab. */
+                break;
+            }
+            const iString *docUrl =
+                urlDefaultPortStripped_String(url_DocumentWidget(document_App()));
             /* We look for the protocol in addition to the domain. */
             const iRangecc urlHost = urlHostWithPort_String(docUrl);
             if (isEmpty_Range(&urlHost)) {
@@ -838,9 +851,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             if (!equal_String(&d->structureHost, hostStr)) {
                 set_String(&d->structureHost, hostStr);
                 iRelease(d->structureUrls);
-                d->structureUrls = /* isGopherStructure_SidebarWidget_(d)
-                                       ? newCmp_StringSet(cmpGopherStructureUrl_)
-                                       : */ new_StringSet();
+                d->structureUrls = new_StringSet();
                 clear_StringSet(d->structureUnfolds);
                 scrollOffset_ListWidget(d->list, 0);
             }
@@ -860,10 +871,12 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
             }
             const iGmDocument *doc = document_DocumentWidget(document_App());
             for (size_t j = 0; j < numLinks_GmDocument(doc); j++) {
-                const iString *linkUrl = linkUrl_GmDocument(doc, j);
+                iBeginCollect();
+                const iString *linkUrl = urlDefaultPortStripped_String(linkUrl_GmDocument(doc, j));
                 if (startsWith_String(linkUrl, cstr_String(hostStr))) {
                     insert_StringSet(urls, linkUrl);
                 }
+                iEndCollect();
             }
             /* The root item is always present. */
             iSidebarItem *rootItem = new_SidebarItem();
@@ -912,8 +925,9 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                             iString parentUrl;
                             parentUrlRange.end++; /* include the slash */
                             initRange_String(&parentUrl, parentUrlRange);
+                            setRange_String(&label, seg);
                             iSidebarItem *parent = addStructureItem_SidebarWidget_(
-                                d, &parentUrl, seg, &stack, docUrl, &docItem);
+                                d, &parentUrl, &label, &stack, docUrl, &docItem);
                             deinit_String(&parentUrl);
                             if (parent) {
                                 appendCStr_String(&parent->label, "/");
@@ -934,7 +948,7 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                     continue;
                 }
                 addStructureItem_SidebarWidget_(
-                    d, url, range_String(&label), &stack, docUrl, &docItem);
+                    d, url, &label, &stack, docUrl, &docItem);
             }
             if (docItem != iInvalidPos && !keepActions) {
                 postCommand_Widget(d->list, "sideitem.show arg:%u", docItem);
