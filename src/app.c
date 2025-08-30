@@ -4548,7 +4548,7 @@ static iBool handleOpenCommand_App_(iApp *d, const char *cmd) {
                           urlArg);
         return iTrue;
     }
-    iString    *url       = collectNewCStr_String(urlArg);
+    iString    *url       = newCStr_String(urlArg);
     const iBool noProxy   = argLabel_Command(cmd, "noproxy") != 0;
     const iBool isHistory = argLabel_Command(cmd, "history") != 0;
     iUrl parts;
@@ -4563,6 +4563,7 @@ static iBool handleOpenCommand_App_(iApp *d, const char *cmd) {
         });
         replace_String(query, "%20", " ");
         postCommandString_Root(NULL, query);
+        delete_String(url);
         return iTrue;
     }
     iDocumentWidget *doc = document_Command(cmd);
@@ -4578,12 +4579,14 @@ static iBool handleOpenCommand_App_(iApp *d, const char *cmd) {
             setResizeId_Widget(as_Widget(upload), "upload");
             restoreWidth_Widget(as_Widget(upload));
             postRefresh_Window(get_Window());
+            delete_String(url);
             return iTrue;
         }
     }
     if (equalCase_Rangecc(parts.scheme, "misfin")) {
         if (!isHistory) {
             openMessageComposer_Misfin(url, NULL);
+            delete_String(url);
             return iTrue;
         }
     }
@@ -4592,6 +4595,7 @@ static iBool handleOpenCommand_App_(iApp *d, const char *cmd) {
          (equalCase_Rangecc(parts.scheme, "http") ||
           equalCase_Rangecc(parts.scheme, "https")))) {
         openInDefaultBrowser_App(url, string_Command(cmd, "mime"));
+        delete_String(url);
         return iTrue;
     }
     iAssert(doc);
@@ -4613,6 +4617,7 @@ static iBool handleOpenCommand_App_(iApp *d, const char *cmd) {
                          newTab & ~otherRoot_OpenTabFlag,
                          cstr_String(setIdentArg),
                          cstr_String(url));
+        delete_String(url);
         return iTrue;
     }
     iRoot *root = get_Root();
@@ -4672,6 +4677,7 @@ static iBool handleOpenCommand_App_(iApp *d, const char *cmd) {
                               collect_String(newRange_String(gotoUrlHeading)))));
     }
     setCurrent_Root(oldRoot);
+    delete_String(url);
     return iTrue;
 }
 

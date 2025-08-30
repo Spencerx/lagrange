@@ -70,6 +70,9 @@ void init_Url(iUrl *d, const iString *text) {
         d->path     = capturedRange_RegExpMatch(&m, 5);
         d->query    = capturedRange_RegExpMatch(&m, 6);
         d->fragment = capturedRange_RegExpMatch(&m, 8); /* starts with a hash */
+        if (isEmpty_Range(&d->host)) {
+            d->host = (iRangecc){ d->scheme.end, d->scheme.end };
+        }
         /* Check if the authority contains a port. */
         init_RegExpMatch(&m);
         if (matchRange_RegExp(authPattern_, d->host, &m)) {
