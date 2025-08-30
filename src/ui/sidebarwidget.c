@@ -1595,8 +1595,7 @@ static void itemClicked_SidebarWidget_(iSidebarWidget *d, iSidebarItem *item, si
             break;
         }
         case siteStructure_SidebarMode:
-            if (item->indent > 0 && item->count > 0 /*&&
-                !contains_StringSet(d->structureUnfolds, &item->url)*/) {
+            if (item->indent > 0 && item->count > 0) {
                 /* This item with folded children will now unfold. */
                 iString *itemUrl = collect_String(copy_String(&item->url));
                 iString *origUrl = collect_String(copy_String(itemUrl));

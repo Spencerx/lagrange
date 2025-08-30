@@ -4332,12 +4332,12 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         if (hasLabel_Command(cmd, "url")) {
             const char *urlAndArgs = cmd + 11; /* all arguments to "window.new" passed on */
             if (strlen(suffixPtr_Command(cmd, "url")) /* not empty URL */) {
-                /* We pass a pointer to the correct DocumentWidget because if the 
+                /* We pass a pointer to the correct DocumentWidget because if the
                    event queue is busy, the active window may still switch away from
-                   `newWin` before the "open" is handled. ("open" is an app-level 
+                   `newWin` before the "open" is handled. ("open" is an app-level
                    command so it isn't handled by any widget directly.) */
                 postCommandf_App("~open doc:%p %s",
-                                  document_Root(newWin->base.roots[0]), 
+                                  document_Root(newWin->base.roots[0]),
                                   urlAndArgs);
             }
         }
@@ -4959,7 +4959,7 @@ iBool handleCommand_App(const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "tabs.close") && isMainWin) {
-        iWidget *tabs = hasLabel_Command(cmd, "tabs") ? pointerLabel_Command(cmd, "tabs") 
+        iWidget *tabs = hasLabel_Command(cmd, "tabs") ? pointerLabel_Command(cmd, "tabs")
                                                       : findWidget_App("doctabs");
         /* Can't close the last tab on mobile. */
         if (isMobile_Platform() && tabCount_Widget(tabs) == 1 && numRoots_Window(get_Window()) == 1) {
