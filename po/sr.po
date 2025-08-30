@@ -2912,9 +2912,6 @@ msgstr "Картице"
 msgid "sidebar.subscriptions"
 msgstr "Претплате"
 
-msgid "sidebar.gempub"
-msgstr "Gempub"
-
 msgid "sidebar.page"
 msgstr "Прилагођено"
 

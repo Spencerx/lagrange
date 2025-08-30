@@ -2890,9 +2890,6 @@ msgstr "Välilehdet"
 msgid "sidebar.subscriptions"
 msgstr "Tilaukset"
 
-msgid "sidebar.gempub"
-msgstr "Gempub"
-
 msgid "sidebar.sub.empty"
 msgstr "Tyhjä syöte"
 

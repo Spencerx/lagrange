@@ -2897,9 +2897,6 @@ msgstr "Sekmeler"
 msgid "sidebar.subscriptions"
 msgstr "Abonelikler"
 
-msgid "sidebar.gempub"
-msgstr "Gempub"
-
 msgid "sidebar.page"
 msgstr "Özel"
 
