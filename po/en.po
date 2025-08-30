@@ -565,12 +565,6 @@ msgstr "Tabs"
 msgid "sidebar.subscriptions"
 msgstr "Subscriptions"
 
-msgid "sidebar.gempub"
-msgstr "Gempub"
-
-msgid "sidebar.page"
-msgstr "Custom"
-
 msgid "sidebar.action.bookmarks.newfolder"
 msgstr "New Folder"
 
