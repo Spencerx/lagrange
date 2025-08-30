@@ -31,6 +31,7 @@ Fixes:
 * Clearing history did not update sidebars.
 * Updating navbar back/forward buttons when switching tabs.
 * Update link numbers/keys after a scroll stops, if numbering was activated during the scroll.
+* When parsing a username from a URL, require the name appears at the start of the path.
 * Potential crash when minimizing a window.
 * Gopher: Encode `%` in the selector when forming a link URI.
 

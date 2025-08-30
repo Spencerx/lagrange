@@ -279,8 +279,8 @@ uint16_t urlPort_String(const iString *d) {
 iRangecc urlUser_String(const iString *d) {
     static iRegExp *userPats_[2];
     if (!userPats_[0]) {
-        userPats_[0] = new_RegExp("~([^/?]+)", 0);
-        userPats_[1] = new_RegExp("/users/([^/?]+)", caseInsensitive_RegExpOption);
+        userPats_[0] = new_RegExp("^/~([^/?]+)", 0);
+        userPats_[1] = new_RegExp("^/users/([^/?]+)", caseInsensitive_RegExpOption);
     }
     iUrl url;
     init_Url(&url, d);
