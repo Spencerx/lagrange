@@ -375,7 +375,9 @@ static void updateBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
             items,
             (iMenuItem[]) {
                 { openTab_Icon " ${menu.folder.opentab}", 0, 0, "bookmark.open newtab:1" },
+#if !defined (iPlatformTerminal)
                 { openWindow_Icon " ${menu.openwindow}", 0, KMOD_DESKTOP, "bookmark.open newwindow:1" },
+#endif
                 { "---" },
                 { edit_Icon " ${menu.edit}", 0, 0, "bookmark.edit" },
                 { "---" },
@@ -1261,7 +1263,7 @@ static void updateItemHeight_SidebarWidget_(iSidebarWidget *d) {
 #if !defined(iPlatformTerminal)
     const float heights[max_SidebarMode] = { 1.333f, 2.333f, 2.5f, 0, 1.2f, 1.2f, 1.333f, 1.333f };
 #else
-    const float heights[max_SidebarMode] = { 1, 3, 1, 1, 0, 1, 1, 1 };
+    const float heights[max_SidebarMode] = { 1, 3, 3, 0, 1, 1, 1, 1 };
 #endif
     if (d->list) {
         setItemHeight_ListWidget(d->list, heights[d->mode] * lineHeight_Text(d->itemFonts[0]));
@@ -1463,7 +1465,7 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
         as_Widget(d->modeButtons[i])->flags2 |= slidingSheetDraggable_WidgetFlag2; /* phone */
     }
     /* Dropdown menu for changing the mode. */
-    if (!isSlidingSheet_SidebarWidget_(d)) {
+    if (!isSlidingSheet_SidebarWidget_(d) && !isTerminal_Platform()) {
         const char *barId = cstr_String(id_Widget(w));
         // clang-format off
         const iMenuItem modeDropItems[] = {
@@ -3260,7 +3262,7 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
             if (!isEmpty_String(&d->meta)) {
                 iInt2 drawPos = addY_I2(topLeft_Rect(itemRect), d->id);
                 drawHLine_Paint(p,
-                                addY_I2(drawPos, -gap_UI),
+                                addY_I2(drawPos, -gap_UI * aspect_UI),
                                 width_Rect(itemRect) - blankWidth,
                                 uiSeparator_ColorId);
                 drawRange_Text(
@@ -3331,9 +3333,10 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
         if (isActive && !isHover && !isPressing) {
             fillRect_Paint(p, itemRect, uiBackgroundUnfocusedSelection_ColorId);
         }
-        const iInt2 pos = add_I2(
-            topLeft_Rect(itemRect),
-            init_I2(3 * gap_UI + d->indent * 5 * gap_UI, (itemHeight - lineHeight_Text(font)) / 2));
+        const iInt2 pos =
+            add_I2(topLeft_Rect(itemRect),
+                   init_I2(3 * gap_UI * aspect_UI + d->indent * 5 * gap_UI * aspect_UI,
+                           (itemHeight - lineHeight_Text(font)) / 2));
         const int span = measureRange_Text(font, range_String(&d->label)).advance.x;
         drawRange_Text(font, pos, fg, range_String(&d->label));
         if (d->indent > 0) {
@@ -3341,20 +3344,22 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                 drawCenteredRange_Text(
                     font,
                     initCorners_Rect(
-                        addX_I2(pos, gap_UI * (isSlidingSheet_SidebarWidget_(sidebar) ? -7 : -6)),
+                        addX_I2(pos,
+                                gap_UI * (isSlidingSheet_SidebarWidget_(sidebar) ? -7 : -6) *
+                                    aspect_UI),
                         init_I2(pos.x, pos.y + lineHeight_Text(font))),
                     iTrue,
                     fg3,
                     range_CStr(isUnfolded ? downAngle_Icon : rightAngle_Icon));
             }
             if (d->count > 0) {
-                draw_Text(
-                    uiLabel_FontId,
-                    add_I2(pos,
-                           init_I2(span + gap_UI, ascent_Text(font) - ascent_Text(uiLabel_FontId))),
-                    fg2,
-                    " (%d)",
-                    d->count);
+                draw_Text(uiLabel_FontId,
+                          add_I2(pos,
+                                 init_I2(span + gap_UI * aspect_UI,
+                                         ascent_Text(font) - ascent_Text(uiLabel_FontId))),
+                          fg2,
+                          " (%d)",
+                          d->count);
             }
         }
     }

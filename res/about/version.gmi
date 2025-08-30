@@ -37,6 +37,7 @@ Fixes:
 * Crash when opening a malformed Titan URI.
 * Potential crash when minimizing a window.
 * Gopher: Encode `%` in the selector when forming a link URI.
+* TUI: Handling non-printable characters in the text renderer.
 
 ## 1.18.8
 * Reject Gemini responses that don't use an SP character (ASCII 32) as a separator, as required by the specification.

@@ -258,7 +258,8 @@ static void runSimple_Font_(iFont *d, const iRunArgs *args) {
                 prevCh = 0;
                 continue;
             }
-            if (isDefaultIgnorable_Char(ch) || isFitzpatrickType_Char(ch)) {
+            if ((ch >= 0x80 && ch <= 0x9f /* C1 range */) || isDefaultIgnorable_Char(ch) ||
+                isFitzpatrickType_Char(ch)) {
                 continue;
             }
         }
