@@ -2298,6 +2298,7 @@ void createUserInterface_Root(iRoot *d) {
         addAction_Widget(root, '8', rightSidebarTab_KeyModifier, "sidebar2.mode arg:7 toggle:1");
         addAction_Widget(root, 'j', KMOD_PRIMARY, "splitmenu.open");
         addAction_Widget(root, SDLK_F10, 0, "menubar.focus");
+        addAction_Widget(root, 't', KMOD_PRIMARY | KMOD_ALT, "tabs.swap newwindow:1");
     }
     updateMetrics_Root(d);
     updateNavBarSize_(navBar);

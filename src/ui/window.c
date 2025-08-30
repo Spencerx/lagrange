@@ -173,6 +173,7 @@ static const iMenuItem windowMenuItems_[] = {
     { "${menu.tab.prev}", 0, 0, "tabs.prev" },
     { "${menu.duptab}", 0, 0, "tabs.new duplicate:1" },
 #if !defined (iPlatformTerminal)
+    { "${menu.movetab.newwindow", 0, 0, "tabs.swap newwindow:1" },
     { "---" },
     { "${menu.window.min}", 0, 0, "window.minimize" },
     { "${menu.window.max}", 0, 0, "window.maximize" },
@@ -210,7 +211,7 @@ const iMenuItem topLevelMenus_Window[7] = {
 };
 
 size_t numWindowMenuItems_Window(void) {
-    return iElemCount(windowMenuItems_) - 1; /* don't count the terminal */
+    return iElemCount(windowMenuItems_) - 1; /* don't count the terminator */
 }
 
 #if defined (LAGRANGE_MAC_MENUBAR)

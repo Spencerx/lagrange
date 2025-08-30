@@ -2978,7 +2978,7 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
         size_t       tabIndex  = tabPageIndex_Widget(docTabs, d);
         iMainWindow *newWin    = NULL;
         if (argLabel_Command(cmd, "newwindow")) {
-            newWin = newMainWindow_App();
+            newWin    = newMainWindow_App();
             otherRoot = newWin->base.roots[0];
         }
         iWidget *oldTab = removeTabPage_Widget(docTabs, tabIndex); /* old tab is deleted later */

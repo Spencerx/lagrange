@@ -17,15 +17,16 @@ New features:
 * Setting for permanently hiding the horizontal tab bar. You can manage open tabs using the sidebar.
 * Setting for showing quote text without italics.
 * Link context menu action for copying the label text.
+* Keyboard shortcuts for sidebar modes and moving current tab to a new window.
 * JPEG XL image decoding is supported via libjxl (optional). (Courtesy of Christoph Liebender.)
 
 Changes and enhancements:
 * Individual sidebar tabs can be shown and hidden. You can configure the tabs separately for the left and right bars.
 * The left and right sidebars have different tabs by default (previously the same tabs were on both sides).
-* A new dropdown menu in the sidebar header allows switching to any mode.
+* A dropdown menu in the sidebar header allows switching to any mode.
 * Reorganized settings: the Fonts tab has returned, and there is now a Theme tab for page theme settings.
 * X11: Restore window positions in their previous workspaces. (Courtesy of @norayr.)
-* macOS: Icons for context menu items.
+* macOS: More icons for context menu items.
 
 Fixes:
 * Moving a tab to a new window or opening a link in a new window sometimes confused which window was the target.
