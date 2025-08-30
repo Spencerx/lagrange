@@ -3240,8 +3240,14 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
     }
     else if (equal_Command(cmd, "document.copylink") && document_App() == d) {
         if (d->contextLink) {
-            SDL_SetClipboardText(cstr_String(canonicalUrl_String(absoluteUrl_String(
-                d->mod.url, linkUrl_GmDocument(d->view->doc, d->contextLink->linkId)))));
+            if (argLabel_Command(cmd, "label")) {
+                SDL_SetClipboardText(
+                    cstr_Rangecc(linkLabel_GmDocument(d->view->doc, d->contextLink->linkId)));
+            }
+            else {
+                SDL_SetClipboardText(cstr_String(canonicalUrl_String(absoluteUrl_String(
+                    d->mod.url, linkUrl_GmDocument(d->view->doc, d->contextLink->linkId)))));
+            }
         }
         else {
             SDL_SetClipboardText(cstr_String(canonicalUrl_String(d->mod.url)));
@@ -4377,7 +4383,9 @@ static iWidget *makeLinkContextMenuWithParameters_DocumentWidget_(iDocumentWidge
         items,
         (iMenuItem[]){
             { "---" },
-            { "${link.copy}", 0, 0, "document.copylink" },
+            { copy_Icon " ${link.copy}", 0, 0, "document.copylink" },
+            { "${link.copy.label}", 0, 0, "document.copylink label:1" },
+            { "---" },
             { bookmark_Icon " ${link.bookmark}", 0, 0,
               format_CStr("!bookmark.add title:%s url:%s", cstr_String(encLabel), cstr_String(linkUrl)) },
             { clipboard_Icon " ${link.snippet}", 0, 0,

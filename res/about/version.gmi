@@ -16,6 +16,7 @@ New features:
 * Subscriptions sidebar context menu action "Reset Known Entries" for clearing the local cache of known entries. On next refresh, only the entries present in the source(s) are stored. (This is equivalent to manually deleting the "feeds.txt" file.)
 * Setting for permanently hiding the horizontal tab bar. You can manage open tabs using the sidebar.
 * Setting for showing quote text without italics.
+* Link context menu action for copying the label text.
 * JPEG XL image decoding is supported via libjxl (optional). (Courtesy of Christoph Liebender.)
 
 Changes and enhancements:
