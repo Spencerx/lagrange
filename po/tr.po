@@ -2897,9 +2897,6 @@ msgstr "Sekmeler"
 msgid "sidebar.subscriptions"
 msgstr "Abonelikler"
 
-msgid "sidebar.page"
-msgstr "Özel"
-
 msgid "sidebar.sub.empty"
 msgstr "Boş besleme"
 

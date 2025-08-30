@@ -2912,9 +2912,6 @@ msgstr "Картице"
 msgid "sidebar.subscriptions"
 msgstr "Претплате"
 
-msgid "sidebar.page"
-msgstr "Прилагођено"
-
 msgid "hint.filter.bookmark"
 msgstr "филтрирање обележивача"
 

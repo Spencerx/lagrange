@@ -2880,9 +2880,6 @@ msgstr "Citar texto en cursiva:"
 msgid "sidebar.structure"
 msgstr "Estrutura"
 
-msgid "sidebar.page"
-msgstr "Personalizado"
-
 msgid "sidebar.sub.empty"
 msgstr "Canle baleira"
 
