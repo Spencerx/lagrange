@@ -2519,7 +2519,7 @@ msgid "error.badheader"
 msgstr "Invalid Header"
 
 msgid "error.badheader.msg"
-msgstr "The received header does not conform to the Gemini protocol specification. Perhaps the server is malfunctioning, or you tried to contact a non-Gemini server."
+msgstr "The received header does not conform to the protocol specification. Perhaps the server is malfunctioning or does not support this protocol."
 
 msgid "error.incompleteheader"
 msgstr "Incomplete Header"
