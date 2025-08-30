@@ -130,6 +130,7 @@ struct Impl_SidebarWidget {
     iBool             isEditing; /* mobile edit mode */
     int               modeScroll[max_SidebarMode];
     iLabelWidget     *modeButtons[max_SidebarMode];
+    iLabelWidget     *firstVisibleModeButton;
     int               maxButtonLabelWidth;
     float             widthAsGaps;
     int               buttonFont;
@@ -1442,18 +1443,23 @@ void init_SidebarWidget(iSidebarWidget *d, enum iSidebarSide side) {
     iWidget *buttons = new_Widget();
     setId_Widget(buttons, "buttons");
     setDrawBufferEnabled_Widget(buttons, iTrue);
+    d->firstVisibleModeButton = NULL;
     for (int i = 0; i < max_SidebarMode; i++) {
         if (i == identities_SidebarMode && deviceType_App() != desktop_AppDeviceType) {
             /* On mobile, identities are managed via Settings. */
             continue;
         }
+        const iBool isEnabled = prefs_App()->sidebarModeEnabled[d->side][i];
         d->modeButtons[i] = addChildFlags_Widget(
             buttons,
             iClob(new_LabelWidget(tightModeLabels_[i],
                                   format_CStr("%s.mode arg:%d", cstr_String(id_Widget(w)), i))),
             frameless_WidgetFlag | noBackground_WidgetFlag | expand_WidgetFlag |
                 collapse_WidgetFlag |
-                (!prefs_App()->sidebarModeEnabled[d->side][i] ? hidden_WidgetFlag : 0));
+                (isEnabled ? 0 : hidden_WidgetFlag));
+        if (!d->firstVisibleModeButton && isEnabled) {
+            d->firstVisibleModeButton = d->modeButtons[i];
+        }
         as_Widget(d->modeButtons[i])->flags2 |= slidingSheetDraggable_WidgetFlag2; /* phone */
     }
     /* Dropdown menu for changing the mode. */
@@ -1697,7 +1703,7 @@ static void checkModeButtonLayout_SidebarWidget_(iSidebarWidget *d) {
         setButtonFont_SidebarWidget(d, isPortrait_App() ? uiLabelMedium_FontId : uiLabel_FontId);
     }
     const iBool isTight = isPortraitPhone_App() ||
-        (width_Rect(bounds_Widget(as_Widget(d->modeButtons[0]))) < d->maxButtonLabelWidth);
+        (width_Rect(bounds_Widget(as_Widget(d->firstVisibleModeButton))) < d->maxButtonLabelWidth);
     const size_t tabCount = tabCount_Widget(findWidget_App("doctabs"));
     for (int i = 0; i < max_SidebarMode; i++) {
         iLabelWidget *button = d->modeButtons[i];
