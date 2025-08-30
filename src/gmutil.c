@@ -151,11 +151,27 @@ void stripUrlPort_String(iString *d) {
     }
 }
 
+static iBool isDefaultPort_Url_(const iUrl *d) {
+    return (equalCase_Rangecc(d->scheme, "gemini") &&
+            equal_Rangecc(d->port, GEMINI_DEFAULT_PORT_CSTR)) ||
+           (equalCase_Rangecc(d->scheme, "gopher") && equal_Rangecc(d->port, "70"));
+}
+
+const iString *urlDefaultPortStripped_String(const iString *d) {
+    iUrl parts;
+    init_Url(&parts, d);
+    if (isDefaultPort_Url_(&parts)) {
+        iString *stripped = copy_String(d);
+        stripDefaultUrlPort_String(stripped);
+        return collect_String(stripped);
+    }
+    return d;
+}
+
 void stripDefaultUrlPort_String(iString *d) {
     iUrl parts;
     init_Url(&parts, d);
-    if (equalCase_Rangecc(parts.scheme, "gemini") &&
-        equal_Rangecc(parts.port, GEMINI_DEFAULT_PORT_CSTR)) {
+    if (isDefaultPort_Url_(&parts)) {
         /* Always preceded by a colon. */
         remove_Block(&d->chars, parts.port.start - 1 - constBegin_String(d),
                      size_Range(&parts.port) + 1);

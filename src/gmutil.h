@@ -142,6 +142,7 @@ void            punyEncodeDomain_Rangecc(iRangecc domain, iString *encoded_out);
 void            punyEncodeUrlHost_String(iString *absoluteUrl);
 void            stripUrlPort_String     (iString *);
 void            stripDefaultUrlPort_String(iString *);
+const iString * urlDefaultPortStripped_String(const iString *);
 const iString * urlFragmentStripped_String(const iString *);
 const iString * urlQueryStripped_String (const iString *);
 iString *       withUrlParameters_String(const iString *d, ... /* key, value */); /* NULL key terminates; value can be NULL */

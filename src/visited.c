@@ -173,7 +173,7 @@ void visitUrl_Visited(iVisited *d, const iString *url, uint16_t visitFlags) {
 
 void visitUrlTime_Visited(iVisited *d, const iString *url, uint16_t visitFlags, iTime when) {
     if (isEmpty_String(url)) return;
-    url = canonicalUrl_String(url);
+    url = canonicalUrl_String(urlDefaultPortStripped_String(url));
     iVisitedUrl visit;
     init_VisitedUrl(&visit);
     visit.when = when;
