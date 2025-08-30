@@ -2898,7 +2898,7 @@ iWidget *makeQuestion_Widget(const char *title, const char *msg,
     arrange_Widget(dlg); /* BUG: This extra arrange shouldn't be needed but the dialog won't
                             be arranged correctly unless it's here. */
     setupSheetTransition_Mobile(dlg, iTrue);
-    /* If this prompt is opened as a result of a context menu action, the menu 
+    /* If this prompt is opened as a result of a context menu action, the menu
        will switch keyboard focus back to its owner when it closes. This would
        leave keyboard focus outside the dialog's focus root. */
     postCommand_Root(dlg->root, "focus.default");
@@ -3763,9 +3763,6 @@ iWidget *makePreferences_Widget(void) {
             }
         }
         addDialogPadding_(headings, values);
-#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
-        addDialogToggle_Widget(headings, values, "${prefs.customframe}", "prefs.customframe");
-#endif
         addDialogToggleGroup_(
             headings,
             values,
@@ -3785,6 +3782,9 @@ iWidget *makePreferences_Widget(void) {
             // makeTwoColumnHeading_("${heading.prefs.sizing}", headings, values);
             addPrefsInputWithHeading_(headings, values, "prefs.uiscale", iClob(new_InputWidget(5)));
             addDialogToggle_Widget(headings, values, "${prefs.retainwindow}", "prefs.retainwindow");
+#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
+            addDialogToggle_Widget(headings, values, "${prefs.customframe}", "prefs.customframe");
+#endif
             addDialogPadding_(headings, values);
             addDialogToggle_Widget(headings, values, "${prefs.editor.highlight}", "prefs.editor.highlight");
         }
