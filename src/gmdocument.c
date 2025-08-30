@@ -349,7 +349,8 @@ static iBool isAllowedLinkIcon_Char_(iChar icon) {
            icon == 0x29bf /* circled bullet */ ||
            icon == 0x2a2f /* close X */ ||
            (icon >= 0x2b00 && icon <= 0x2bff) ||
-           icon == 0x20bf /* bitcoin */;
+           icon == 0x20bf /* bitcoin */ ||
+           (icon >= 0x1f191 && icon <= 0x1f19a) /* enclosed signs */;
 }
 
 static iRangecc addLink_GmDocument_(iGmDocument *d, iRangecc line, iGmLinkId *linkId) {
