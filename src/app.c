@@ -179,6 +179,7 @@ struct Impl_App {
     iBool        isFinishedLaunching;
     iTime        lastDropTime; /* for detecting drops of multiple items */
     uint32_t     lastVisitedSaveTime;
+    iBool        pendingVisitedSave; /* need to save visited URLs soon */
     int          autoReloadTimer; /* TODO: only start this when tabs are autoreloading */
     iPeriodic    periodic;
     int          warmupFrames; /* forced refresh just after resuming from background; FIXME: shouldn't be needed */
@@ -1052,6 +1053,34 @@ void commitFile_App(const char *path, const char *tempPathWithNewContents) {
     remove(cstr_String(oldPath));
 }
 
+ void deferVisitedSave_App(void) {
+     iApp *d = &app_;
+    /* This gets called after the visited URLs have changed, but we want to avoid
+       writing them constantly to the file. */
+    const uint32_t now     = SDL_GetTicks();
+    const uint32_t seconds = (now - d->lastVisitedSaveTime) / 1000;
+    iRoot        **roots   = d->window->roots;
+    if (seconds >= 60) {
+        d->lastVisitedSaveTime = now;
+        if (d->pendingVisitedSave) {
+            d->pendingVisitedSave = iFalse;
+            save_Visited(d->visited, dataDir_App_());
+        }
+    }
+    else if (d->pendingVisitedSave) {
+        /* Do it later. */
+        addDelay_Periodic(&d->periodic,
+                          (60 - seconds) * 1000, roots[0]->widget,
+                          "visited.save");
+        return;
+    }
+    iForIndices(i, roots) {
+        if (roots[i]) {
+            remove_Periodic(&d->periodic, roots[i]->widget);
+        }
+    }
+}
+
 #if defined (LAGRANGE_ENABLE_IDLE_SLEEP)
 static uint32_t checkAsleep_App_(uint32_t interval, void *param) {
     iApp *d = param;
@@ -1396,6 +1425,7 @@ static void init_App_(iApp *d, int argc, char **argv) {
     d->visited   = new_Visited();
     d->bookmarks = new_Bookmarks();
     d->lastVisitedSaveTime = 0;
+    d->pendingVisitedSave  = iFalse;
     /* Dumping requested pages. */
     if (doDump) {
         const iGmIdentity *ident = NULL;
@@ -2046,13 +2076,16 @@ void processEvents_App(enum iAppEventMode eventMode) {
 #endif
         switch (ev.type) {
             case SDL_QUIT:
-                d->isRunning = iFalse;
-                if (findWidget_App("prefs")) {
-                    /* Make sure changed preferences get saved. */
-                    postCommand_Root(NULL, "prefs.dismiss");
-                    processEvents_App(postedEventsOnly_AppEventMode);
+                if (!isMobile_Platform()) {
+                    d->isRunning = iFalse;
+                    if (findWidget_App("prefs")) {
+                        /* Make sure changed preferences get saved. */
+                        postCommand_Root(NULL, "prefs.dismiss");
+                        processEvents_App(postedEventsOnly_AppEventMode);
+                    }
+                    goto backToMainLoop;
                 }
-                goto backToMainLoop;
+                break;
             case SDL_APP_TERMINATING: {
                 iForEach(PtrArray, i, &d->mainWindows) {
                     setFreezeDraw_MainWindow(*i.value, iTrue);
@@ -2098,6 +2131,10 @@ void processEvents_App(enum iAppEventMode eventMode) {
 #endif
                 iForEach(PtrArray, i, &d->mainWindows) {
                     setFreezeDraw_MainWindow(*i.value, iTrue);
+                }
+                if (d->pendingVisitedSave) {
+                    save_Visited(visited_App(), dataDir_App_());
+                    d->pendingVisitedSave = iFalse;
                 }
                 savePrefs_App_(d);
                 saveState_App_(d, iTrue);
@@ -4385,12 +4422,8 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "visited.changed")) {
         /* The visited file can grow large, so don't keep rewriting it after every navigation. */
-        const uint32_t now = SDL_GetTicks();
-        unsigned seconds = (now - d->lastVisitedSaveTime) / 1000;
-        if (seconds > 60) {
-            d->lastVisitedSaveTime = now;
-            save_Visited(d->visited, dataDir_App_());
-        }
+        d->pendingVisitedSave = iTrue;
+        deferVisitedSave_App();
         return iFalse;
     }
     else if (equal_Command(cmd, "idents.changed")) {

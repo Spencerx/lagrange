@@ -11,6 +11,7 @@
 * Added setting for hiding the tab bar. You can manage open tabs in the toolbar "Tabs" tab.
 * Added settings to choose which toolbar tabs are shown.
 * Modernized appearance of UI widgets and layout.
+* Fixed saving history (i.e., feed entry read status) when app goes to background.
 * Fixed updating the page context menu so it reflects the state of the current page.
 * Fixed minor UI glitches.
 

@@ -760,6 +760,10 @@ iBool handleRootCommands_Widget(iWidget *root, const char *cmd) {
         refresh_Widget(findWidget_App("toolbar"));
         return iFalse;
     }
+    else if (equal_Command(cmd, "visited.save")) {
+        deferVisitedSave_App();
+        return iTrue;
+    }
     return iFalse;
 }
 

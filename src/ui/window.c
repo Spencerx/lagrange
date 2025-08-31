@@ -917,7 +917,6 @@ iBool isFullscreen_MainWindow(const iMainWindow *d) {
 }
 
 iRoot *findRoot_Window(const iWindow *d, const iWidget *widget) {
-
     while (widget->parent) {
         widget = widget->parent;
     }

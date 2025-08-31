@@ -794,6 +794,7 @@ static iBool isCommandIgnoredByMenus_(const char *cmd) {
            equal_Command(cmd, "android.input.selrange") ||
            equal_Command(cmd, "scrollbar.fade") ||
            equal_Command(cmd, "visited.changed") ||
+           equal_Command(cmd, "visited.save") ||
            (deviceType_App() == desktop_AppDeviceType && equal_Command(cmd, "window.resized")) ||
            equal_Command(cmd, "widget.overflow") ||
            equal_Command(cmd, "metrics.changed") ||
@@ -2814,6 +2815,7 @@ static iBool messageHandler_(iWidget *msg, const char *cmd) {
           equal_Command(cmd, "menu.opened") ||
           equal_Command(cmd, "menu.closed") ||
           equal_Command(cmd, "input.backup") ||
+          startsWith_CStr(cmd, "visited.") ||
           startsWith_CStr(cmd, "cancel menu:") ||
           startsWith_CStr(cmd, "feeds.update.") ||
           startsWith_CStr(cmd, "window."))) {
