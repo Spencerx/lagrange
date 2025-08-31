@@ -88,7 +88,8 @@ iLocalDef enum iFontSize size_FontId(enum iFontId id) {
 }
 
 iLocalDef iBool isControl_Char(iChar c) {
-    return isDefaultIgnorable_Char(c) || isVariationSelector_Char(c) || isFitzpatrickType_Char(c);
+    return isDefaultIgnorable_Char(c) || isVariationSelector_Char(c) || isFitzpatrickType_Char(c) ||
+           (c >= 0x80 && c <= 0x9f) /* C1 range */;
 }
 
 struct Impl_BaseFont {
