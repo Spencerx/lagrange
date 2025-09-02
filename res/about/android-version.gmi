@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.19 (Beta 42)
+* Fixed excessive padding on right edge of list items.
+
 ## 1.19 (Beta 41)
 * Fixed UI layout when the virtual keyboard is visible.
 
