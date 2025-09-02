@@ -2569,7 +2569,7 @@ iRect visibleRect_Root(const iRoot *d) {
     if (get_MainWindow()) {
         const int keyboardHeight = get_MainWindow()->keyboardHeight;
         if (keyboardHeight > bottom) {
-            adjustEdges_Rect(&visRect, 0, 0, -keyboardHeight + bottom, 0);
+            adjustEdges_Rect(&visRect, 0, 0, -keyboardHeight + (!isAndroid_Platform() ? bottom : 0), 0);
         }
     }
     return visRect;
