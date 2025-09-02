@@ -698,9 +698,9 @@ static void arrange_Widget_(iWidget *d) {
         setHeight_Widget_(d, height_Rect(innerRect_Widget_(d->parent)));
     }
     if (d->flags & safePadding_WidgetFlag) {
-#if defined (iPlatformAppleMobile)
+#if defined (iPlatformMobile)
         float left, top, right, bottom;
-        safeAreaInsets_iOS(&left, &top, &right, &bottom);
+        safeAreaInsets_Mobile(&left, &top, &right, &bottom);
         setPadding_Widget(d, left, top, right, bottom);
 #endif
     }

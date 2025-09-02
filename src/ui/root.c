@@ -891,10 +891,10 @@ static void checkLoadAnimation_Root_(iRoot *d) {
 
 void updatePadding_Root(iRoot *d) {
     if (!d) return;
-#if defined (iPlatformAppleMobile)
+#if defined (iPlatformMobile)
     iWidget *toolBar = findChild_Widget(d->widget, "toolbar");
     float left, top, right, bottom;
-    safeAreaInsets_iOS(&left, &top, &right, &bottom);
+    safeAreaInsets_Mobile(&left, &top, &right, &bottom);
     /* Respect the safe area insets. */ {
         setPadding_Widget(findChild_Widget(d->widget, "navdiv"), left, top, right, 0);
         if (toolBar) {
@@ -2415,9 +2415,9 @@ static void updateBottomBarPosition_(iWidget *bottomBar, iBool animate) {
             bottomTabBar = iFalse; /* it's not visible */
         }
     }
-#if defined (iPlatformAppleMobile)
+#if defined (iPlatformMobile)
     if (bottomTabBar) {
-        safeAreaInsets_iOS(NULL, NULL, NULL, &bottomSafe);
+        safeAreaInsets_Mobile(NULL, NULL, NULL, &bottomSafe);
         if (bottomSafe >= gap_UI) {
             bottomSafe -= gap_UI; /* kludge: something's leaving a gap between the tabs and the bottombar */
         }
@@ -2517,9 +2517,9 @@ iRect rect_Root(const iRoot *d) {
 
 iRect safeRect_Root(const iRoot *d) {
     iRect rect = rect_Root(d);
-#if defined (iPlatformAppleMobile)
+#if defined (iPlatformMobile)
     float left, top, right, bottom;
-    safeAreaInsets_iOS(&left, &top, &right, &bottom);
+    safeAreaInsets_Mobile(&left, &top, &right, &bottom);
     adjustEdges_Rect(&rect, top, -right, -bottom, left);
 #endif
     return rect;
@@ -2528,10 +2528,10 @@ iRect safeRect_Root(const iRoot *d) {
 iRect visibleRect_Root(const iRoot *d) {
     iRect visRect = rect_Root(d);
     float bottom = 0.0f;
-#if defined (iPlatformAppleMobile)
+#if defined (iPlatformMobile)
     /* TODO: Check this on device... Maybe DisplayUsableBounds would be good here, too? */
     float left, top, right;
-    safeAreaInsets_iOS(&left, &top, &right, &bottom);
+    safeAreaInsets_Mobile(&left, &top, &right, &bottom);
     visRect.pos.x = (int) left;
     visRect.size.x -= (int) (left + right);
     visRect.pos.y = (int) top;

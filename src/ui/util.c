@@ -1619,10 +1619,10 @@ void openMenuAnchorFlags_Widget(iWidget *d, iRect windowAnchorRect, int menuOpen
     int         rightExcess  = right_Rect(bounds) - right_Rect(rootRect);
     int         topExcess    = top_Rect(rootRect) + d->overflowTopMargin - top_Rect(bounds);
     int         bottomExcess = bottom_Rect(bounds) - bottom_Rect(rootRect);
-#if defined (iPlatformAppleMobile)
+#if defined (iPlatformMobile)
     /* Reserve space for the system status bar. */ {
         float l, t, r, b;
-        safeAreaInsets_iOS(&l, &t, &r, &b);
+        safeAreaInsets_Mobile(&l, &t, &r, &b);
         topExcess    += t;
         bottomExcess += iMax(b, get_MainWindow()->keyboardHeight);
         leftExcess   += l;
