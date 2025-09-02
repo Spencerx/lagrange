@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.19.1
+* Fixed opening tab button context menus.
+
 ## 1.19
 
 New features:

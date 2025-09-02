@@ -2304,16 +2304,19 @@ void showTabPage_Widget(iWidget *tabs, const iAnyObject *page) {
             setFlags_Widget(label, selected_WidgetFlag, isSel);
         }
     }
+    iBool wasChanged = iFalse;
     /* Show/hide pages. */ {
         iWidget *pages = findChild_Widget(tabs, "tabs.pages");
         iForEach(ObjectList, i, pages->children) {
-            iWidget *child = as_Widget(i.object);
-            setFlags_Widget(child, hidden_WidgetFlag | disabled_WidgetFlag, child != page);
+            iWidget    *child    = as_Widget(i.object);
+            const iBool willHide = (child != page);
+            if (flags_Widget(child) & hidden_WidgetFlag && !willHide) wasChanged |= iTrue;
+            setFlags_Widget(child, hidden_WidgetFlag | disabled_WidgetFlag, willHide);
         }
         refresh_Widget(tabs);
     }
     /* Notify. */
-    if (!isEmpty_String(id_Widget(page))) {
+    if (wasChanged && !isEmpty_String(id_Widget(page))) {
         postCommandf_Root(constAs_Widget(page)->root,
                           "tabs.changed id:%s",
                           cstr_String(id_Widget(constAs_Widget(page))));

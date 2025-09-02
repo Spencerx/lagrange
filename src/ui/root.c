@@ -1344,7 +1344,7 @@ static iBool handleNavBarCommands_(iWidget *navBar, const char *cmd) {
         makePaletteGlobal_GmDocument(document_DocumentWidget(doc));
         refresh_Widget(findWidget_Root("doctabs"));
     }
-    else if (equal_Command(cmd, "mouse.clicked") && arg_Command(cmd)) {
+    else if (equal_Command(cmd, "mouse.clicked")) {
         iWidget *widget = pointer_Command(cmd);
         iWidget *menu = findWidget_App("doctabs.menu");
         iAssert(menu->root == navBar->root);
@@ -1353,11 +1353,17 @@ static iBool handleNavBarCommands_(iWidget *navBar, const char *cmd) {
                 iWidget *tabs = findWidget_App("doctabs");
                 iWidget *page = tabPage_Widget(tabs, indexOfChild_Widget(widget->parent, widget));
                 if (argLabel_Command(cmd, "button") == SDL_BUTTON_MIDDLE) {
-                    postCommandf_App("tabs.close id:%s", cstr_String(id_Widget(page)));
-                    return iTrue;
+                    if (!arg_Command(cmd)) {
+                        postCommandf_App("tabs.close id:%s", cstr_String(id_Widget(page)));
+                        return iTrue;
+                    }
                 }
-                showTabPage_Widget(tabs, page);
-                openMenu_Widget(menu, coord_Command(cmd));
+                if (arg_Command(cmd)) { /* switch tabs on button down */
+                    showTabPage_Widget(tabs, page);
+                }
+                else { /* open context menu on button up */
+                    openMenu_Widget(menu, coord_Command(cmd));
+                }
             }
         }
     }
