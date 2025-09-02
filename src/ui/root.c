@@ -1528,9 +1528,9 @@ static iBool handleToolBarCommands_(iWidget *toolBar, const char *cmd) {
         }
         const iWidget *navBar = findChild_Widget(bottomBar, "navbar");
 #if defined (iPlatformAppleMobile)
-        const int showSpan = 400;
-        const int hideSpan = 350;
-        const int animFlag = easeOut_AnimFlag | softer_AnimFlag;
+        const int showSpan = 500;
+        const int hideSpan = 250;
+        const int animFlag = easeOut_AnimFlag | muchSofter_AnimFlag;
         int landscapeOffset = 5 * gap_UI; /* TODO: Why this amount? Something's funny here. */
 #else
         const int showSpan = 350;
@@ -1539,7 +1539,13 @@ static iBool handleToolBarCommands_(iWidget *toolBar, const char *cmd) {
         int landscapeOffset = 0;
 #endif
         if (focus_Widget() == findChild_Widget(navBar, "url") && height > 0) {
-            int keyboardPad = height - height_Widget(navBar) + (isLandscape_App() ? 9 * gap_UI : 0);
+            int keyboardPad;
+            if (isAppleMobile_Platform()) {
+                keyboardPad = height - (isPortrait_App() ? height_Widget(toolBar) : landscapeOffset);
+            }
+            else {
+                keyboardPad = height - height_Widget(navBar) + (isLandscape_App() ? 9 * gap_UI : 0);
+            }
             bottomBar->padding[3] = keyboardPad;
             arrange_Widget(bottomBar);
             arrange_Widget(bottomBar);
