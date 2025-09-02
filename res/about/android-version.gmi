@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.19 (Beta 41)
+* Fixed UI layout when the virtual keyboard is visible.
+
 ## 1.19 (Beta 40)
 * Fixed system window insets having no effect on the UI.
 
