@@ -7,7 +7,10 @@
 # Release notes
 
 ## 1.19.1
-* Fixed opening tab button context menus.
+* Fixed tab context menu placement.
+* Fixed popups being dismissed prematurely (by an input notification).
+* Fixed missing hover indication on a keyboard-focused button.
+* Fixed text colors in New Identity dialog's error popups.
 
 ## 1.19
 

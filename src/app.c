@@ -3584,7 +3584,7 @@ static iBool handleIdentityCreationCommands_(iWidget *dlg, const char *cmd) {
             const iString *country      = text_InputWidget (findChild_Widget(dlg, "ident.country"));
             const iBool    isTemp       = isSelected_Widget(findChild_Widget(dlg, "ident.temp"));
             if (isEmpty_String(commonName)) {
-                makeSimpleMessage_Widget(orange_ColorEscape "${heading.newident.missing}",
+                makeSimpleMessage_Widget(uiHeading_ColorEscape "${heading.newident.missing}",
                                          "${dlg.newindent.missing.commonname}");
                 return iTrue;
             }
@@ -3599,7 +3599,7 @@ static iBool handleIdentityCreationCommands_(iWidget *dlg, const char *cmd) {
                            "%04u-%u-%u %u:%u:%u",
                            &val[0], &val[1], &val[2], &val[3], &val[4], &val[5]);
                 if (n <= 0) {
-                    makeSimpleMessage_Widget(orange_ColorEscape "${heading.newident.date.bad}",
+                    makeSimpleMessage_Widget(uiHeading_ColorEscape "${heading.newident.date.bad}",
                                              "${dlg.newident.date.example}");
                     return iTrue;
                 }
@@ -3621,7 +3621,8 @@ static iBool handleIdentityCreationCommands_(iWidget *dlg, const char *cmd) {
                     initCurrent_Time(&now);
                     init_Time(&t, &until);
                     if (cmp_Time(&t, &now) <= 0) {
-                        makeSimpleMessage_Widget(orange_ColorEscape "${heading.newident.date.bad}",
+                        makeSimpleMessage_Widget(uiHeading_ColorEscape
+                                                 "${heading.newident.date.bad}",
                                                  "${dlg.newident.date.past}");
                         return iTrue;
                     }
