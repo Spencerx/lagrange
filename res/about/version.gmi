@@ -11,6 +11,7 @@
 * Fixed popups being dismissed prematurely (by an input notification).
 * Fixed missing hover indication on a keyboard-focused button.
 * Fixed text colors in New Identity dialog's error popups.
+* Fixed failure to create identity due to timestamp calculation error.
 
 ## 1.19
 

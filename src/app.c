@@ -3596,7 +3596,7 @@ static iBool handleIdentityCreationCommands_(iWidget *dlg, const char *cmd) {
                 initCurrent_Date(&today);
                 const int n =
                     sscanf(cstr_String(text_InputWidget(findChild_Widget(dlg, "ident.until"))),
-                           "%04u-%u-%u %u:%u:%u",
+                           "%u-%u-%u %u:%u:%u",
                            &val[0], &val[1], &val[2], &val[3], &val[4], &val[5]);
                 if (n <= 0) {
                     makeSimpleMessage_Widget(uiHeading_ColorEscape "${heading.newident.date.bad}",
@@ -3620,7 +3620,7 @@ static iBool handleIdentityCreationCommands_(iWidget *dlg, const char *cmd) {
                     iTime now, t;
                     initCurrent_Time(&now);
                     init_Time(&t, &until);
-                    if (cmp_Time(&t, &now) <= 0) {
+                    if (isValid_Time(&t) && cmp_Time(&t, &now) <= 0) {
                         makeSimpleMessage_Widget(uiHeading_ColorEscape
                                                  "${heading.newident.date.bad}",
                                                  "${dlg.newident.date.past}");
