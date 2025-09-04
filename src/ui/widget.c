@@ -2172,6 +2172,12 @@ iAny *addChildFlags_Widget(iWidget *d, iAnyObject *child, int64_t childFlags) {
     return addChild_Widget(d, child);
 }
 
+iAny *addChildIdFlags_Widget(iWidget *d, iAnyObject *child, const char *id, int64_t childFlags) {
+    setFlags_Widget(child, childFlags, iTrue);
+    setId_Widget(child, id);
+    return addChild_Widget(d, child);
+}
+
 iAny *removeChild_Widget(iWidget *d, iAnyObject *child) {
     if (!d || !child) {
         return NULL;

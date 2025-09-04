@@ -3141,20 +3141,6 @@ iBool isLandscape_App(void) {
     return size.x > size.y;
 }
 
-enum iAppDeviceType deviceType_App(void) {
-#if defined (iPlatformMobilePhone)
-    return phone_AppDeviceType;
-#elif defined (iPlatformMobileTablet)
-    return tablet_AppDeviceType;
-#elif defined (iPlatformAppleMobile)
-    return isPhone_iOS() ? phone_AppDeviceType : tablet_AppDeviceType;
-#elif defined (iPlatformAndroidMobile)
-    return phone_AppDeviceType; /* TODO: Java side could tell us via cmdline if this is a tablet. */
-#else
-    return desktop_AppDeviceType;
-#endif
-}
-
 iBool isRunningUnderWindowSystem_App(void) {
     return app_.isRunningUnderWindowSystem;
 }
