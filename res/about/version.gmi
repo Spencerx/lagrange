@@ -7,6 +7,7 @@
 # Release notes
 
 ## 1.19.1
+* Fixed compile errors and runtime crashes when using the mobile Linux build configuration.
 * Fixed tab context menu placement.
 * Fixed popups being dismissed prematurely (by an input notification).
 * Fixed missing hover indication on a keyboard-focused button.

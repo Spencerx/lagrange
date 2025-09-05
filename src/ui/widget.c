@@ -2344,7 +2344,7 @@ iAny *findOverflowScrollable_Widget(iWidget *d) {
 }
 
 size_t childCount_Widget(const iWidget *d) {
-    if (!d->children) return 0;
+    if (!d || !d->children) return 0;
     return size_ObjectList(d->children);
 }
 

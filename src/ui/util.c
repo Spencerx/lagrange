@@ -2355,7 +2355,7 @@ const iWidget *currentTabPage_Widget(const iWidget *tabs) {
 }
 
 size_t tabCount_Widget(const iWidget *tabs) {
-    return childCount_Widget(findChild_Widget(tabs, "tabs.pages"));
+    return tabs ? childCount_Widget(findChild_Widget(tabs, "tabs.pages")) : 0;
 }
 
 /*-----------------------------------------------------------------------------------------------*/

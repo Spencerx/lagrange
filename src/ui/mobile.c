@@ -1170,6 +1170,15 @@ void setupSheetTransition_Mobile(iWidget *sheet, int flags) {
     }
 }
 
+#if !defined (iPlatformAppleMobile) && !defined (iPlatformAndroidMobile)
+void safeAreaInsets_Mobile(float *left, float *top, float *right, float *bottom) {
+    if (left) *left = 0;
+    if (top) *top = 0;
+    if (right) *right = 0;
+    if (bottom) *bottom = 0;
+}
+#endif
+
 int leftSafeInset_Mobile(void) {
 #if defined (iPlatformMobile)
     float left;
