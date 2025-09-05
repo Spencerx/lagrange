@@ -7,6 +7,7 @@
 # Release notes
 
 ## 1.19 (Beta 42)
+* Added "Use system theme" in Settings > Colors. (Android 10 or newer required.)
 * Fixed excessive padding on right edge of list items.
 
 ## 1.19 (Beta 41)

@@ -3518,7 +3518,7 @@ iWidget *makePreferences_Widget(void) {
         const iMenuItem colorPanelItems[] = {
             { "title id:heading.prefs.colors" },
             { "padding arg:0.667" },
-#if !defined (iPlatformAndroidMobile)
+#if !defined (iPlatformLinuxMobile)
             { "toggle id:prefs.ostheme" },
 #endif
             { "radio id:prefs.theme", 0, 0, (const void *) themeItems },

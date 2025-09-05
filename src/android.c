@@ -123,6 +123,7 @@ void setupApplication_Android(void) {
     }
     clearCachedFiles_(); /* old stuff is not needed any more */
     javaCommand_Android("cache.set path:%s/", cstr_String(cachePath));
+    javaCommand_Android("ostheme.query");
 }
 
 void pickFile_Android(const char *cmd) {
