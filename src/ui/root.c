@@ -1018,7 +1018,7 @@ static int navBarAvailableSpace_(iWidget *navBar) {
 
 iBool isNarrow_Root(const iRoot *d) {
     return width_Rect(safeRect_Root(d)) / gap_UI <
-        (isTerminal_Platform() ? 80 : deviceType_App() == tablet_AppDeviceType ? 160 : 140);
+        (isTerminal_Platform() ? 80 : deviceType_App() == tablet_AppDeviceType ? 160 : 160);
 }
 
 static void updateNavBarSize_(iWidget *navBar) {
@@ -1049,54 +1049,6 @@ static void updateNavBarSize_(iWidget *navBar) {
         }
         setPadding_Widget(navBar, hPad, topPad, hPad, botPad);
     }
-    /* Sidebar alignment paddings. */
-    if (!isPhone) {
-        const iWidget *docTabs      = findChild_Widget(root_Widget(navBar), "doctabs");
-        const iBool isTabBarVisible = isVisible_Widget(findChild_Widget(docTabs, "tabs.buttons"));
-        const iBool isNavBarNextToTabs = (prefs_App()->bottomTabBar ^ prefs_App()->bottomNavBar) == 0;
-        const iBool    arePaddingsNeeded = !isTabBarVisible || !isNavBarNextToTabs;
-        iWidget       *sbPad1       = findChild_Widget(navBar, "sbpad1");
-        iWidget       *sbPad2       = findChild_Widget(navBar, "sbpad2");
-        const iWidget *sidebar      = findWidget_App("sidebar");
-        const iWidget *sidebar2     = findWidget_App("sidebar2");
-        const int      barWidth     = (isVisible_Widget(sidebar) ? width_Widget(sidebar) : 0);
-        const int      bar2Width    = (isVisible_Widget(sidebar2) ? width_Widget(sidebar2) : 0);
-        const iWidget *unsplit      = findChild_Widget(navBar, "navbar.unsplit");
-        int            unsplitWidth = isVisible_Widget(unsplit) ? width_Widget(unsplit) : 0;
-        const int leftButtons = width_Widget(findChild_Widget(navBar, "navbar.action1")) +
-                                width_Widget(findChild_Widget(navBar, "navbar.action2")) +
-                                width_Widget(findChild_Widget(navBar, "navbar.action3")) +
-                                (isApple_Platform() ? unsplitWidth : 0);
-        const iWidget *navMenu = findChild_Widget(navBar, "navbar.menu");
-        const int rightButtons = width_Widget(findChild_Widget(navBar, "navbar.action4")) +
-                                 (isVisible_Widget(navMenu) ? width_Widget(navMenu) : 0) +
-                                 (!isApple_Platform() ? unsplitWidth : 0);
-        const int rightEqualizer = leftButtons - rightButtons;
-        const int rootWidth      = size_Root(navBar->root).x;
-        const int docWidth       = rootWidth - barWidth - bar2Width;
-        // setFrameColor_Widget(sbPad1, red_ColorId);
-        // setFrameColor_Widget(sbPad2, red_ColorId);
-        if (isVisible_Widget(sidebar) && arePaddingsNeeded) {
-            const int maxWidth = iMaxi(0, rootWidth / 2 - bar2Width - leftButtons);
-            setFixedSize_Widget(
-                sbPad1, init_I2(iMini(maxWidth, iMaxi(0, width_Widget(sidebar) - leftButtons)), 0));
-        }
-        else {
-            setFixedSize_Widget(sbPad1, zero_I2());
-        }
-        if (isVisible_Widget(sidebar2) && arePaddingsNeeded) {
-            const int maxWidth = iMaxi(0, rootWidth / 2 - barWidth - rightButtons);
-            setFixedSize_Widget(
-                sbPad2,
-                init_I2(
-                    iMini(maxWidth,
-                          iMaxi(0, iMaxi(width_Widget(sidebar2) - rightButtons, rightEqualizer))),
-                    0));
-        }
-        else {
-            setFixedSize_Widget(sbPad2, init_I2(0, 0));
-        }
-    }
     /* Button sizing. */
     if (isNarrow ^ ((flags_Widget(navBar) & tight_WidgetFlag) != 0)) {
         setFlags_Widget(navBar, tight_WidgetFlag, isNarrow);
@@ -1124,13 +1076,63 @@ static void updateNavBarSize_(iWidget *navBar) {
         }
         updateUrlInputContentPadding_(navBar);
     }
+    /* Sidebar alignment paddings. */
+    if (!isPhone) {
+        const iWidget *docTabs      = findChild_Widget(root_Widget(navBar), "doctabs");
+        const iBool isTabBarVisible = isVisible_Widget(findChild_Widget(docTabs, "tabs.buttons"));
+        const iBool isNavBarNextToTabs = (prefs_App()->bottomTabBar ^ prefs_App()->bottomNavBar) == 0;
+        const iBool    arePaddingsNeeded = !isTabBarVisible || !isNavBarNextToTabs;
+        iWidget       *sbPad1       = findChild_Widget(navBar, "sbpad1");
+        iWidget       *sbPad2       = findChild_Widget(navBar, "sbpad2");
+        const iWidget *sidebar      = findWidget_App("sidebar");
+        const iWidget *sidebar2     = findWidget_App("sidebar2");
+        const int      barWidth     = (isVisible_Widget(sidebar) ? width_Widget(sidebar) : 0);
+        const int      bar2Width    = (isVisible_Widget(sidebar2) ? width_Widget(sidebar2) : 0);
+        const int      action1Width = width_Widget(findChild_Widget(navBar, "navbar.action1"));
+        const int      leftButtons = action1Width +
+                                width_Widget(findChild_Widget(navBar, "navbar.action2")) +
+                                width_Widget(findChild_Widget(navBar, "navbar.action3")) *
+                                    isVisible_Widget(findChild_Widget(navBar, "navbar.action3"));
+        const iWidget *navMenu = findChild_Widget(navBar, "navbar.menu");
+        const int rightButtons = width_Widget(findChild_Widget(navBar, "navbar.action4")) +
+                                 (isVisible_Widget(navMenu) ? width_Widget(navMenu) : 0);
+        const int rightEqualizer = leftButtons - rightButtons;
+        const int rootWidth      = size_Root(navBar->root).x;
+        const int docWidth       = rootWidth - barWidth - bar2Width;
+        // setFrameColor_Widget(sbPad1, red_ColorId);
+        // setFrameColor_Widget(sbPad2, red_ColorId);
+        if (isVisible_Widget(sidebar) && arePaddingsNeeded) {
+            const int maxWidth = iMaxi(0, rootWidth / 2 - bar2Width);
+            setFixedSize_Widget(
+                sbPad1,
+                init_I2(iMini(maxWidth,
+                              iMaxi(0,
+                                    width_Widget(sidebar) - leftButtons +
+                                        (!isVisible_Widget(sidebar2) ? rightButtons : 0))),
+                        0));
+        }
+        else {
+            setFixedSize_Widget(sbPad1, zero_I2());
+        }
+        if (isVisible_Widget(sidebar2) && arePaddingsNeeded) {
+            const int maxWidth = iMaxi(0, rootWidth / 2 - barWidth);
+            setFixedSize_Widget(
+                sbPad2,
+                init_I2(
+                    iMini(maxWidth, iMaxi(rightEqualizer, width_Widget(sidebar2) - rightButtons +
+                        (!isVisible_Widget(sidebar) ? leftButtons : 0))),
+                    0));
+        }
+        else {
+            setFixedSize_Widget(
+                sbPad2, init_I2(barWidth + bar2Width == 0 && !isNarrow ? rightEqualizer : 0, 0));
+        }
+    }
     if (isPhone) {
         static const char *buttons[] = { "navbar.action1", "navbar.action2", "navbar.action3",
                                          "navbar.action4", "navbar.ident",   "navbar.menu",
                                          "document.bookmarked" };
         iWidget *toolBar = findWidget_Root("toolbar");
-//        setVisualOffset_Widget(toolBar, 0, 0, 0);
-//        setFlags_Widget(toolBar, hidden_WidgetFlag, isLandscape_App());
         iForIndices(i, buttons) {
             iLabelWidget *btn = findChild_Widget(navBar, buttons[i]);
             setFlags_Widget(as_Widget(btn), hidden_WidgetFlag, isPortrait_App());
