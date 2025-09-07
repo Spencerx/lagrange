@@ -6,6 +6,10 @@
 ```
 # Release notes
 
+## 1.19 (3)
+* (iPad) Don't apply extra navbar paddings in portrait layout.
+* Update Tabs list when reordering tabs.
+
 ## 1.19 (2)
 * Improved alignment of the URL field to page contents.
 * Fixed a potential UI event handling glitch with context menus.
