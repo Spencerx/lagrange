@@ -448,6 +448,7 @@ static void updateFilteredBookmarkItems_SidebarWidget_(iSidebarWidget *d) {
                                   5 /* only items related to the individual bookmark */);
 }
 
+#if 0
 int cmpGopherStructureUrl_(const iString *a, const iString *b) {
     /* All of the URLs in the structure tree have the same scheme, host, and port. */
     const size_t start = indexOfCStrFrom_String(a, "/", 9) + 1; /* skip the "gopher://" */
@@ -461,6 +462,7 @@ int cmpGopherStructureUrl_(const iString *a, const iString *b) {
     if (!cmp) return kind1 - kind2;
     return cmp;
 }
+#endif
 
 static iBool isGopherStructure_SidebarWidget_(const iSidebarWidget *d) {
     return equal_Rangecc(urlScheme_String(&d->structureHost), "gopher");
@@ -2231,7 +2233,8 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
         }
         else if (d->mode == openDocuments_SidebarMode &&
                  (equal_Command(cmd, "document.request.started") ||
-                  equal_Command(cmd, "document.request.finished"))) {
+                  equal_Command(cmd, "document.request.finished") ||
+                  equal_Command(cmd, "doctabs.order.changed"))) {
             /* TODO: There are no notifications for audio player starting/stopping.
                These would be useful for updating the active-player status icons. */
             updateItemsWithFlags_SidebarWidget_(d, iTrue);
