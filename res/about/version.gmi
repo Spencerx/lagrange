@@ -6,6 +6,10 @@
 ```
 # Release notes
 
+## 1.19.2
+* Indicate automatic reloading in the Tabs list.
+* Fixed broken timestamp calculation when creating identities.
+
 ## 1.19.1
 * Improved alignment of the URL field to page contents.
 * Fixed build errors and runtime crashes when compiling for mobile Linux.

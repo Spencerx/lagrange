@@ -7,8 +7,10 @@
 # Release notes
 
 ## 1.19 (3)
-* (iPad) Don't apply extra navbar paddings in portrait layout.
+* Indicate automatic reloading in the Tabs list.
 * Update Tabs list when reordering tabs.
+* Fixed broken timestamp calculation when creating identities.
+* (iPad) Don't apply extra navbar paddings in portrait layout.
 
 ## 1.19 (2)
 * Improved alignment of the URL field to page contents.

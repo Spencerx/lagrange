@@ -1135,7 +1135,8 @@ static void updateItemsWithFlags_SidebarWidget_(iSidebarWidget *d, iBool keepAct
                 item->icon   = siteIcon_GmDocument(document_DocumentWidget(doc));
                 item->isBold = isUnseen_DocumentWidget(doc);
                 item->indent = isVisible_Widget(doc) ? 1 : 0;
-                item->id     = (isRequestOngoing_DocumentWidget(doc) ? 1 : 0);
+                item->id     = (isRequestOngoing_DocumentWidget(doc) ? 1 : 0) |
+                               (isAutoReloading_DocumentWidget(doc) ? 4 : 0);
                 if (numActivePlayers_Media(constMedia_GmDocument(document_DocumentWidget(doc)))) {
                     item->id |= 2;
                 }
@@ -3409,10 +3410,18 @@ static void draw_SidebarItem_(const iSidebarItem *d, iPaint *p, iRect itemRect,
                 p,
                 metaIconRect,
                 d->indent && !isPressing && !isHover ? uiBackgroundUnfocusedSelection_ColorId : bg);
-            draw_Text(font,
-                      metaIconPos,
-                      uiTextAction_ColorId,
-                      d->id & 2 ? "\U0001f50a" /* audio speaker, high volume */ : reload_Icon);
+            if (d->id & 4) {
+                drawOutline_Text(
+                    font, metaIconPos, uiTextAction_ColorId, bg, range_CStr(reload_Icon));
+            }
+            else {
+                drawRange_Text(
+                    font,
+                    metaIconPos,
+                    uiTextAction_ColorId,
+                    range_CStr(
+                        d->id & 2 ? "\U0001f50a" /* audio speaker, high volume */ : reload_Icon));
+            }
         }
     }
     else if (sidebar->mode == subscriptions_SidebarMode) {
