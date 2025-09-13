@@ -592,7 +592,10 @@ iBool handleRootCommands_Widget(iWidget *root, const char *cmd) {
     else if (equal_Command(cmd, "focus.default")) {
         const iWidget *activeFocusRoot = focusRoot_Widget(NULL);
         /* Look backward because the last button is the default action. */
-        setFocus_Widget(findFocusable_Widget(activeFocusRoot, backward_WidgetFocusDir));
+        iWidget *f = findFocusable_Widget(activeFocusRoot, backward_WidgetFocusDir);
+        if (f && f->root == activeFocusRoot->root) { /* don't switch splits */
+            setFocus_Widget(f);
+        }
         return iTrue;
     }
     else if (equal_Command(cmd, "menubar.focus")) {
