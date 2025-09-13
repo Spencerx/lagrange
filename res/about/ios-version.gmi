@@ -10,6 +10,7 @@
 * Indicate automatic reloading in the Tabs list.
 * Update Tabs list when reordering tabs.
 * Fixed broken timestamp calculation when creating identities.
+* Fixed parsing Gemini response header when there are excessive whitespace characters present.
 * (iPad) Don't apply extra navbar paddings in portrait layout.
 
 ## 1.19 (2)
