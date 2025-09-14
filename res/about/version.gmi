@@ -6,6 +6,10 @@
 ```
 # Release notes
 
+## 1.19.3
+* Windows: Improved focus indication in split view mode.
+* Windows: Fixed frame color when custom frame is disabled.
+
 ## 1.19.2
 * Indicate automatic reloading in the Tabs list.
 * Fixed broken timestamp calculation when creating identities.
