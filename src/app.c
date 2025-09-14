@@ -5223,8 +5223,8 @@ iBool handleCommand_App(const char *cmd) {
             showTabPage_Widget(tabs, tabPage_Widget(tabs, d->prefs.dialogTab));
         }
         setCommandHandler_Widget(dlg, handlePrefsCommands_);
-        if (prefs_App()->detachedPrefs && deviceType_App() == desktop_AppDeviceType &&
-            !isTerminal_Platform()) {
+        if (prefs_App()->detachedPrefs && (!isWindows_Platform() || !prefs_App()->customFrame) && 
+            deviceType_App() == desktop_AppDeviceType && !isTerminal_Platform()) {
             /* Detach into a window if it doesn't fit otherwise. */
             promoteDialogToWindow_Widget(dlg);
         }
