@@ -7,6 +7,7 @@
 # Release notes
 
 ## 1.19.3
+* Misfin: Parse URIs with the format "misfin://user@host" as well, because these may be more compatible with external applications.
 * Windows: Improved focus indication in split view mode.
 * Windows: Fixed frame color when custom frame is disabled.
 
