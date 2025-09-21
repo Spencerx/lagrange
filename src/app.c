@@ -2189,8 +2189,10 @@ void processEvents_App(enum iAppEventMode eventMode) {
                     if (SDL_GetTicks() - d->lastEventTime > idleThreshold_App_ &&
                         isEmpty_SortedArray(&d->tickers)) {
                         if (!d->isIdling) {
-//                            printf("[App] idling...\n");
-//                            fflush(stdout);
+# if !defined (NDEBUG) && !defined (iPlatformTerminal)
+                            printf("[App] idling...\n");
+                            fflush(stdout);
+# endif
                         }
                         d->isIdling = iTrue;
                     }
@@ -2198,8 +2200,10 @@ void processEvents_App(enum iAppEventMode eventMode) {
                 }
                 d->lastEventTime = SDL_GetTicks();
                 if (d->isIdling) {
-//                    printf("[App] ...woke up\n");
-//                    fflush(stdout);
+# if !defined (NDEBUG) && !defined (iPlatformTerminal)
+                    printf("[App] ...woke up\n");
+                    fflush(stdout);
+# endif
                 }
                 d->isIdling = iFalse;
                 gotEvents = iTrue;
