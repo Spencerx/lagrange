@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.19 (5)
+* Increased smoothness of scroll gestures.
+
 ## 1.19 (4)
 * Enabled high screen refresh rates (120 Hz).
 * Updated SDL to 2.32.8.
