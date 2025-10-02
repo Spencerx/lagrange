@@ -6,6 +6,10 @@
 ```
 # Release notes
 
+## 1.19 (7)
+* Updated bundled Noto Emoji font (Unicode 17).
+* Updated UI translations.
+
 ## 1.19 (6)
 * Fixed hardware keyboard hardware input (disabled SDL's keyboard handler that was interfering).
 
