@@ -7,6 +7,8 @@
 # Release notes
 
 ## 1.19.3
+* Updated bundled Noto Emoji font (Unicode 17).
+* Changed priority for focusing search fields: focus the page contents search field unless the sidebar has focus.
 * Fixed garbled stereo Opus playback.
 * Fixed media type associated with .opus file extension.
 * Fixed opening Opus audio as an inline player.
