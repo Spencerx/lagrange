@@ -2090,10 +2090,18 @@ static void makePastePrecedingLineMenuItem_(iMenuItem *item_out, const iWidget *
 static const iArray *updateInputPromptMenuItems_(iWidget *menu) {
     const char     *context       = cstr_String(&menu->data);
     const iWidget  *buttons       = pointerLabel_Command(context, "buttons");
+    const iLabelWidget *prompt    = findChild_Widget(parent_Widget(buttons), "valueinput.prompt");
     const iString  *url           = string_Command(context, "url");
     const char     *precedingLine = suffixPtr_Command(context, "preceding");
     /* Compose new menu items. */
     iArray *items = collectNew_Array(sizeof(iMenuItem));
+    pushBack_Array(items,
+                   &(iMenuItem) { "${menu.input.pasteprompt}",
+                                  0,
+                                  0,
+                                  format_CStr("!valueinput.set ptr:%p text:%s",
+                                              buttons,
+                                              cstr_String(text_LabelWidget(prompt))) });
     iMenuItem pasteItem;
     makePastePrecedingLineMenuItem_(&pasteItem, buttons, precedingLine);
     pushBack_Array(items, &pasteItem);

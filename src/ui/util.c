@@ -60,6 +60,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <the_Foundation/math.h>
 #include <the_Foundation/path.h>
+#include <SDL_clipboard.h>
 #include <SDL_timer.h>
 #include <SDL_version.h>
 
@@ -2565,6 +2566,22 @@ iBool valueInputHandler_(iWidget *dlg, const char *cmd) {
         destroy_Widget(dlg);
         return iTrue;
     }
+    else if (equal_Command(cmd, "mouse.clicked") &&
+             equal_Rangecc(range_Command(cmd, "id"), "valueinput.prompt") &&
+             arg_Command(cmd) == 0 &&
+             argLabel_Command(cmd, "button") == SDL_BUTTON_RIGHT) {
+        const iMenuItem items[] = {
+            { "${menu.input.copyprompt}", 0, 0, "valueinput.prompt.copy" },
+        };
+        openMenu_Widget(makeMenu_Widget(get_Root()->widget, items, iElemCount(items)),
+                        mouseCoord_Window(get_Window(), 0));
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "valueinput.prompt.copy")) {
+        SDL_SetClipboardText(
+            cstr_String(text_LabelWidget(findChild_Widget(dlg, "valueinput.prompt"))));
+        return iTrue;
+    }
     else if (isMobile_Platform() && equal_Command(cmd, "mouse.clicked") &&
              contains_Widget(dlg, coord_Command(cmd))) {
         setFocus_Widget(findChild_Widget(dlg, "input"));
@@ -2714,6 +2731,7 @@ iWidget *makeValueInputWithAdditionalActions_Widget(iWidget *parent, const iStri
         addDialogTitle_(dlg, title, "valueinput.title");
     }
     iLabelWidget *promptLabel = addWrappedLabel_Widget(dlg, prompt, "valueinput.prompt");
+    setFlags_Widget(as_Widget(promptLabel), commandOnClick_WidgetFlag, iTrue);
     iInputWidget *input = addChildFlags_Widget(dlg, iClob(new_InputWidget(0)),
                                                resizeToParentWidth_WidgetFlag);
     setContentPadding_InputWidget(input, 0.5f * gap_UI, 0.5f * gap_UI);

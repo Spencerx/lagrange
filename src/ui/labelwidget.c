@@ -50,14 +50,17 @@ struct Impl_LabelWidget {
         uint16_t noAutoMinHeight     : 1; /* minimum height is not set automatically */
         uint16_t drawAsOutline       : 1; /* draw as outline, filled with background color */
         uint16_t noTopFrame          : 1;
+
         uint16_t noBottomFrame       : 1;
         uint16_t wrap                : 1;
         uint16_t allCaps             : 1;
         uint16_t removeTrailingColon : 1;
+
         uint16_t chevron             : 1;
         uint16_t checkMark           : 1;
         uint16_t truncateToFit       : 1;
         uint16_t menuCanceling       : 1;
+
         uint16_t noLabel             : 1;
         uint16_t untranslated        : 1;
     } flags;

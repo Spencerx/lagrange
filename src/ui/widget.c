@@ -1540,11 +1540,12 @@ iBool processEvent_Widget(iWidget *d, const SDL_Event *ev) {
              (ev->type == SDL_MOUSEBUTTONDOWN || ev->type == SDL_MOUSEBUTTONUP) &&
              (mouseGrab_Widget() == d || contains_Widget(d, init_I2(ev->button.x, ev->button.y)))) {
         postCommand_Widget(d,
-                           "mouse.clicked arg:%d button:%d coord:%d %d",
+                           "mouse.clicked arg:%d button:%d coord:%d %d id:%s",
                            ev->type == SDL_MOUSEBUTTONDOWN ? 1 : 0,
                            ev->button.button,
                            ev->button.x,
-                           ev->button.y);
+                           ev->button.y,
+                           cstr_String(id_Widget(d)));
         return iTrue;
     }
     else if (d->flags & commandOnClick_WidgetFlag &&
@@ -1575,19 +1576,14 @@ iBool processEvent_Widget(iWidget *d, const SDL_Event *ev) {
             }
             else {
                 const iWindow *win = window_Widget(d);
-                //SDL_Rect usable;
-                //SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(win->win),
-                //                           &usable);
                 const int bottomLimit =
-                /*iMin(*/ bottom_Rect(visibleRect_Root(d->root)) /*, usable.h * win->pixelRatio) */
-                    - hoverScrollLimit;
+                    bottom_Rect(visibleRect_Root(d->root)) - hoverScrollLimit;
                 if (ev->motion.y > bottomLimit) {
                     speed = -(ev->motion.y - bottomLimit) / (float) hoverScrollLimit;
                 }
             }
             const int dir = speed > 0 ? 1 : -1;
             if (speed != 0.0f && isOverflowScrollPossible_Widget_(d, dir)) {
-//                speed = dir * powf(speed, 1.5f);
                 const uint32_t nowTime = SDL_GetTicks();
                 uint32_t elapsed = nowTime - lastHoverOverflowMotionTime_;
                 if (elapsed > 100) {
@@ -1620,7 +1616,6 @@ iBool processEvent_Widget(iWidget *d, const SDL_Event *ev) {
                         startPos_ = buttonPos;
                         startWidth_ = width_Rect(bounds);
                         d->flags2 |= leftEdgeResizing_WidgetFlag2;
-//                        setFocus_Widget(NULL);
                         setMouseGrab_Widget(d);
                     }
                     return iTrue;
@@ -1633,7 +1628,6 @@ iBool processEvent_Widget(iWidget *d, const SDL_Event *ev) {
                             startPos_ = buttonPos;
                             startWidth_ = width_Rect(bounds);
                             d->flags2 |= rightEdgeResizing_WidgetFlag2;
-//                            setFocus_Widget(NULL);
                             setMouseGrab_Widget(d);
                         }
                         return iTrue;
@@ -1652,23 +1646,6 @@ iBool processEvent_Widget(iWidget *d, const SDL_Event *ev) {
                 else {
                     newWidth = startWidth_ + 2 * (startPos_.x - mousePos.x);
                 }
-//                d->rect.size.x = iMax(d->minSize.x, d->rect.size.x);
-//                d->rect.size.x = iMin(width_Widget(parent_Widget(d)), d->rect.size.x);
-//                if (class_Widget(d)->sizeChanged) {
-//                    class_Widget(d)->sizeChanged(d);
-//                }
-//                arrange_Widget(d);
-//                refresh_Widget(d);
-//                setCursor_Window(window_Widget(d), SDL_SYSTEM_CURSOR_SIZEWE);
-//                /* Also notify the widget directly for additional handling. */
-//                const SDL_UserEvent notif = {
-//                    .type      = SDL_USEREVENT,
-//                    .timestamp = SDL_GetTicks(),
-//                    .code      = command_UserEventCode,
-//                    .data1     = "widget.resized",
-//                    .data2     = d->root,
-//                };
-//                dispatchEvent_Widget(d, (const SDL_Event *) &notif);
                 applyInteractiveResize_Widget(d, newWidth);
                 setCursor_Window(window_Widget(d), SDL_SYSTEM_CURSOR_SIZEWE);
                 return iTrue;

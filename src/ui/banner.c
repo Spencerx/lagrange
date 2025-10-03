@@ -316,9 +316,9 @@ iBool processEvent_Banner(iBanner *d, const SDL_Event *ev) {
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             /* Clicking on the top/side banner navigates to site root. */
+            const iInt2 coord = init_I2(ev->button.x, ev->button.y);
+            const iBool isInside = contains_Rect(d->rect, coord);
             if (ev->button.button == SDL_BUTTON_LEFT) {
-                const iInt2 coord = init_I2(ev->button.x, ev->button.y);
-                const iBool isInside = contains_Rect(d->rect, coord);
                 if (isInside && ev->button.state == SDL_PRESSED) {
                     d->isClick = iTrue;
                     return iTrue;

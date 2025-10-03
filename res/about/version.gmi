@@ -6,6 +6,11 @@
 ```
 # Release notes
 
+## 1.20
+
+New features:
+* Input dialog prompt right-click context menu (copy prompt text).
+
 ## 1.19.3
 * Updated bundled Noto Emoji font (Unicode 17).
 * Changed priority for focusing search fields: focus the page contents search field unless the sidebar has focus.
