@@ -9,7 +9,11 @@
 ## 1.20
 
 New features:
-* Input dialog prompt right-click context menu (copy prompt text).
+* Context menu for error/warning messages. These messages are not selectable text so this way one can copy the message to the clipboard.
+* Context menu for input dialog prompt text.
+
+Changes and enhancements:
+* Improved warning message when there is a problem with the proxy server certificate.
 
 ## 1.19.3
 * Updated bundled Noto Emoji font (Unicode 17).
