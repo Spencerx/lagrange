@@ -4684,9 +4684,11 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                     d->menu = makeLinkContextMenu_DocumentWidget_(d, d->contextLink);
                 }
                 else if (contains_Banner(d->banner, mousePos)) {
-                    const iString *urlRoot = collectNewRange_String(urlRoot_String(d->mod.url));
-                    d->menu = makeLinkContextMenuWithParameters_DocumentWidget_(
-                        d, urlRoot, urlRoot, 0, none_MediaType);
+                    if (itemAtCoord_Banner(d->banner, mousePos) == iInvalidPos) {
+                        const iString *urlRoot = collectNewRange_String(urlRoot_String(d->mod.url));
+                        d->menu = makeLinkContextMenuWithParameters_DocumentWidget_(
+                            d, urlRoot, urlRoot, 0, none_MediaType);
+                    }
                 }
                 else {
                     if (deviceType_App() == desktop_AppDeviceType) {

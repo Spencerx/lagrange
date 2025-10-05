@@ -266,7 +266,7 @@ void draw_Banner(const iBanner *d) {
     setBaseAttributes_Text(-1, -1);
 }
 
-static size_t itemAtCoord_Banner_(const iBanner *d, iInt2 coord) {
+size_t itemAtCoord_Banner(const iBanner *d, iInt2 coord) {
     iInt2 pos = addY_I2(topLeft_Rect(d->rect),
                         isEmpty_String(&d->site) ? noSiteTopPad_Banner_
                                                  : (lineHeight_Text(banner_FontId) * 2));
@@ -310,7 +310,7 @@ iBool processEvent_Banner(iBanner *d, const SDL_Event *ev) {
             if (isInside ^ d->isHover) {
                 d->isHover = isInside;
             }
-            const size_t at = d->isHover ? itemAtCoord_Banner_(d, coord) : iInvalidPos;
+            const size_t at = d->isHover ? itemAtCoord_Banner(d, coord) : iInvalidPos;
             if (at != d->hoverIndex) {
                 d->hoverIndex = at;
                 refresh_Widget(w);
@@ -324,7 +324,7 @@ iBool processEvent_Banner(iBanner *d, const SDL_Event *ev) {
             const iBool isInside = contains_Rect(d->rect, coord);
             if (isInside && ev->button.button == SDL_BUTTON_RIGHT &&
                 ev->button.state == SDL_RELEASED) {
-                const size_t index = itemAtCoord_Banner_(d, coord);
+                const size_t index = itemAtCoord_Banner(d, coord);
                 if (index < iInvalidPos) {
                     //const iBannerItem *item = constAt_Array(&d->items, index);
                     iArray *menuItems = new_Array(sizeof(iMenuItem));
@@ -343,7 +343,7 @@ iBool processEvent_Banner(iBanner *d, const SDL_Event *ev) {
                 }
                 else if (ev->button.state == SDL_RELEASED) {
                     if (d->isClick && isInside) {
-                        const size_t index = itemAtCoord_Banner_(d, coord);
+                        const size_t index = itemAtCoord_Banner(d, coord);
                         if (index == iInvalidPos) {
                             if (coord.y < top_Rect(d->rect) + d->siteHeight) {
                                 postCommand_Widget(d->doc, "navigate.root");
