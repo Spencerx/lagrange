@@ -6,6 +6,11 @@
 ```
 # Release notes
 
+## 1.19 (Beta 45)
+* Fixed the app metadata so HTTP(S) URIs can be opened via other apps.
+* Declare Lagrange as a "browser" in the app metadata so it can be chosen as the default system browser. This is useful when a HTTP proxy has been configured.
+* Improved warning message when there is a problem with the proxy server certificate.
+
 ## 1.19 (Beta 44)
 * Updated bundled Noto Emoji font (Unicode 17).
 * Updated UI translations.
