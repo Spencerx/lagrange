@@ -1752,7 +1752,11 @@ static void addBannerWarnings_DocumentWidget_(iDocumentWidget *d) {
                                 cstrCollect_String(format_Date(&d->certExpiry, "%Y-%m-%d")));
         }
         else if (certFlags & timeVerified_GmCertFlag) {
+            const iString *proxy = schemeProxy_App(urlScheme_String(d->mod.url));
             appendFormat_String(str, cstr_Lang("dlg.certwarn.domain"),
+                                cstr_Rangecc(urlHost_String(proxy
+                                    ? collectNewFormat_String("gemini://%s", cstr_String(proxy))
+                                    : d->mod.url)),
                                 cstr_String(d->certSubject));
         }
         else {

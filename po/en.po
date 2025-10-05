@@ -1163,7 +1163,7 @@ msgid "dlg.certwarn.expired"
 msgstr "The received certificate has expired on %s."
 
 msgid "dlg.certwarn.domain"
-msgstr "The received certificate is for the wrong domain (%s). This may be a server configuration problem."
+msgstr "The request was sent to \"%s\" but we received a certificate for a different domain (%s). This may be a server configuration problem."
 
 msgid "dlg.certwarn.domain.expired"
 msgstr "The received certificate is expired AND for the wrong domain."
