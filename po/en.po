@@ -1146,6 +1146,10 @@ msgstr "Open this link in the default browser?\n%s%s"
 msgid "dlg.openlink"
 msgstr "Open Link"
 
+# Context menu action for warning/error banners.
+msgid "menu.banner.copy"
+msgstr "Copy Message"
+
 msgid "dlg.certwarn.title"
 msgstr "Security Issue"
 

@@ -44,6 +44,7 @@ void    setPos_Banner       (iBanner *, iInt2 pos);
 int     height_Banner       (const iBanner *);
 size_t  numItems_Banner     (const iBanner *);
 iBool   contains_Banner     (const iBanner *, iInt2 coord);
+const iString *message_Banner(const iBanner *, size_t itemIndex);
 
 iLocalDef iBool isEmpty_Banner(const iBanner *d) {
     return height_Banner(d) == 0;

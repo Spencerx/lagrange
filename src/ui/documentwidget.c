@@ -2865,6 +2865,17 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
         updateNavBarSize_Root(w->root);
         return iFalse;
     }
+    if (equalWidget_Command(cmd, w, "banner.copy")) {
+        const size_t index = arg_Command(cmd);
+        if (index < numItems_Banner(d->banner)) {
+            iRegExp *ansi = iClob(makeAnsiEscapePattern_Text(iTrue));
+            iString *msg = collect_String(copy_String(message_Banner(d->banner, index)));
+            replaceRegExp_String(msg, ansi, "", NULL, NULL);
+            removeColorEscapes_String(msg);
+            SDL_SetClipboardText(cstr_String(msg));
+        }
+        return iTrue;
+    }
     if (equal_Command(cmd, "visited.changed")) {
         updateVisitedLinks_GmDocument(d->view->doc);
         invalidateVisibleLinks_DocumentView(d->view);
