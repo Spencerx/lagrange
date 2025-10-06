@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-22 20:15+0000\n"
-"PO-Revision-Date: 2025-10-04 08:59+0000\n"
+"PO-Revision-Date: 2025-10-06 10:24+0000\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <http://weblate.skyjake.fi/projects/lagrange/ui/tr/>\n"
 "Language: tr\n"
@@ -612,8 +612,8 @@ msgstr "Alınan sertifika geçerli ancak bizim güvendiğimizden farklı."
 
 msgid "dlg.certwarn.domain"
 msgstr ""
-"Alınan sertifika başka bir alan adı için (%s). Bu bir sunucu yapılandırma "
-"sorunu olabilir."
+"İstek “%s” konumuna gönderildi; ancak başka bir etki alanı için bir "
+"sertifika alındı (%s). Bu, bir sunucu yapılandırması sorunu olabilir."
 
 msgid "heading.certimport"
 msgstr "Kimlik içe aktar"
@@ -2970,3 +2970,7 @@ msgstr "İstemi kopyala"
 
 msgid "menu.input.pasteprompt"
 msgstr "İstemi yapıştır"
+
+# Context menu action for warning/error banners.
+msgid "menu.banner.copy"
+msgstr "İletiyi kopyala"
