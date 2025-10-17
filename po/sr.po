@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-26 11:35+0000\n"
-"PO-Revision-Date: 2025-09-22 09:53+0000\n"
+"PO-Revision-Date: 2025-10-11 17:11+0000\n"
 "Last-Translator: Страхиња Радић <sr@strahinja.org>\n"
 "Language-Team: Serbian <http://weblate.skyjake.fi/projects/lagrange/ui/sr/>\n"
 "Language: sr\n"
@@ -165,7 +165,7 @@ msgid "sidebar.bookmarks"
 msgstr "Обележивачи"
 
 msgid "sidebar.outline"
-msgstr "Структура"
+msgstr "Структура странице"
 
 msgid "toolbar.outline"
 msgstr "Структура странице"
@@ -1229,8 +1229,8 @@ msgstr ""
 
 msgid "dlg.certwarn.domain"
 msgstr ""
-"Примљени сертификат је за погрешан домен (%s). Ово може бити проблем при "
-"подешавању сервера."
+"Захтев је упућен „%s“, али је примљен сертификат за други домен (%s). Ово "
+"може бити услед подешавања сервера."
 
 msgid "pageinfo.domain.match"
 msgstr "Назив домена одговара"
@@ -2455,7 +2455,7 @@ msgid "menu.identity.newdomain"
 msgstr "Нов идентитет домена…"
 
 msgid "dlg.newident.scope.dir"
-msgstr "Текући директоријум"
+msgstr "Текућем директоријуму"
 
 msgid "ident.unset"
 msgstr "Откачи"
@@ -2904,7 +2904,7 @@ msgid "menu.show.opendocs"
 msgstr "Прикажи картице"
 
 msgid "sidebar.structure"
-msgstr "Структура"
+msgstr "Структура сајта"
 
 msgid "sidebar.documents"
 msgstr "Картице"
@@ -2965,3 +2965,13 @@ msgstr "Картице алата здесна"
 
 msgid "heading.prefs.toolbartabs.left"
 msgstr "Картице алата слева"
+
+# Context menu action for warning/error banners.
+msgid "menu.banner.copy"
+msgstr "Копирај поруку"
+
+msgid "menu.input.copyprompt"
+msgstr "Копирај промпт"
+
+msgid "menu.input.pasteprompt"
+msgstr "Налепи промпт"
