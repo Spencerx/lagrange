@@ -2218,6 +2218,12 @@ void processEvents_App(enum iAppEventMode eventMode) {
                 d->isIdling = iFalse;
                 gotEvents = iTrue;
 #endif /* LAGRANGE_ENABLE_IDLE_SLEEP */
+#if defined (LAGRANGE_USE_GAMEPAD)
+                if (processEvent_Gamepad(d->gamepad, &ev)) {
+                    /* Controller events are eaten and turned into key/button and wheel events. */
+                    continue;
+                }
+#endif
                 /* Keyboard modifier mapping. */
                 if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP) {
                     if (d->prefs.capsLockKeyModifier) {
@@ -2233,12 +2239,6 @@ void processEvents_App(enum iAppEventMode eventMode) {
                         ev.key.keysym.mod = mapMods_Keys(ev.key.keysym.mod & ~KMOD_CAPS);
                     }
                 }
-#if defined (LAGRANGE_USE_GAMEPAD)
-                if (processEvent_Gamepad(d->gamepad, &ev)) {
-                    /* Controller events are eaten and turned into key/button and wheel events. */
-                    continue;
-                }
-#endif
 #if defined (iPlatformAndroidMobile)
                 /* Use the system Back button to close panels, if they're open. */
                 if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_AC_BACK) {

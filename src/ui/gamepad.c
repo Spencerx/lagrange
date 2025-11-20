@@ -21,13 +21,19 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "gamepad.h"
-#include <SDL2/SDL.h>
 
 #if defined (LAGRANGE_USE_GAMEPAD)
+
+#include "app.h"
+#include "window.h"
+#include <SDL2/SDL.h>
 
 struct Impl_Gamepad {
     int joyIndex;
     SDL_GameController *ctl;
+    float scrollSpeed;
+    float scrollAccum; /* pixels */
+    uint32_t lastScrollTime;
 };
 
 iDefineTypeConstruction(Gamepad);
@@ -50,11 +56,44 @@ static void close_Gamepad_(iGamepad *d) {
     }
 }
 
+static void scrollTicker_Gamepad_(void *context) {
+    iGamepad *d = context;
+    if (d->scrollSpeed) {
+        const iWindow *win = constFront_PtrArray(mainWindows_App());
+        if (!win) return;
+        /* TODO: Use the pointer XY position. */
+        iInt2          mid     = mid_Rect(initSize_Rect(win->size.x, win->size.y));
+        const uint32_t now     = SDL_GetTicks();
+        const double   elapsed = (d->lastScrollTime > 0 ? now - d->lastScrollTime : 0) / 1000.0;
+        d->scrollAccum += d->scrollSpeed * 250 * gap_UI * elapsed;
+        const int pixels = (int)(fabs(d->scrollAccum)) * iSign(d->scrollAccum);
+        if (pixels) {
+            SDL_PushEvent((SDL_Event *) &(SDL_MouseWheelEvent) {
+                .type      = SDL_MOUSEWHEEL,
+                .which     = 0,
+                .windowID  = id_Window(win),
+                .timestamp = now,
+                .y         = -pixels,
+                .mouseX    = mid.x,
+                .mouseY    = mid.y,
+                .direction = perPixel_MouseWheelFlag,
+            });
+            d->scrollAccum -= pixels;
+        }
+        d->lastScrollTime = now;
+        /* Keep scrolling. */
+        addTickerRoot_App(scrollTicker_Gamepad_, win->roots[0], d);
+    }
+}
+
 /*-----------------------------------------------------------------------------------------------*/
 
 void init_Gamepad(iGamepad *d) {
-    d->ctl      = NULL;
-    d->joyIndex = -1;
+    d->ctl            = NULL;
+    d->joyIndex       = -1;
+    d->scrollSpeed    = 0;
+    d->scrollAccum    = 0;
+    d->lastScrollTime = 0;
     if (!wasInited_) {
         if (SDL_Init(SDL_INIT_GAMECONTROLLER)) {
             fprintf(stderr, "[Gamepad] failed to initialize: %s\n", SDL_GetError());
@@ -95,19 +134,35 @@ iBool processEvent_Gamepad(iGamepad *d, const SDL_Event *event) {
         }
         case SDL_CONTROLLERAXISMOTION: {
             const SDL_ControllerAxisEvent *axis = &event->caxis;
-
+            const float deadZone = 0.1f;
+            // fprintf(stderr, "[Gamepad] axis:%d value:%5d\n", axis->axis, axis->value);
+            float norm = axis->value / (float) SDL_JOYSTICK_AXIS_MAX;
+            if (fabs(norm) < deadZone) {
+                if (axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
+                    d->scrollSpeed    = 0;
+                    d->lastScrollTime = 0;
+                }
+                return iTrue;
+            }
+            norm = iClamp((norm - iSign(norm) * deadZone) / (1.0f - deadZone), -1.0f, 1.0f);
+            if (axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
+                d->scrollSpeed = powf(norm, 2.0f) * iSignf(norm);
+                scrollTicker_Gamepad_(d);
+            }
             return iTrue;
         }
         case SDL_CONTROLLERBUTTONDOWN:
-        case SDL_CONTROLLERBUTTONUP:
-        {
+        case SDL_CONTROLLERBUTTONUP: {
+            const SDL_ControllerButtonEvent *but = &event->cbutton;
+            fprintf(stderr, "[Gamepad] button:%x st:%d\n", but->button, but->state);
             return iTrue;
         }
         case SDL_CONTROLLERTOUCHPADDOWN:
         case SDL_CONTROLLERTOUCHPADUP:
         case SDL_CONTROLLERTOUCHPADMOTION: {
             /* Touchpad can be used to move cursor and perform clicks. */
-
+            const SDL_ControllerTouchpadEvent *pad = &event->ctouchpad;
+            fprintf(stderr, "[Gamepad] touchpad type:%d x:%f y:%f\n", pad->type, pad->x, pad->y);
             return iTrue;
         }
     }
