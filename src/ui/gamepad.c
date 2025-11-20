@@ -34,14 +34,19 @@ struct Impl_Gamepad {
     int                 joyIndex;
     SDL_GameController *ctl;
     iWindow            *window; /* we assume there is one window and it won't change */
+
     float               scrollSpeed;
     float               scrollAccum;     /* pixels */
+
     float               pointerSpeed[2]; /* pixels */
     float               pointerf[2];     /* pixels */
     iInt2               pointer;         /* points (for SDL event) */
     iInt2               lastPointer;     /* points (for SDL event) */
-    unsigned int        buttons; /* bits */
     iAnim               opacity;
+
+    unsigned int buttons; /* bits */
+    int          primary; /* e.g., SDL_CONTROLLER_BUTTON_A */
+    int          secondary;
 };
 
 iDefineTypeConstruction(Gamepad);
@@ -59,6 +64,9 @@ static void open_Gamepad_(iGamepad *d, int index) {
     d->joyIndex = index;
     d->ctl      = SDL_GameControllerOpen(index);
     fprintf(stderr, "[Gamepad] using controller: %s\n", SDL_GameControllerNameForIndex(index));
+    /* TODO: Can we determine the type of controller? */
+    d->primary   = SDL_CONTROLLER_BUTTON_A;
+    d->secondary = SDL_CONTROLLER_BUTTON_B;
 }
 
 static void close_Gamepad_(iGamepad *d) {
@@ -227,10 +235,9 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             // fprintf(stderr, "[Gamepad] button:%x st:%d\n", but->button, but->state);
             const iBool isPress = (but->state != 0);
             iChangeFlags(d->buttons, 1 << but->button, isPress);
-            if (but->button == SDL_CONTROLLER_BUTTON_A ||
-                but->button == SDL_CONTROLLER_BUTTON_B) {
+            if (but->button == d->primary || but->button == d->secondary) {
                 const int   button =
-                    (but->button == SDL_CONTROLLER_BUTTON_A ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT);
+                    (but->button == d->primary ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT);
                 SDL_PushEvent((SDL_Event *) &(SDL_MouseButtonEvent) {
                     .type     = (isPress ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP),
                     .windowID = id_Window(d->window),
