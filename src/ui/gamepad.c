@@ -26,19 +26,33 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "app.h"
 #include "window.h"
+#include "paint.h"
+#include "util.h"
 #include <SDL2/SDL.h>
 
 struct Impl_Gamepad {
-    int joyIndex;
+    int                 joyIndex;
     SDL_GameController *ctl;
-    float scrollSpeed;
-    float scrollAccum; /* pixels */
-    uint32_t lastScrollTime;
+    iWindow            *window; /* we assume there is one window and it won't change */
+    float               scrollSpeed;
+    float               scrollAccum;     /* pixels */
+    float               pointerSpeed[2]; /* pixels */
+    float               pointerf[2];     /* pixels */
+    iInt2               pointer;         /* points (for SDL event) */
+    iInt2               lastPointer;     /* points (for SDL event) */
+    unsigned int        buttons; /* bits */
+    iAnim               opacity;
 };
 
 iDefineTypeConstruction(Gamepad);
 
 static iBool wasInited_;
+
+static void ticker_Gamepad_(void *);
+
+static iRoot *root_Gamepad_(const iGamepad *d) {
+    return d->window->roots[0];
+}
 
 static void open_Gamepad_(iGamepad *d, int index) {
     iAssert(d->joyIndex < 0);
@@ -56,34 +70,70 @@ static void close_Gamepad_(iGamepad *d) {
     }
 }
 
-static void scrollTicker_Gamepad_(void *context) {
+static void addTicker_Gamepad_(iGamepad *d) {
+    addTickerRoot_App(ticker_Gamepad_, root_Gamepad_(d), d);
+}
+
+static void ticker_Gamepad_(void *context) {
     iGamepad *d = context;
-    if (d->scrollSpeed) {
-        const iWindow *win = constFront_PtrArray(mainWindows_App());
-        if (!win) return;
-        /* TODO: Use the pointer XY position. */
-        iInt2          mid     = mid_Rect(initSize_Rect(win->size.x, win->size.y));
-        const uint32_t now     = SDL_GetTicks();
-        const double   elapsed = (d->lastScrollTime > 0 ? now - d->lastScrollTime : 0) / 1000.0;
-        d->scrollAccum += d->scrollSpeed * 250 * gap_UI * elapsed;
+    const float elapsed = elapsedSinceLastTicker_App() / 1000.0f;
+    d->scrollAccum += d->scrollSpeed * 250 * gap_UI * elapsed;
+    const float maxPointer[2] = { d->window->size.x, d->window->size.y };
+    iForIndices(i, d->pointerf) {
+        d->pointerf[i] += d->pointerSpeed[i] * 300 * gap_UI * elapsed;
+        d->pointerf[i] = iClamp(d->pointerf[i], 0, maxPointer[i]);
+    }
+    /* Post a wheel scroll event. */ {
         const int pixels = (int)(fabs(d->scrollAccum)) * iSign(d->scrollAccum);
         if (pixels) {
             SDL_PushEvent((SDL_Event *) &(SDL_MouseWheelEvent) {
                 .type      = SDL_MOUSEWHEEL,
-                .which     = 0,
-                .windowID  = id_Window(win),
-                .timestamp = now,
+                .windowID  = id_Window(d->window),
                 .y         = -pixels,
-                .mouseX    = mid.x,
-                .mouseY    = mid.y,
+                .mouseX    = d->pointer.x,
+                .mouseY    = d->pointer.y,
                 .direction = perPixel_MouseWheelFlag,
             });
             d->scrollAccum -= pixels;
         }
-        d->lastScrollTime = now;
-        /* Keep scrolling. */
-        addTickerRoot_App(scrollTicker_Gamepad_, win->roots[0], d);
     }
+    /* Post pointer movement. */ {
+        d->pointer.x = (int) (d->pointerf[0] / d->window->pixelRatio);
+        d->pointer.y = (int) (d->pointerf[1] / d->window->pixelRatio);
+        const iInt2 delta = sub_I2(d->lastPointer, d->pointer);
+        if (delta.x || delta.y) {
+            SDL_PushEvent((SDL_Event *) &(SDL_MouseMotionEvent) {
+                .type      = SDL_MOUSEMOTION,
+                .windowID  = id_Window(d->window),
+                .x         = d->pointer.x,
+                .y         = d->pointer.y,
+                .xrel      = delta.x,
+                .yrel      = delta.y,
+            });
+            d->lastPointer = d->pointer;
+            postRefresh_Window(d->window);
+        }
+    }
+    if (d->scrollSpeed || d->pointerSpeed[0] || d->pointerSpeed[1]) {
+        /* Keep scrolling. */
+        addTicker_Gamepad_(d);
+    }
+}
+
+static void animate_Gamepad_(void *context) {
+    iGamepad *d = context;
+    postRefresh_Window(d->window);
+    if (!isFinished_Anim(&d->opacity)) {
+        addTicker_Gamepad_(d);
+    }
+}
+
+static void showPointer_Gamepad_(iGamepad *d) {
+    if (targetValue_Anim(&d->opacity) < 1) {
+        setValue_Anim(&d->opacity, 1, 500);
+        animate_Gamepad_(d);
+    }
+    /* TODO: Fade the pointer away after some time .*/
 }
 
 /*-----------------------------------------------------------------------------------------------*/
@@ -93,7 +143,15 @@ void init_Gamepad(iGamepad *d) {
     d->joyIndex       = -1;
     d->scrollSpeed    = 0;
     d->scrollAccum    = 0;
-    d->lastScrollTime = 0;
+    d->window         = (iWindow *) constFront_PtrArray(mainWindows_App());
+    init_Anim(&d->opacity, 0);
+    /* Place the soft pointer at the center of the window. */
+    d->pointer     = mid_Rect(initSize_Rect(d->window->size.x / d->window->pixelRatio,
+                                            d->window->size.y / d->window->pixelRatio));
+    d->lastPointer = d->pointer;
+    d->pointerf[0] = d->pointer.x * d->window->pixelRatio;
+    d->pointerf[1] = d->pointer.y * d->window->pixelRatio;
+    d->buttons = 0;
     if (!wasInited_) {
         if (SDL_Init(SDL_INIT_GAMECONTROLLER)) {
             fprintf(stderr, "[Gamepad] failed to initialize: %s\n", SDL_GetError());
@@ -116,7 +174,8 @@ void deinit_Gamepad(iGamepad *d) {
     SDL_GameControllerEventState(SDL_IGNORE);
 }
 
-iBool processEvent_Gamepad(iGamepad *d, const SDL_Event *event) {
+iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
+    const SDL_Event *event = sdlEvent;
     switch (event->type) {
         case SDL_CONTROLLERDEVICEADDED: {
             const SDL_ControllerDeviceEvent *dev = &event->cdevice;
@@ -137,24 +196,65 @@ iBool processEvent_Gamepad(iGamepad *d, const SDL_Event *event) {
             const float deadZone = 0.1f;
             // fprintf(stderr, "[Gamepad] axis:%d value:%5d\n", axis->axis, axis->value);
             float norm = axis->value / (float) SDL_JOYSTICK_AXIS_MAX;
+            const int pointerAxis = (axis->axis == SDL_CONTROLLER_AXIS_RIGHTY ? 1 : 0);
             if (fabs(norm) < deadZone) {
-                if (axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
-                    d->scrollSpeed    = 0;
-                    d->lastScrollTime = 0;
+                if (axis->axis == SDL_CONTROLLER_AXIS_LEFTY &&
+                    !(d->buttons & ((1 << SDL_CONTROLLER_BUTTON_DPAD_UP) |
+                                    (1 << SDL_CONTROLLER_BUTTON_DPAD_DOWN)))) {
+                    d->scrollSpeed = 0;
+                }
+                else if (axis->axis == SDL_CONTROLLER_AXIS_RIGHTX ||
+                         axis->axis == SDL_CONTROLLER_AXIS_RIGHTY) {
+                    d->pointerSpeed[pointerAxis] = 0;
                 }
                 return iTrue;
             }
             norm = iClamp((norm - iSign(norm) * deadZone) / (1.0f - deadZone), -1.0f, 1.0f);
             if (axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
-                d->scrollSpeed = powf(norm, 2.0f) * iSignf(norm);
-                scrollTicker_Gamepad_(d);
+                d->scrollSpeed = norm * norm * iSignf(norm);
+                addTicker_Gamepad_(d);
+            }
+            else if (axis->axis == SDL_CONTROLLER_AXIS_RIGHTX ||
+                     axis->axis == SDL_CONTROLLER_AXIS_RIGHTY) {
+                d->pointerSpeed[pointerAxis] = norm * norm * iSignf(norm);
+                addTicker_Gamepad_(d);
             }
             return iTrue;
         }
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP: {
             const SDL_ControllerButtonEvent *but = &event->cbutton;
-            fprintf(stderr, "[Gamepad] button:%x st:%d\n", but->button, but->state);
+            // fprintf(stderr, "[Gamepad] button:%x st:%d\n", but->button, but->state);
+            const iBool isPress = (but->state != 0);
+            iChangeFlags(d->buttons, 1 << but->button, isPress);
+            if (but->button == SDL_CONTROLLER_BUTTON_A ||
+                but->button == SDL_CONTROLLER_BUTTON_B) {
+                const int   button =
+                    (but->button == SDL_CONTROLLER_BUTTON_A ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT);
+                SDL_PushEvent((SDL_Event *) &(SDL_MouseButtonEvent) {
+                    .type     = (isPress ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP),
+                    .windowID = id_Window(d->window),
+                    .button   = button,
+                    .state    = (isPress ? SDL_PRESSED : SDL_RELEASED),
+                    .clicks   = 1,
+                    .x        = d->pointer.x,
+                    .y        = d->pointer.y,
+                });
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_LEFT) {
+                if (isPress) postCommand_Root(root_Gamepad_(d), "navigate.back");
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT) {
+                if (isPress) postCommand_Root(root_Gamepad_(d), "navigate.forward");
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
+                d->scrollSpeed = (isPress ? -0.75f : 0);
+                addTicker_Gamepad_(d);
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
+                d->scrollSpeed = (isPress ? 0.75f : 0);
+                addTicker_Gamepad_(d);
+            }
             return iTrue;
         }
         case SDL_CONTROLLERTOUCHPADDOWN:
@@ -166,6 +266,30 @@ iBool processEvent_Gamepad(iGamepad *d, const SDL_Event *event) {
             return iTrue;
         }
     }
+    return iFalse;
+}
+
+void draw_Gamepad(const iGamepad *d) {
+    /* Draw the pointer. */
+    iPaint p;
+    init_Paint(&p);
+    fillRect_Paint(
+        &p, (iRect) { init_I2(d->pointerf[0], d->pointerf[1]), init1_I2(gap_UI * 3) }, red_ColorId);
+    /* TODO: Draw button help overlay? */
+}
+
+#else /* dummy implementation: */
+
+struct Impl_Gamepad {};
+
+iDefineTypeConstruction(Gamepad);
+
+void init_Gamepad   (iGamepad *d) { iUnused(d); }
+void deinit_Gamepad (iGamepad *d) { iUnused(d); }
+void draw_Gamepad   (const iGamepad *d) { iUnused(d); }
+
+iBool processEvent_Gamepad(iGamepad *d, const void *event) {
+    iUnused(d, event);
     return iFalse;
 }
 

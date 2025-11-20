@@ -24,13 +24,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <the_Foundation/defs.h>
 
+iDeclareType(Window);
+
 #if !defined (iPlatformTerminal) && defined (LAGRANGE_ENABLE_GAMEPAD)
-#  include <SDL2/SDL_events.h>
 #  define LAGRANGE_USE_GAMEPAD
+#endif
 
 iDeclareType(Gamepad);
 iDeclareTypeConstruction(Gamepad);
 
-iBool   processEvent_Gamepad    (iGamepad *, const SDL_Event *);
-
-#endif
+iBool   processEvent_Gamepad    (iGamepad *, const void *sdlEvent);
+void    draw_Gamepad            (const iGamepad *);

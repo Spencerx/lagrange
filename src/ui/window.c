@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "snippets.h"
 #include "root.h"
 #include "touch.h"
+#include "gamepad.h"
 #include "util.h"
 
 #if defined (iPlatformMsys) || defined (iPlatformWindows)
@@ -1753,7 +1754,7 @@ void draw_MainWindow(iMainWindow *d) {
        when the custom frame is being used. */ {
         setCurrent_Root(w->roots[0]);
         iColor back;
-#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)        
+#if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
         if (prefs_App()->customFrame && numRoots_Window(as_Window(d)) == 1) {
             back = get_Color(gotFocus && d->place.snap != maximized_WindowSnap &&
                                         ~winFlags & SDL_WINDOW_FULLSCREEN_DESKTOP
@@ -1842,6 +1843,7 @@ void draw_MainWindow(iMainWindow *d) {
                 }
             }
         }
+        draw_Gamepad(gamepad_App());
         setCurrent_Root(NULL);
 #if !defined (NDEBUG)
         draw_Text(uiLabelBold_FontId,
@@ -2171,7 +2173,7 @@ void setSplitMode_MainWindow(iMainWindow *d, int splitFlags) {
                 setFlags_Widget(
                     findChild_Widget(winBar, "winbar.max"), hidden_WidgetFlag, hideCtl0);
                 setFlags_Widget(
-                    findChild_Widget(winBar, "winbar.close"), hidden_WidgetFlag, hideCtl0);                
+                    findChild_Widget(winBar, "winbar.close"), hidden_WidgetFlag, hideCtl0);
                 if (d->base.roots[1]) {
                     winBar = findChild_Widget(d->base.roots[1]->widget, "winbar");
                     setFlags_Widget(
@@ -2183,7 +2185,7 @@ void setSplitMode_MainWindow(iMainWindow *d, int splitFlags) {
                     setFlags_Widget(
                         findChild_Widget(winBar, "winbar.max"), hidden_WidgetFlag, hideCtl1);
                     setFlags_Widget(
-                        findChild_Widget(winBar, "winbar.close"), hidden_WidgetFlag, hideCtl1);                
+                        findChild_Widget(winBar, "winbar.close"), hidden_WidgetFlag, hideCtl1);
                 }
             }
         }
