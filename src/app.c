@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "ui/color.h"
 #include "ui/command.h"
 #include "ui/documentwidget.h"
+#include "ui/gamepad.h"
 #include "ui/inputwidget.h"
 #include "ui/keys.h"
 #include "ui/labelwidget.h"
@@ -183,6 +184,9 @@ struct Impl_App {
     int          autoReloadTimer; /* TODO: only start this when tabs are autoreloading */
     iPeriodic    periodic;
     int          warmupFrames; /* forced refresh just after resuming from background; FIXME: shouldn't be needed */
+#if defined (LAGRANGE_USE_GAMEPAD)
+    iGamepad *   gamepad;
+#endif
 #if defined (LAGRANGE_ENABLE_IDLE_SLEEP)
     iBool        isIdling;
     uint32_t     lastEventTime;
@@ -1560,9 +1564,9 @@ static void init_App_(iApp *d, int argc, char **argv) {
         d->isIdling      = iFalse;
         d->lastEventTime = 0;
         d->sleepTimer    = SDL_AddTimer(1000, checkAsleep_App_, d);
-#if defined (iPlatformTerminal)
+# if defined (iPlatformTerminal)
         d->idleSleepDelayMs = 1000 / 60;
-#else
+# else
         SDL_DisplayMode dispMode;
         SDL_GetWindowDisplayMode(d->window->win, &dispMode);
         if (dispMode.refresh_rate) {
@@ -1571,9 +1575,12 @@ static void init_App_(iApp *d, int argc, char **argv) {
         else {
             d->idleSleepDelayMs = 1000 / 60;
         }
-#endif
+# endif
         d->idleSleepDelayMs *= 0.9f;
     }
+#endif
+#if defined (LAGRANGE_USE_GAMEPAD)
+    d->gamepad = new_Gamepad();
 #endif
     d->isFinishedLaunching = iTrue;
     /* Run any commands that were pending completion of launch. */ {
@@ -1612,6 +1619,9 @@ static void deinit_App(iApp *d) {
     if (d->tempFilesPendingDeletion == NULL) {
         return; /* already deinitialized */
     }
+#if defined (LAGRANGE_USE_GAMEPAD)
+    delete_Gamepad(d->gamepad);
+#endif
 #if defined (iPlatformAppleDesktop) && defined (LAGRANGE_NATIVE_MENU)
     delete_Root(d->submenuRoot);
 #endif
@@ -2223,6 +2233,12 @@ void processEvents_App(enum iAppEventMode eventMode) {
                         ev.key.keysym.mod = mapMods_Keys(ev.key.keysym.mod & ~KMOD_CAPS);
                     }
                 }
+#if defined (LAGRANGE_USE_GAMEPAD)
+                if (processEvent_Gamepad(d->gamepad, &ev)) {
+                    /* Controller events are eaten and turned into key/button and wheel events. */
+                    continue;
+                }
+#endif
 #if defined (iPlatformAndroidMobile)
                 /* Use the system Back button to close panels, if they're open. */
                 if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_AC_BACK) {
@@ -5227,7 +5243,7 @@ iBool handleCommand_App(const char *cmd) {
             showTabPage_Widget(tabs, tabPage_Widget(tabs, d->prefs.dialogTab));
         }
         setCommandHandler_Widget(dlg, handlePrefsCommands_);
-        if (prefs_App()->detachedPrefs && (!isWindows_Platform() || !prefs_App()->customFrame) && 
+        if (prefs_App()->detachedPrefs && (!isWindows_Platform() || !prefs_App()->customFrame) &&
             deviceType_App() == desktop_AppDeviceType && !isTerminal_Platform()) {
             /* Detach into a window if it doesn't fit otherwise. */
             promoteDialogToWindow_Widget(dlg);

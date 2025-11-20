@@ -1,5 +1,5 @@
 # Lagrange - A Beautiful Gemini Client
-# Copyright: 2020-2024 Jaakko Keränen <jaakko.keranen@iki.fi>
+# Copyright: 2020-2025 Jaakko Keränen <jaakko.keranen@iki.fi>
 #
 # Notes:
 # - Required dependencies: SDL 2, OpenSSL 1.1.1, libpcre,
@@ -50,6 +50,7 @@ endif ()
 # Build configuration.
 option (ENABLE_CUSTOM_FRAME     "Draw a custom window frame (Windows)" OFF)
 option (ENABLE_DOWNLOAD_EDIT    "Allow changing the Downloads directory" ON)
+option (ENABLE_GAMEPAD          "Allow UI to be controlled with a gamepad" ON)
 option (ENABLE_GUI              "Build the GUI application" ON)
 option (ENABLE_IDLE_SLEEP       "While idle, sleep in the main thread instead of waiting for events" ${DEFAULT_IDLE_SLEEP})
 option (ENABLE_IPC              "Use IPC to communicate between running instances" ON)
@@ -73,11 +74,11 @@ option (ENABLE_FRIBIDI          "Use the GNU FriBidi library for bidirectional t
 option (ENABLE_FRIBIDI_BUILD    "Build the GNU FriBidi library (if OFF, try pkg-config)" OFF)
 option (ENABLE_HARFBUZZ         "Use the HarfBuzz library to shape text" ON)
 option (ENABLE_HARFBUZZ_MINIMAL "Build the HarfBuzz library with minimal dependencies (if OFF, try pkg-config)" OFF)
+option (ENABLE_JXL              "Use libjxl to decode .jxl images (via pkg-config)" ON)
 option (ENABLE_MPG123           "Use mpg123 for decoding MPEG audio" ON)
 option (ENABLE_OPUS             "Use llibopusfile for decoding Opus audio (via pkg-config)" ON)
 option (ENABLE_SPARKLE          "Use Sparkle for automatic updates (macOS)" OFF)
 option (ENABLE_WEBP             "Use libwebp to decode .webp images (via pkg-config)" ON)
-option (ENABLE_JXL              "Use libjxl to decode .jxl images (via pkg-config)" ON)
 option (ENABLE_WINSPARKLE       "Use WinSparkle for automatic updates (Windows)" OFF)
 
 include (BuildType)
@@ -242,6 +243,8 @@ set (SOURCES
     src/ui/documentview.h
     src/ui/documentwidget.c
     src/ui/documentwidget.h
+    src/ui/gamepad.c
+    src/ui/gamepad.h
     src/ui/indicatorwidget.c
     src/ui/indicatorwidget.h
     src/ui/font.c
@@ -427,6 +430,9 @@ macro (set_common_app_properties target)
     endif ()
     if (ENABLE_IPC)
         target_compile_definitions (${target} PUBLIC LAGRANGE_ENABLE_IPC=1)
+    endif ()
+    if (ENABLE_GAMEPAD)
+        target_compile_definitions (${target} PUBLIC LAGRANGE_ENABLE_GAMEPAD=1)
     endif ()
 
     # Common dependencies.
