@@ -35,16 +35,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 extern iBool isPhone_iOS(void);
 #endif
 
-iDeclareType(Bookmarks)
-iDeclareType(DocumentWidget)
-iDeclareType(CommandLine)
-iDeclareType(GmCerts)
-iDeclareType(MainWindow)
-iDeclareType(MimeHooks)
-iDeclareType(Periodic)
-iDeclareType(Root)
-iDeclareType(Visited)
-iDeclareType(Window)
+iDeclareType(Bookmarks);
+iDeclareType(DocumentWidget);
+iDeclareType(CommandLine);
+iDeclareType(Gamepad);
+iDeclareType(GmCerts);
+iDeclareType(MainWindow);
+iDeclareType(MimeHooks);
+iDeclareType(Periodic);
+iDeclareType(Root);
+iDeclareType(Visited);
+iDeclareType(Window);
 
 typedef void iAnyWindow;
 
@@ -146,6 +147,7 @@ iBookmarks *        bookmarks_App               (void);
 iMimeHooks *        mimeHooks_App               (void);
 iPeriodic *         periodic_App                (void);
 iRoot *             submenuRoot_MacOS           (void);
+iGamepad *          gamepad_App                 (void);
 
 iDocumentWidget *   document_App                (void);
 iObjectList *       listDocuments_App           (const iRoot *rootOrNull); /* NULL for all roots of current window */

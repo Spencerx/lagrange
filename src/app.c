@@ -184,9 +184,7 @@ struct Impl_App {
     int          autoReloadTimer; /* TODO: only start this when tabs are autoreloading */
     iPeriodic    periodic;
     int          warmupFrames; /* forced refresh just after resuming from background; FIXME: shouldn't be needed */
-#if defined (LAGRANGE_USE_GAMEPAD)
     iGamepad *   gamepad;
-#endif
 #if defined (LAGRANGE_ENABLE_IDLE_SLEEP)
     iBool        isIdling;
     uint32_t     lastEventTime;
@@ -1579,9 +1577,7 @@ static void init_App_(iApp *d, int argc, char **argv) {
         d->idleSleepDelayMs *= 0.9f;
     }
 #endif
-#if defined (LAGRANGE_USE_GAMEPAD)
     d->gamepad = new_Gamepad();
-#endif
     d->isFinishedLaunching = iTrue;
     /* Run any commands that were pending completion of launch. */ {
         iForEach(StringList, i, d->launchCommands) {
@@ -1619,9 +1615,7 @@ static void deinit_App(iApp *d) {
     if (d->tempFilesPendingDeletion == NULL) {
         return; /* already deinitialized */
     }
-#if defined (LAGRANGE_USE_GAMEPAD)
     delete_Gamepad(d->gamepad);
-#endif
 #if defined (iPlatformAppleDesktop) && defined (LAGRANGE_NATIVE_MENU)
     delete_Root(d->submenuRoot);
 #endif
@@ -2218,12 +2212,10 @@ void processEvents_App(enum iAppEventMode eventMode) {
                 d->isIdling = iFalse;
                 gotEvents = iTrue;
 #endif /* LAGRANGE_ENABLE_IDLE_SLEEP */
-#if defined (LAGRANGE_USE_GAMEPAD)
                 if (processEvent_Gamepad(d->gamepad, &ev)) {
                     /* Controller events are eaten and turned into key/button and wheel events. */
                     continue;
                 }
-#endif
                 /* Keyboard modifier mapping. */
                 if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP) {
                     if (d->prefs.capsLockKeyModifier) {
@@ -3146,6 +3138,10 @@ iMimeHooks *mimeHooks_App(void) {
 
 iPeriodic *periodic_App(void) {
     return &app_.periodic;
+}
+
+iGamepad *gamepad_App(void) {
+    return app_.gamepad;
 }
 
 iRoot *submenuRoot_MacOS(void) {
