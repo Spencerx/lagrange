@@ -67,7 +67,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 static iWindow *    theWindow_;
 static iMainWindow *theMainWindow_;
 
+#if defined (iPlatformMobileHandheld)
+static float initialUiScale_ = 1.25f;
+#else
 static float initialUiScale_ = 1.0f;
+#endif
 static iBool isOpenGLRenderer_;
 static iBool isDrawing_;
 static iBool isResizing_;
@@ -98,12 +102,12 @@ static const iMenuItem fileMenuItems_[] = {
 #if defined (LAGRANGE_PC_MENUS)
     { "---" },
     { "${menu.preferences}", preferences_KeyShortcut, "preferences" },
-#if !defined (iPlatformTerminal)
+# if !defined (iPlatformTerminal)
     { "${menu.fonts}", 0, 0, "open newtab:1 switch:1 url:about:fonts" },
-#endif
-#if defined (LAGRANGE_ENABLE_WINSPARKLE)
+# endif
+# if defined (LAGRANGE_ENABLE_WINSPARKLE)
     { "${menu.update}", 0, 0, "updater.check" },
-#endif
+# endif
     { "---" },
     { "${menu.quit}", 'q', KMOD_PRIMARY, "quit" },
 #endif

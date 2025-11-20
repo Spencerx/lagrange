@@ -48,7 +48,6 @@ void init_Prefs(iPrefs *d) {
     d->customFrame              = iFalse; /* needs some more work to be default */
     d->retainWindowSize         = iTrue;
     d->uiAnimations             = iTrue;
-    d->uiScale                  = 1.0f; /* default set elsewhere */
     d->inputZoomLevel           = 0;
     d->editorZoomLevel          = 0;
     d->editorSyntaxHighlighting = iTrue;

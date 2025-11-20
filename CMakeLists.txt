@@ -56,6 +56,7 @@ option (ENABLE_IDLE_SLEEP       "While idle, sleep in the main thread instead of
 option (ENABLE_IPC              "Use IPC to communicate between running instances" ON)
 option (ENABLE_KERNING          "Enable kerning in font renderer (slower)" ON)
 option (ENABLE_MAC_MENUS        "Use native context menus (macOS)" ON)
+option (ENABLE_MOBILE_HANDHELD  "Use the phone mobile UI with tweaks for handheld consoles" OFF)
 option (ENABLE_MOBILE_PHONE     "Use the phone mobile UI design instead of desktop UI" OFF)
 option (ENABLE_MOBILE_TABLET    "Use the tablet mobile UI design instead of desktop UI" OFF)
 option (ENABLE_POPUP_MENUS      "Use popup windows for context menus (if OFF, menus are confined inside main window)" ON)
@@ -80,6 +81,10 @@ option (ENABLE_OPUS             "Use llibopusfile for decoding Opus audio (via p
 option (ENABLE_SPARKLE          "Use Sparkle for automatic updates (macOS)" OFF)
 option (ENABLE_WEBP             "Use libwebp to decode .webp images (via pkg-config)" ON)
 option (ENABLE_WINSPARKLE       "Use WinSparkle for automatic updates (Windows)" OFF)
+
+if (ENABLE_MOBILE_HANDHELD)
+    set (ENABLE_MOBILE_PHONE ON) # phone UI implied
+endif ()
 
 include (BuildType)
 include (Resources)
@@ -393,6 +398,9 @@ else ()
     endif ()
     if (ENABLE_MOBILE_TABLET)
         add_definitions (-DiPlatformMobileTablet=1)
+    endif ()
+    if (ENABLE_MOBILE_HANDHELD)
+        add_definitions (-DiPlatformMobileHandheld=1)
     endif ()
 endif ()
 

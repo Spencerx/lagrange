@@ -88,7 +88,7 @@ static void ticker_Gamepad_(void *context) {
     d->scrollAccum += d->scrollSpeed * 250 * gap_UI * elapsed;
     const float maxPointer[2] = { d->window->size.x, d->window->size.y };
     iForIndices(i, d->pointerf) {
-        d->pointerf[i] += d->pointerSpeed[i] * 300 * gap_UI * elapsed;
+        d->pointerf[i] += d->pointerSpeed[i] * 100 * gap_UI * elapsed;
         d->pointerf[i] = iClamp(d->pointerf[i], 0, maxPointer[i]);
     }
     /* Post a wheel scroll event. */ {
@@ -204,27 +204,27 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             const float deadZone = 0.1f;
             // fprintf(stderr, "[Gamepad] axis:%d value:%5d\n", axis->axis, axis->value);
             float norm = axis->value / (float) SDL_JOYSTICK_AXIS_MAX;
-            const int pointerAxis = (axis->axis == SDL_CONTROLLER_AXIS_RIGHTY ? 1 : 0);
+            const int pointerAxis = (axis->axis == SDL_CONTROLLER_AXIS_LEFTY ? 1 : 0);
             if (fabs(norm) < deadZone) {
-                if (axis->axis == SDL_CONTROLLER_AXIS_LEFTY &&
+                if (axis->axis == SDL_CONTROLLER_AXIS_RIGHTY &&
                     !(d->buttons & ((1 << SDL_CONTROLLER_BUTTON_DPAD_UP) |
                                     (1 << SDL_CONTROLLER_BUTTON_DPAD_DOWN)))) {
                     d->scrollSpeed = 0;
                 }
-                else if (axis->axis == SDL_CONTROLLER_AXIS_RIGHTX ||
-                         axis->axis == SDL_CONTROLLER_AXIS_RIGHTY) {
+                else if (axis->axis == SDL_CONTROLLER_AXIS_LEFTX ||
+                         axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
                     d->pointerSpeed[pointerAxis] = 0;
                 }
                 return iTrue;
             }
             norm = iClamp((norm - iSign(norm) * deadZone) / (1.0f - deadZone), -1.0f, 1.0f);
-            if (axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
+            if (axis->axis == SDL_CONTROLLER_AXIS_RIGHTY) {
                 d->scrollSpeed = norm * norm * iSignf(norm);
                 addTicker_Gamepad_(d);
             }
-            else if (axis->axis == SDL_CONTROLLER_AXIS_RIGHTX ||
-                     axis->axis == SDL_CONTROLLER_AXIS_RIGHTY) {
-                d->pointerSpeed[pointerAxis] = norm * norm * iSignf(norm);
+            else if (axis->axis == SDL_CONTROLLER_AXIS_LEFTX ||
+                     axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
+                d->pointerSpeed[pointerAxis] = norm;
                 addTicker_Gamepad_(d);
             }
             return iTrue;

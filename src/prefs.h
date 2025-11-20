@@ -71,7 +71,7 @@ enum iPrefsBool {
     bottomNavBar_PrefsBool,
     bottomTabBar_PrefsBool,
     menuBar_PrefsBool,
-    
+
     simpleChars_PrefsBool,
     evenSplit_PrefsBool,
     detachedPrefs_PrefsBool,
@@ -150,13 +150,13 @@ struct Impl_Prefs {
             iBool retainWindowSize;
             iBool uiAnimations;
             iBool hideToolbarOnScroll;
-            
+
             iBool hideTabBar;
             iBool blinkingCursor;
             iBool bottomNavBar;
             iBool bottomTabBar;
             iBool menuBar;
-            
+
             iBool simpleChars;
             iBool evenSplit;
             iBool detachedPrefs;
@@ -222,7 +222,6 @@ struct Impl_Prefs {
     enum iColorAccent accent;
 
     /* Window and User Interface */
-    float               uiScale;
     enum iToolbarAction navbarActions[maxNavbarActions_Prefs];
     enum iToolbarAction toolbarActions[2];
     iBool               sidebarModeEnabled[2][maxSidebarModes_Prefs];

@@ -126,6 +126,10 @@ static const iMenuItem phoneNavMenuItems_[] = {
     { "${menu.page.copyurl}", 0, 0, "document.copylink" },
     { "---" },
     { gear_Icon " ${menu.settings}", preferences_KeyShortcut, "preferences" },
+#if defined (iPlatformMobileHandheld)
+    { "---" },
+    { "${menu.quit}", 0, 0, "quit" },
+#endif
     { NULL }
 };
 
