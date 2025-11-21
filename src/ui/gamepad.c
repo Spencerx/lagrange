@@ -242,8 +242,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             const iBool isPress = (but->state != 0);
             iChangeFlags(d->buttons, 1 << but->button, isPress);
             if (but->button == d->primary || but->button == d->secondary) {
-                const int   button =
-                    (but->button == d->primary ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT);
+                const int button = (but->button == d->primary ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT);
                 SDL_PushEvent((SDL_Event *) &(SDL_MouseButtonEvent) {
                     .type     = (isPress ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP),
                     .windowID = id_Window(d->window),
@@ -335,7 +334,9 @@ void draw_Gamepad(const iGamepad *d) {
     /* TODO: Draw button help overlay? */
 }
 
-#else /* dummy implementation: */
+#else
+
+/*- Dummy --------------------------------------------------------------------------------------*/
 
 struct Impl_Gamepad {};
 
