@@ -1881,6 +1881,17 @@ static iBool handleSidebarCommand_SidebarWidget_(iSidebarWidget *d, const char *
             d, arg_Command(cmd) * (argLabel_Command(cmd, "gaps") ? 1.0f : (1.0f / gap_UI)));
         return iTrue;
     }
+    else if (equal_Command(cmd, "cycle")) {
+        const int dir  = arg_Command(cmd);
+        int       mode = (d->mode + dir) % max_SidebarMode;
+        for (int i = 0; i < max_SidebarMode; i++, mode = (d->mode + dir) % max_SidebarMode) {
+            if (prefs_App()->sidebarModeEnabled[d->side][mode]) {
+                postCommand_Widget(w, "%s.mode arg:%d", d->side == 0 ? "sidebar" : "sidebar2", mode);
+                break;
+            }
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "mode")) {
         const int mode = arg_Command(cmd);
         if (!isSlidingSheet_SidebarWidget_(d) && !argLabel_Command(cmd, "force") &&

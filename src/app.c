@@ -2080,7 +2080,7 @@ void processEvents_App(enum iAppEventMode eventMode) {
 #endif
         switch (ev.type) {
             case SDL_QUIT:
-                if (!isMobile_Platform() || isMobileLinux_Platform()) {
+                if (!isMobile_Platform() || isMobileLinux_Platform() || isHandheld_Platform()) {
                     d->isRunning = iFalse;
                     if (findWidget_App("prefs")) {
                         /* Make sure changed preferences get saved. */

@@ -610,7 +610,8 @@ void init_SmoothScroll(iSmoothScroll *d, iWidget *owner, iSmoothScrollNotifyFunc
 void reset_SmoothScroll(iSmoothScroll *d) {
     init_Anim(&d->pos, 0);
     d->max = 0;
-    d->overscroll = (deviceType_App() != desktop_AppDeviceType ? 100 * gap_UI : 0);
+    d->overscroll =
+        (deviceType_App() != desktop_AppDeviceType && !isHandheld_Platform() ? 100 * gap_UI : 0);
     d->pullActionTriggered = 0;
 }
 

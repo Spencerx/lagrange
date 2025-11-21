@@ -37,6 +37,7 @@ struct Impl_Gamepad {
 
     float               scrollSpeed;
     float               scrollAccum;     /* pixels */
+    iBool               isScrollCancelled;
 
     float               pointerSpeed[2]; /* pixels */
     float               pointerf[2];     /* pixels */
@@ -67,6 +68,7 @@ static void open_Gamepad_(iGamepad *d, int index) {
     /* TODO: Can we determine the type of controller? */
     d->primary   = SDL_CONTROLLER_BUTTON_A;
     d->secondary = SDL_CONTROLLER_BUTTON_B;
+    d->isScrollCancelled = iFalse;
 }
 
 static void close_Gamepad_(iGamepad *d) {
@@ -85,6 +87,9 @@ static void addTicker_Gamepad_(iGamepad *d) {
 static void ticker_Gamepad_(void *context) {
     iGamepad *d = context;
     const float elapsed = elapsedSinceLastTicker_App() / 1000.0f;
+    if (d->isScrollCancelled) {
+        d->scrollSpeed = 0;
+    }
     d->scrollAccum += d->scrollSpeed * 250 * gap_UI * elapsed;
     const float maxPointer[2] = { d->window->size.x, d->window->size.y };
     iForIndices(i, d->pointerf) {
@@ -210,6 +215,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                     !(d->buttons & ((1 << SDL_CONTROLLER_BUTTON_DPAD_UP) |
                                     (1 << SDL_CONTROLLER_BUTTON_DPAD_DOWN)))) {
                     d->scrollSpeed = 0;
+                    d->isScrollCancelled = iFalse;
                 }
                 else if (axis->axis == SDL_CONTROLLER_AXIS_LEFTX ||
                          axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
@@ -261,6 +267,50 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
                 d->scrollSpeed = (isPress ? 0.75f : 0);
                 addTicker_Gamepad_(d);
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_RIGHTSTICK) {
+                if (isPress) {
+                    if (d->scrollSpeed < 0) {
+                        postCommand_Root(root_Gamepad_(d), "scroll.top smooth:1");
+                        d->isScrollCancelled = iTrue;
+                    }
+                    else if (d->scrollSpeed > 0) {
+                        postCommand_Root(root_Gamepad_(d), "scroll.bottom smooth:1");
+                        d->isScrollCancelled = iTrue;
+                    }
+                }
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_X) {
+                SDL_KeyboardEvent key = {
+                    .type     = SDL_KEYDOWN,
+                    .windowID = id_Window(d->window),
+                    .state    = SDL_PRESSED,
+                    .keysym   = { .sym = SDLK_ESCAPE },
+                };
+                SDL_PushEvent((SDL_Event *) &key);
+                key.type = SDL_KEYUP;
+                key.state = SDL_RELEASED;
+                SDL_PushEvent((SDL_Event *) &key);
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_Y) {
+                if (isPress) postCommand_Root(root_Gamepad_(d), "navigate.focus");
+            }
+            else if (but->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER ||
+                     but->button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) {
+                if (isPress) {
+                    if (isVisible_Widget(findWidget_App("sidebar"))) {
+                        postCommandf_Root(root_Gamepad_(d),
+                                          "sidebar.cycle arg:%d",
+                                          but->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER ? -1
+                                                                                            : +1);
+                    }
+                    else {
+                        postCommand_Root(root_Gamepad_(d),
+                                         but->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER
+                                             ? "tabs.prev"
+                                             : "tabs.next");
+                    }
+                }
             }
             return iTrue;
         }
