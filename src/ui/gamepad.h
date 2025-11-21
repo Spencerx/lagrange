@@ -22,7 +22,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #pragma once
 
-#include <the_Foundation/defs.h>
+#include <the_Foundation/vec2.h>
 
 iDeclareType(Window);
 
@@ -32,6 +32,9 @@ iDeclareType(Window);
 
 iDeclareType(Gamepad);
 iDeclareTypeConstruction(Gamepad);
+
+iBool   isConnected_Gamepad     (const iGamepad *);
+iInt2   pointerCoord_Gamepad    (const iGamepad *);
 
 iBool   processEvent_Gamepad    (iGamepad *, const void *sdlEvent);
 void    draw_Gamepad            (const iGamepad *);

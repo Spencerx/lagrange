@@ -2373,7 +2373,8 @@ static iBool processEvent_InputWidget_(iInputWidget *d, const SDL_Event *ev) {
         }
     }
 #endif
-    if (deviceType_App() != desktop_AppDeviceType && isCommand_UserEvent(ev, "menu.opened")) {
+    if (deviceType_App() != desktop_AppDeviceType && focus_Widget() == w &&
+        isCommand_UserEvent(ev, "menu.opened")) {
         setFocus_Widget(NULL);
         return iFalse;
     }

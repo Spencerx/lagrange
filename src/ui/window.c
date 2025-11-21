@@ -1945,7 +1945,14 @@ iInt2 mouseCoord_Window(const iWindow *d, int whichDevice) {
         return init_I2(-1000000, -1000000);
     }
     int x, y;
-    SDL_GetMouseState(&x, &y);
+    if (isConnected_Gamepad(gamepad_App())) {
+        const iInt2 coord = pointerCoord_Gamepad(gamepad_App());
+        x = coord.x;
+        y = coord.y;
+    }
+    else {
+        SDL_GetMouseState(&x, &y);
+    }
     return coord_Window(d, x, y);
 }
 

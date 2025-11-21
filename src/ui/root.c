@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "lookupwidget.h"
 #include "sidebarwidget.h"
 #include "snippets.h"
+#include "gamepad.h"
 #include "window.h"
 #include "../visited.h"
 #include "../history.h"
@@ -497,13 +498,15 @@ iBool handleRootCommands_Widget(iWidget *root, const char *cmd) {
             if (isMenuBar) {
                 setFlags_Widget(button, selected_WidgetFlag, iTrue);
             }
-            openMenuFlags_Widget(menu,
-                                 hasLabel_Command(cmd, "coord") ? coord_Command(cmd)
-                                 : isPlacedUnder ? bottomLeft_Rect(bounds_Widget(button))
-                                                 : topLeft_Rect(bounds_Widget(button)),
-                                 postCommands_MenuOpenFlags |
-                                     (isMenuBar ? fromMenuBar_MenuOpenFlags : 0) |
-                                     (isSubmenu ? submenu_MenuOpenFlags : 0));
+            openMenuFlags_Widget(
+                menu,
+                hasLabel_Command(cmd, "coord") ? coord_Command(cmd)
+                : isPlacedUnder                ? bottomLeft_Rect(bounds_Widget(button))
+                                               : topLeft_Rect(bounds_Widget(button)),
+                postCommands_MenuOpenFlags |
+                    (isConnected_Gamepad(gamepad_App()) ? setFocus_MenuOpenFlags : 0) |
+                    (isMenuBar ? fromMenuBar_MenuOpenFlags : 0) |
+                    (isSubmenu ? submenu_MenuOpenFlags : 0));
         }
         else {
             closeMenu_Widget(menu);

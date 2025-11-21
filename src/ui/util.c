@@ -100,8 +100,9 @@ void emulateMouseClickPos_Widget(const iWidget *d, int button, iInt2 clickPos) {
 }
 
 void emulateMouseClick_Widget(const iWidget *d, int button) {
-    return emulateMouseClickPos_Widget(
-        d, button, sub_I2(bottomRight_Rect(bounds_Widget(d)), muli_I2(gap2_UI, 2)));
+    const iInt2 pos = max_I2(mid_Rect(bounds_Widget(d)),
+                             sub_I2(bottomRight_Rect(bounds_Widget(d)), muli_I2(gap2_UI, 2)));
+    return emulateMouseClickPos_Widget(d, button, pos);
 }
 
 iInt2 coord_MouseWheelEvent(const SDL_MouseWheelEvent *ev) {
