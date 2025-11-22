@@ -1299,6 +1299,15 @@ iBool dispatchEvent_Widget(iWidget *d, const SDL_Event *ev) {
                     fflush(stdout);
                 }
 #endif
+#if 0
+                if (ev->type == SDL_MOUSEWHEEL) {
+                    printf("[%p] %s:'%s' (on top) ate the wheel\n",
+                           widget,
+                           class_Widget(widget)->name,
+                           cstr_String(id_Widget(widget)));
+                    fflush(stdout);
+                }
+#endif
                 return iTrue;
             }
         }

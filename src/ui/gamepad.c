@@ -86,13 +86,17 @@ static void addTicker_Gamepad_(iGamepad *d) {
     addTickerRoot_App(ticker_Gamepad_, root_Gamepad_(d), d);
 }
 
-static void pointerOntoFocus_Gamepad_(iGamepad *d) {
-    if (focus_Widget()) {
-        const iInt2 mid = mid_Rect(boundsWithoutVisualOffset_Widget(focus_Widget()));
+void movePointerOntoWidget_Gamepad(iGamepad *d, const iWidget *widget) {
+    if (widget) {
+        const iInt2 mid = mid_Rect(boundsWithoutVisualOffset_Widget(widget));
         d->pointerf[0] = mid.x;
         d->pointerf[1] = mid.y;
         postRefresh_Window(d->window);
     }
+}
+
+static void pointerOntoFocus_Gamepad_(iGamepad *d) {
+    movePointerOntoWidget_Gamepad(d, focus_Widget());
 }
 
 static void ticker_Gamepad_(void *context) {
@@ -112,6 +116,7 @@ static void ticker_Gamepad_(void *context) {
         if (pixels) {
             SDL_PushEvent((SDL_Event *) &(SDL_MouseWheelEvent) {
                 .type      = SDL_MOUSEWHEEL,
+                .which     = mouseId_Gamepad,
                 .windowID  = id_Window(d->window),
                 .y         = -pixels,
                 .mouseX    = d->pointer.x,
@@ -128,6 +133,7 @@ static void ticker_Gamepad_(void *context) {
         if (delta.x || delta.y) {
             SDL_PushEvent((SDL_Event *) &(SDL_MouseMotionEvent) {
                 .type      = SDL_MOUSEMOTION,
+                .which     = mouseId_Gamepad,
                 .windowID  = id_Window(d->window),
                 .x         = d->pointer.x,
                 .y         = d->pointer.y,
@@ -148,13 +154,13 @@ static void animate_Gamepad_(void *context) {
     iGamepad *d = context;
     postRefresh_Window(d->window);
     if (!isFinished_Anim(&d->opacity)) {
-        addTicker_Gamepad_(d);
+        addTickerRoot_App(animate_Gamepad_, root_Gamepad_(d), context);
     }
 }
 
 static void showPointer_Gamepad_(iGamepad *d) {
     if (targetValue_Anim(&d->opacity) < 1) {
-        setValue_Anim(&d->opacity, 1, 400);
+        setValue_Anim(&d->opacity, 1, 160);
         animate_Gamepad_(d);
     }
     /* TODO: Fade the pointer away after some time .*/
@@ -162,7 +168,7 @@ static void showPointer_Gamepad_(iGamepad *d) {
 
 static void hidePointer_Gamepad_(iGamepad *d) {
     if (targetValue_Anim(&d->opacity) > 0) {
-        setValue_Anim(&d->opacity, 0, 400);
+        setValue_Anim(&d->opacity, 0, 320);
         animate_Gamepad_(d);
     }
 }
@@ -311,6 +317,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 const int button = (but->button == d->primary ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT);
                 SDL_PushEvent((SDL_Event *) &(SDL_MouseButtonEvent) {
                     .type     = (isPress ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP),
+                    .which    = mouseId_Gamepad,
                     .windowID = id_Window(d->window),
                     .button   = button,
                     .state    = (isPress ? SDL_PRESSED : SDL_RELEASED),
@@ -428,6 +435,10 @@ iDefineTypeConstruction(Gamepad);
 void init_Gamepad   (iGamepad *d) { iUnused(d); }
 void deinit_Gamepad (iGamepad *d) { iUnused(d); }
 void draw_Gamepad   (const iGamepad *d) { iUnused(d); }
+
+void movePointerOntoWidget_Gamepad(iGamepad *d, const iWidget *widget) {
+    iUnused(d, widget);
+}
 
 iBool isConnected_Gamepad(const iGamepad *d) {
     iUnused(d);

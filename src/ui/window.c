@@ -1941,18 +1941,15 @@ iInt2 mouseCoord_Window(const iWindow *d, int whichDevice) {
         iUnused(d);
         return latestPosition_Touch();
     }
+    if (whichDevice == mouseId_Gamepad) {
+        const iInt2 coord = pointerCoord_Gamepad(gamepad_App());
+        return coord_Window(d, coord.x, coord.y);
+    }
     if (!d->isMouseInside) {
         return init_I2(-1000000, -1000000);
     }
     int x, y;
-    if (isConnected_Gamepad(gamepad_App())) {
-        const iInt2 coord = pointerCoord_Gamepad(gamepad_App());
-        x = coord.x;
-        y = coord.y;
-    }
-    else {
-        SDL_GetMouseState(&x, &y);
-    }
+    SDL_GetMouseState(&x, &y);
     return coord_Window(d, x, y);
 }
 

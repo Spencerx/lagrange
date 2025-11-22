@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "defs.h"
 #include "documentwidget.h"
 #include "feeds.h"
+#include "gamepad.h"
 #include "gmcerts.h"
 #include "gmdocument.h"
 #include "gmutil.h"
@@ -1871,7 +1872,6 @@ static void setSlidingSheetPos_SidebarWidget_(iSidebarWidget *d, enum iSlidingSh
         setVisualOffset_Widget(w, 0, 200, easeOut_AnimFlag | softer_AnimFlag);
         setScrollMode_ListWidget(d->list, disabledAtTopBothDirections_ScrollMode);
     }
-    //    animateSlidingSheetHeight_SidebarWidget_(d);
 }
 
 static iBool handleSidebarCommand_SidebarWidget_(iSidebarWidget *d, const char *cmd) {
@@ -1988,6 +1988,7 @@ static iBool handleSidebarCommand_SidebarWidget_(iSidebarWidget *d, const char *
                 setVisualOffset_Widget(w, 0, 300, animFlags);
                 // animateSlidingSheetHeight_SidebarWidget_(d);
                 setScrollMode_ListWidget(d->list, disabledAtTopBothDirections_ScrollMode);
+                movePointerOntoWidget_Gamepad(gamepad_App(), as_Widget(d->list));
             }
             else {
                 setVisualOffset_Widget(
@@ -2986,6 +2987,10 @@ static iBool processEvent_SidebarWidget_(iSidebarWidget *d, const SDL_Event *ev)
                 refresh_Widget(w);
             }
             else {
+                if (ev->wheel.which == mouseId_Gamepad) {
+                    /* With the gamepad, you can't slide the sheet, only scroll the list. */
+                    setScrollMode_ListWidget(d->list, normal_ScrollMode);
+                }
                 return iFalse;
             }
             return iTrue;

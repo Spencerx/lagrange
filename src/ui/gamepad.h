@@ -24,17 +24,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <the_Foundation/vec2.h>
 
+iDeclareType(Widget);
 iDeclareType(Window);
 
 #if !defined (iPlatformTerminal) && defined (LAGRANGE_ENABLE_GAMEPAD)
 #  define LAGRANGE_USE_GAMEPAD
 #endif
 
+/* Device ID used for emulated mouse events. */
+#define mouseId_Gamepad ((uint32_t) -2)
+
 iDeclareType(Gamepad);
 iDeclareTypeConstruction(Gamepad);
 
 iBool   isConnected_Gamepad     (const iGamepad *);
 iInt2   pointerCoord_Gamepad    (const iGamepad *);
+
+void    movePointerOntoWidget_Gamepad   (iGamepad *, const iWidget *widget);
 
 iBool   processEvent_Gamepad    (iGamepad *, const void *sdlEvent);
 void    draw_Gamepad            (const iGamepad *);
