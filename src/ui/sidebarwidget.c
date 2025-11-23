@@ -2011,7 +2011,7 @@ static iBool handleSidebarCommand_SidebarWidget_(iSidebarWidget *d, const char *
         if (isDesktop_Platform() && prefs_App()->evenSplit) {
             resizeSplits_MainWindow(as_MainWindow(window_Widget(d)), iTrue);
         }
-        if (!isHiding && !isMobile_Platform()) {
+        if (!isHiding && (!isMobile_Platform() || isConnected_Gamepad(gamepad_App()))) {
             setFocus_Widget(as_Widget(list_SidebarWidget(d)));
         }
         else {

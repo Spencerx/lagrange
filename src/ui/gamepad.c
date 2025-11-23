@@ -311,7 +311,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 if (value_Anim(&d->opacity) < 0.5f) {
                     /* If the pointer is invisible, it must appear first. */
                     showPointer_Gamepad_(d);
-                    return iTrue;
+                    if (!focus_Widget()) return iTrue;
                 }
                 const int button = (but->button == d->primary ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT);
                 SDL_PushEvent((SDL_Event *) &(SDL_MouseButtonEvent) {
