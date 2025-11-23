@@ -724,13 +724,10 @@ iBool handleRootCommands_Widget(iWidget *root, const char *cmd) {
             else {
                 addChild_Widget(root, iClob(sidebar));
                 setWidth_SidebarWidget(sidebar, (float) width_Widget(root) / (float) gap_UI);
-                int midHeight = height_Widget(root) / 2;
-#if defined (iPlatformAndroidMobile)
-                midHeight += 2 * lineHeight_Text(uiLabelLarge_FontId);
-#endif
-#if defined (iPlatformMobileHandheld)
-                midHeight = height_Widget(root) * 3 / 4;
-#endif
+                int midHeight = height_Widget(root) * (isHandheld_Platform() ? 0.75f : 0.5f);
+                if (isAndroid_Platform()) {
+                    midHeight += 2 * lineHeight_Text(uiLabelLarge_FontId);
+                }
                 setMidHeight_SidebarWidget(sidebar, midHeight);
                 setFixedSize_Widget(as_Widget(sidebar), init_I2(-1, midHeight));
                 setPos_Widget(as_Widget(sidebar), init_I2(0, height_Widget(root) - midHeight));

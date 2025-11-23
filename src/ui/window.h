@@ -153,6 +153,7 @@ int             numRoots_Window         (const iWindow *);
 //iRoot *         findRoot_Window         (const iWindow *, const iWidget *widget);
 iRoot *         otherRoot_Window        (const iWindow *, iRoot *root);
 void            rootOrder_Window        (const iWindow *, iRoot *roots[2]);
+void            emulateKeyPress_Window  (const iWindow *, int key, int mods);
 
 void        setTitle_Window         (iWindow *, const iString *title);
 iBool       processEvent_Window     (iWindow *, const SDL_Event *);
@@ -248,8 +249,3 @@ iLocalDef const iMainWindow *constAs_MainWindow(const iAnyWindow *d) {
 
 iWindow *   newPopup_Window     (iInt2 screenPos, iWidget *rootWidget);
 iWindow *   newExtra_Window     (iWidget *rootWidget);
-
-/*----------------------------------------------------------------------------------------------*/
-
-const iArray *  updateBookmarksMenu_Widget  (iWidget *menu);
-void            cleanupBookmarksMenu_Widget (iWidget *menu);

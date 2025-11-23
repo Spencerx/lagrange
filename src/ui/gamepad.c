@@ -239,8 +239,7 @@ static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
             break;
     }
     if (key) {
-        moveFocusWithArrows_App(
-            &(SDL_KeyboardEvent) { .type = SDL_KEYDOWN, .keysym = { .sym = key } });
+        emulateKeyPress_Window(d->window, key, 0);
         pointerOntoFocus_Gamepad_(d);
         return iTrue;
     }
@@ -368,16 +367,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 postCommand_Root(root_Gamepad_(d), "sidebar.toggle");
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_X && isPress) {
-                SDL_KeyboardEvent key = {
-                    .type     = SDL_KEYDOWN,
-                    .windowID = id_Window(d->window),
-                    .state    = SDL_PRESSED,
-                    .keysym   = { .sym = SDLK_ESCAPE },
-                };
-                SDL_PushEvent((SDL_Event *) &key);
-                key.type  = SDL_KEYUP;
-                key.state = SDL_RELEASED;
-                SDL_PushEvent((SDL_Event *) &key);
+                emulateKeyPress_Window(d->window, SDLK_ESCAPE, 0);
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_Y && isPress) {
                 postCommand_Root(root_Gamepad_(d), "navigate.focus");
