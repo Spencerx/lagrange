@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "paint.h"
 #include "util.h"
 #include "window.h"
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 struct Impl_Gamepad {
     int                 joyIndex;
