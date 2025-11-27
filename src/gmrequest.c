@@ -369,6 +369,7 @@ static const iBlock *aboutPageSource_(iRangecc path, iRangecc query) {
         { "help",           &blobHelp_Resources },
         { "license",        &blobLicense_Resources },
         { "version",        &blobVersion_Resources },
+        { "version-1.15",   &blobVersion_1_15_Resources },
         { "version-1.10",   &blobVersion_1_10_Resources },
         { "version-1.5",    &blobVersion_1_5_Resources },
         { "version-0.13",   &blobVersion_0_13_Resources },
