@@ -298,6 +298,7 @@ iLocalDef iWidget *lastChild_Widget(iAnyObject *d) {
 }
 
 iBool   isVisible_Widget            (const iAnyObject *);
+iBool   isSelfHidden_Widget         (const iAnyObject *); /* sometimes may unhide based on parent */
 iBool   isDisabled_Widget           (const iAnyObject *);
 iBool   isFocused_Widget            (const iAnyObject *);
 iBool   isHover_Widget              (const iAnyObject *);
@@ -344,6 +345,14 @@ void    postCommand_Widget          (const iAnyObject *, const char *cmd, ...);
 void    refresh_Widget              (const iAnyObject *);
 
 iBool   equalWidget_Command (const char *cmd, const iWidget *widget, const char *checkCommand);
+
+iLocalDef iBool isHoverable_Widget(const iWidget *d) {
+    if (d) {
+        return flags_Widget(d) & hover_WidgetFlag && ~flags_Widget(d) & disabled_WidgetFlag &&
+               !isSelfHidden_Widget(d);
+    }
+    return iFalse;
+}
 
 iDeclareType(WidgetScrollInfo)
 

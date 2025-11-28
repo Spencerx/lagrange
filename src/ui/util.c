@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "documentwidget.h"
 #include "export.h"
 #include "feeds.h"
+#include "gamepad.h"
 #include "gmutil.h"
 #include "inputwidget.h"
 #include "keys.h"

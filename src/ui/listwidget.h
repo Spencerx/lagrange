@@ -116,6 +116,7 @@ size_t              numItems_ListWidget         (const iListWidget *);
 int                 visCount_ListWidget         (const iListWidget *);
 size_t              itemIndex_ListWidget        (const iListWidget *, iInt2 pos);
 iRect               itemRect_ListWidget         (const iListWidget *, size_t index);
+iRect               itemRectWithoutVisualOffset_ListWidget(const iListWidget *, size_t index);
 const iAnyObject *  constItem_ListWidget        (const iListWidget *, size_t index);
 const iAnyObject *  constDragItem_ListWidget    (const iListWidget *);
 const iAnyObject *  constHoverItem_ListWidget   (const iListWidget *);

@@ -4831,6 +4831,10 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                 return iTrue;
             }
 #endif /* LAGRANGE_ENABLE_AUDIO */
+            if (isHandheld_Platform() && ~d->flags & selecting_DocumentWidgetFlag) {
+                /* Not starting drag-to-select with left button. */
+                return iTrue;
+            }
             /* Fold/unfold a preformatted block. */
             if (~d->flags & selecting_DocumentWidgetFlag && view->hoverPre &&
                 prefs_App()->collapsePre != always_Collapse &&

@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "periodic.h"
 #include "touch.h"
 #include "command.h"
+#include "gamepad.h"
 #include "paint.h"
 #include "root.h"
 #include "util.h"
@@ -1206,7 +1207,8 @@ iLocalDef iBool isMouseEvent_(const SDL_Event *ev) {
             ev->type == SDL_MOUSEBUTTONUP || ev->type == SDL_MOUSEBUTTONDOWN);
 }
 
-iLocalDef iBool isHidden_Widget_(const iWidget *d) {
+iBool isSelfHidden_Widget(const iAnyObject *obj) {
+    const iWidget *d = constAs_Widget(obj);
     if (d->flags & visibleOnParentHover_WidgetFlag &&
         (isHover_Widget(d) || isHover_Widget(d->parent))) {
         return iFalse;
@@ -1218,8 +1220,8 @@ iLocalDef iBool isHidden_Widget_(const iWidget *d) {
 }
 
 iLocalDef iBool isDrawn_Widget_(const iWidget *d) {
-    return !isHidden_Widget_(d) || (d->flags & visualOffset_WidgetFlag &&
-                                    ~d->flags2 & permanentVisualOffset_WidgetFlag2);
+    return !isSelfHidden_Widget(d) ||
+           (d->flags & visualOffset_WidgetFlag && ~d->flags2 & permanentVisualOffset_WidgetFlag2);
 }
 
 static iBool filterEvent_Widget_(const iWidget *d, const SDL_Event *ev) {
@@ -1229,11 +1231,11 @@ static iBool filterEvent_Widget_(const iWidget *d, const SDL_Event *ev) {
     }
     const iBool isKey   = isKeyboardEvent_(ev);
     const iBool isMouse = isMouseEvent_(ev);
-    if ((d->flags & disabled_WidgetFlag) || (isHidden_Widget_(d) &&
+    if ((d->flags & disabled_WidgetFlag) || (isSelfHidden_Widget(d) &&
                                              d->flags & disabledWhenHidden_WidgetFlag)) {
         if (isKey || isMouse) return iFalse;
     }
-    if (isHidden_Widget_(d)) {
+    if (isSelfHidden_Widget(d)) {
         if (isMouse) return iFalse;
     }
     return iTrue;
@@ -1315,9 +1317,7 @@ iBool dispatchEvent_Widget(iWidget *d, const SDL_Event *ev) {
     else if (ev->type == SDL_MOUSEMOTION &&
              ev->motion.windowID == id_Window(window_Widget(d)) &&
              (!window_Widget(d)->hover || hasParent_Widget(d, window_Widget(d)->hover)) &&
-             flags_Widget(d) & hover_WidgetFlag &&
-             !isHidden_Widget_(d) /* hidden flag on self */ &&
-             ~flags_Widget(d) & disabled_WidgetFlag) {
+             isHoverable_Widget(d)) {
         if (contains_Widget(d, init_I2(ev->motion.x, ev->motion.y))) {
             setHover_Widget(d);
 #if 0
@@ -1574,7 +1574,7 @@ iBool processEvent_Widget(iWidget *d, const SDL_Event *ev) {
             }
         }
         else if (ev->type == SDL_MOUSEMOTION && ev->motion.which != SDL_TOUCH_MOUSEID &&
-                 ev->motion.y >= 0) {
+                 ev->motion.which != mouseId_Gamepad && ev->motion.y >= 0) {
             /* TODO: Motion events occur frequently. Maybe it would help if these were handled
                via audiences that specifically register to listen for motion, to minimize the
                number of widgets that need to process them. */
@@ -2233,7 +2233,7 @@ void changeChildIndex_Widget(iWidget *d, iAnyObject *child, size_t newIndex) {
 }
 
 iAny *hitChild_Widget(const iWidget *d, iInt2 coord) {
-    if (isHidden_Widget_(d)) {
+    if (isSelfHidden_Widget(d)) {
         return NULL;
     }
     /* Check for on-top widgets first. */

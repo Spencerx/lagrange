@@ -21,13 +21,14 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "listwidget.h"
-#include "scrollwidget.h"
-#include "paint.h"
-#include "util.h"
-#include "command.h"
-#include "touch.h"
-#include "visbuf.h"
 #include "app.h"
+#include "command.h"
+#include "gamepad.h"
+#include "paint.h"
+#include "scrollwidget.h"
+#include "touch.h"
+#include "util.h"
+#include "visbuf.h"
 
 #include <the_Foundation/intset.h>
 
@@ -340,6 +341,11 @@ static iBool moveCursor_ListWidget_(iListWidget *d, int dir, uint32_t animSpan) 
     }
     if (d->cursorItem != iInvalidPos) {
         scrollToItem_ListWidget(d, d->cursorItem, prefs_App()->uiAnimations ? animSpan : 0);
+        if (isConnected_Gamepad(gamepad_App())) {
+            /* The gamepad pointer is moved to match the selected list item position. */
+            movePointer_Gamepad(gamepad_App(), mid_Rect(itemRectWithoutVisualOffset_ListWidget(d,
+                d->cursorItem)), 0);
+        }
     }
     return d->cursorItem != oldCursor;
 }
@@ -703,8 +709,15 @@ static iBool processEvent_ListWidget_(iListWidget *d, const SDL_Event *ev) {
 iRect itemRect_ListWidget(const iListWidget *d, size_t index) {
     const iRect bounds  = innerBounds_Widget(constAs_Widget(d));
     const int   scrollY = pos_SmoothScroll(&d->scrollY);
-    return (iRect){ addY_I2(topLeft_Rect(bounds), d->itemHeight * (int) index - scrollY),
-                    init_I2(width_Rect(bounds), d->itemHeight) };
+    return (iRect) { addY_I2(topLeft_Rect(bounds), d->itemHeight * (int) index - scrollY),
+                     init_I2(width_Rect(bounds), d->itemHeight) };
+}
+
+iRect itemRectWithoutVisualOffset_ListWidget(const iListWidget *d, size_t index) {
+    const iRect bounds  = innerBoundsWithoutVisualOffset_Widget(constAs_Widget(d));
+    const int   scrollY = targetValue_Anim(&d->scrollY.pos);
+    return (iRect) { addY_I2(topLeft_Rect(bounds), d->itemHeight * (int) index - scrollY),
+                     init_I2(width_Rect(bounds), d->itemHeight) };
 }
 
 static void draw_ListWidget_(const iListWidget *d) {

@@ -1586,8 +1586,8 @@ iBool dispatchEvent_Window(iWindow *d, const SDL_Event *ev) {
                     continue;
                 }
             }
-            if (ev->type == SDL_MOUSEWHEEL && !contains_Rect(rect_Root(root),
-                                                             coord_MouseWheelEvent(&ev->wheel))) {
+            if (ev->type == SDL_MOUSEWHEEL &&
+                !contains_Rect(rect_Root(root), coord_MouseWheelEvent(&ev->wheel))) {
                 continue; /* Only process the event in the relevant split. */
             }
             if (!root->widget) {
@@ -1864,11 +1864,15 @@ void draw_MainWindow(iMainWindow *d) {
         draw_Gamepad(gamepad_App());
         setCurrent_Root(NULL);
 #if !defined (NDEBUG)
+        iWidget *sample = focus_Widget();
         draw_Text(uiLabelBold_FontId,
                   safeRect_Root(w->roots[0]).pos,
                   d->base.frameCount & 1 ? red_ColorId : white_ColorId,
-                  "%d",
-                  drawCount_);
+                  "%d  %p:%s:%s",
+                  drawCount_,
+                  sample,
+                  class_Widget(sample) ? class_Widget(sample)->name : "",
+                  cstr_String(id_Widget(sample)));
         drawCount_ = 0;
 #endif
     }

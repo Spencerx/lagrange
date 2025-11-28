@@ -38,9 +38,15 @@ iDeclareType(Gamepad);
 iDeclareTypeConstruction(Gamepad);
 
 iBool   isConnected_Gamepad     (const iGamepad *);
+iBool   isPointing_Gamepad      (const iGamepad *);
 iInt2   pointerCoord_Gamepad    (const iGamepad *);
 
-void    movePointerOntoWidget_Gamepad   (iGamepad *, const iWidget *widget);
+iLocalDef iBool isPointerHidden_Gamepad(const iGamepad *d) {
+    return isConnected_Gamepad(d) && !isPointing_Gamepad(d);
+}
+
+void    movePointer_Gamepad             (iGamepad *, iInt2 coord, int span);
+void    movePointerOntoWidget_Gamepad   (iGamepad *, iWidget *widget, int span);
 
 iBool   processEvent_Gamepad    (iGamepad *, const void *sdlEvent);
 void    draw_Gamepad            (const iGamepad *);
