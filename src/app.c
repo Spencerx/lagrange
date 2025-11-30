@@ -5241,12 +5241,11 @@ iBool handleCommand_App(const char *cmd) {
         setCommandHandler_Widget(dlg, handlePrefsCommands_);
         if (prefs_App()->detachedPrefs && (!isWindows_Platform() || !prefs_App()->customFrame) &&
             deviceType_App() == desktop_AppDeviceType && !isTerminal_Platform()) {
-            /* Detach into a window if it doesn't fit otherwise. */
+            /* Detach into a window. */
             promoteDialogToWindow_Widget(dlg);
         }
         if (argLabel_Command(cmd, "idents") && deviceType_App() != desktop_AppDeviceType) {
-            /* TODO: Don't hardcode the panel index. */
-            iWidget *idPanel = panel_Mobile(dlg, 3);
+            iWidget *idPanel = panel_Mobile(dlg, 3);/* TODO: Don't hardcode the panel index. */
             iWidget *button  = findUserData_Widget(findChild_Widget(dlg, "panel.top"), idPanel);
             postCommand_Widget(button, "panel.open");
         }

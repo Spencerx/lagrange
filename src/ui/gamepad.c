@@ -54,7 +54,7 @@ iDefineTypeConstruction(Gamepad);
 
 static iBool wasInited_;
 
-static void ticker_Gamepad_(void *);
+static void ticker_Gamepad_ (void *);
 static void animate_Gamepad_(void *);
 
 static iRoot *root_Gamepad_(const iGamepad *d) {
