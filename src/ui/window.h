@@ -154,6 +154,7 @@ int             numRoots_Window         (const iWindow *);
 iRoot *         otherRoot_Window        (const iWindow *, iRoot *root);
 void            rootOrder_Window        (const iWindow *, iRoot *roots[2]);
 void            emulateKeyPress_Window  (const iWindow *, int key, int mods);
+SDL_Texture *   makeTextureFromImageData_Window (const iWindow *, const iBlock *data);
 
 void        setTitle_Window         (iWindow *, const iString *title);
 iBool       processEvent_Window     (iWindow *, const SDL_Event *);

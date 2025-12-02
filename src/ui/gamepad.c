@@ -29,8 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "documentwidget.h"
 #include "labelwidget.h"
 #include "paint.h"
+#include "resources.h"
 #include "util.h"
 #include "window.h"
+
 #include <the_Foundation/ptrset.h>
 #include <SDL.h>
 
@@ -51,6 +53,8 @@ struct Impl_Gamepad {
     iBool    rightTrigger;
     int      primary; /* e.g., SDL_CONTROLLER_BUTTON_A */
     int      secondary;
+    /* Graphics: */
+    SDL_Texture *pointerTexture;
 };
 
 iDefineTypeConstruction(Gamepad);
@@ -226,6 +230,7 @@ void init_Gamepad(iGamepad *d) {
         wasInited_ = iTrue;
     }
     SDL_GameControllerEventState(SDL_ENABLE);
+    d->pointerTexture = makeTextureFromImageData_Window(d->window, &imagePointer_Resources);
     /* Look for gamepads. */
     for (int i = 0; i < SDL_NumJoysticks(); i++) {
         if (SDL_IsGameController(i)) {
@@ -238,6 +243,7 @@ void init_Gamepad(iGamepad *d) {
 void deinit_Gamepad(iGamepad *d) {
     close_Gamepad_(d);
     SDL_GameControllerEventState(SDL_IGNORE);
+    SDL_DestroyTexture(d->pointerTexture);
     delete_PtrSet(d->openMenus);
 }
 
@@ -505,13 +511,11 @@ void draw_Gamepad(const iGamepad *d) {
     iPaint p;
     init_Paint(&p);
     SDL_Renderer *render = renderer_Window(get_Window());
-    SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
-    p.alpha = value_Anim(&d->opacity) * 255;
-    fillRect_Paint(&p,
-                   (iRect) { init_I2(value_Anim(&d->pointerf[0]), value_Anim(&d->pointerf[1])),
-                             init1_I2(gap_UI * 3) },
-                   red_ColorId);
-    SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_NONE);
+    uint8_t       alpha  = value_Anim(&d->opacity) * 255;
+    const iInt2   pos    = init_I2(value_Anim(&d->pointerf[0]), value_Anim(&d->pointerf[1]));
+    const iInt2   size   = size_SDLTexture(d->pointerTexture);
+    SDL_SetTextureAlphaMod(d->pointerTexture, alpha);
+    SDL_RenderCopy(render, d->pointerTexture, NULL, &(SDL_Rect) { pos.x, pos.y, size.x, size.y });
     /* TODO: Draw button help overlay? */
 }
 

@@ -649,6 +649,15 @@ static SDL_Surface *loadImage_(const iBlock *data, int resized) {
         pixels, w, h, 8 * num, w * num, SDL_PIXELFORMAT_RGBA32);
 }
 
+SDL_Texture *makeTextureFromImageData_Window(const iWindow *d, const iBlock *data) {
+    SDL_Surface *surf    = loadImage_(data, 0);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(d->render, surf);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    free(surf->pixels);
+    SDL_FreeSurface(surf);
+    return texture;
+}
+
 static void updateMetrics_Window_(const iWindow *d) {
     setScale_Metrics(d->pixelRatio * d->displayScale * d->uiScale);
 }

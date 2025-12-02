@@ -69,6 +69,7 @@ iBlock blobUk_Resources;
 iBlock blobZh_Hans_Resources;
 iBlock blobZh_Hant_Resources;
 iBlock imageLogo_Resources;
+iBlock imagePointer_Resources;
 iBlock imageShadow_Resources;
 iBlock imageLagrange64_Resources;
 iBlock blobMacosSystemFontsIni_Resources;
@@ -124,6 +125,7 @@ static struct {
     { &blobZh_Hans_Resources, "lang/zh_Hans.bin" },
     { &blobZh_Hant_Resources, "lang/zh_Hant.bin" },
     { &imageLogo_Resources, "logo.png" },
+    { &imagePointer_Resources, "pointer.png" },
     { &imageShadow_Resources, "shadow.png" },
     { &imageLagrange64_Resources, "lagrange-64.png" },
     { &blobMacosSystemFontsIni_Resources, "macos-system-fonts.ini" },
