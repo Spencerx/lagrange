@@ -86,6 +86,11 @@ int main(int argc, char **argv) {
 #if !defined (iPlatformTerminal)
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif
+    SDL_GameControllerAddMapping(
+        "19009b4d4b4800000111000000010000,retrogame_joypad,a:b1,b:b0,x:b2,y:b3,back:b8,start:b9,"
+        "guide:b10,leftshoulder:b4,rightshoulder:b5,lefttrigger:b6,righttrigger:b7,leftstick:b11,"
+        "rightstick:b12,dpup:b13,dpdown:b14,dpleft:b15,dpright:b16,leftx:a0,lefty:a1,righty:a3,"
+        "rightx:a2");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)) {
         fprintf(stderr, "[SDL] init failed: %s\n", SDL_GetError());
         return -1;

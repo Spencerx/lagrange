@@ -72,7 +72,13 @@ static void open_Gamepad_(iGamepad *d, int index) {
     iAssert(d->joyIndex < 0);
     d->joyIndex = index;
     d->ctl      = SDL_GameControllerOpen(index);
-    fprintf(stderr, "[Gamepad] using controller: %s\n", SDL_GameControllerNameForIndex(index));
+    char guid[64];
+    SDL_JoystickGetGUIDString(SDL_JoystickGetDeviceGUID(index), guid, sizeof(guid));
+    fprintf(stderr,
+            "[Gamepad] using controller: %s (type:%d, GUID:%s)\n",
+            SDL_GameControllerNameForIndex(index),
+            SDL_GameControllerGetType(d->ctl),
+            guid);
     /* TODO: Can we determine the type of controller? */
     d->primary   = SDL_CONTROLLER_BUTTON_A;
     d->secondary = SDL_CONTROLLER_BUTTON_X;
@@ -195,9 +201,9 @@ static void showPointer_Gamepad_(iGamepad *d) {
     /* TODO: Fade the pointer away after some time .*/
 }
 
-static void hidePointer_Gamepad_(iGamepad *d) {
+static void hidePointer_Gamepad_(iGamepad *d, iBool completely) {
     if (targetValue_Anim(&d->opacity) > 0) {
-        setValue_Anim(&d->opacity, 0.25f, 320);
+        setValue_Anim(&d->opacity, completely ? 0.f : 0.25f, 320);
         animate_Gamepad_(d);
     }
 }
@@ -350,6 +356,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
         }
         case SDL_CONTROLLERAXISMOTION: {
             const SDL_ControllerAxisEvent *axis = &event->caxis;
+            // printf("[Gamepad] axis:%d value:%d\n", axis->axis, axis->value);
             if (axis->axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) {
                 d->rightTrigger = axis->value > (SDL_JOYSTICK_AXIS_MAX / 2);
                 return iTrue;
@@ -374,7 +381,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             norm = iClamp((norm - iSign(norm) * deadZone) / (1.0f - deadZone), -1.0f, 1.0f);
             if (axis->axis == SDL_CONTROLLER_AXIS_RIGHTY) {
                 d->scrollSpeed = norm * norm * iSignf(norm);
-                hidePointer_Gamepad_(d);
+                hidePointer_Gamepad_(d, iTrue);
                 addTicker_Gamepad_(d);
                 updateHover_Gamepad_(d);
             }
@@ -425,6 +432,10 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
                 if (isPress) {
+                    if (d->rightTrigger) {
+                        postCommand_Root(root_Gamepad_(d), "zoom.delta arg:10");
+                        return iTrue;
+                    }
                     if (moveFocusToDirection_Gamepad_(d, but->button)) return iTrue;
                 }
                 d->scrollSpeed = (isPress ? -0.75f : 0);
@@ -432,6 +443,10 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
                 if (isPress) {
+                    if (d->rightTrigger) {
+                        postCommand_Root(root_Gamepad_(d), "zoom.delta arg:-10");
+                        return iTrue;
+                    }
                     if (moveFocusToDirection_Gamepad_(d, but->button)) return iTrue;
                 }
                 d->scrollSpeed = (isPress ? 0.75f : 0);
@@ -455,7 +470,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 emulateMouseClick_Widget(nav, SDL_BUTTON_LEFT);
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_BACK && isPress) {
-                hidePointer_Gamepad_(d);
+                hidePointer_Gamepad_(d, iFalse);
                 postCommand_Root(root_Gamepad_(d), "sidebar.toggle");
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_B && isPress) {
@@ -513,7 +528,7 @@ void draw_Gamepad(const iGamepad *d) {
     SDL_Renderer *render = renderer_Window(get_Window());
     uint8_t       alpha  = value_Anim(&d->opacity) * 255;
     const iInt2   pos    = init_I2(value_Anim(&d->pointerf[0]), value_Anim(&d->pointerf[1]));
-    const iInt2   size   = size_SDLTexture(d->pointerTexture);
+    const iInt2   size = mulf_I2(size_SDLTexture(d->pointerTexture), 0.5f * d->window->pixelRatio);
     SDL_SetTextureAlphaMod(d->pointerTexture, alpha);
     SDL_RenderCopy(render, d->pointerTexture, NULL, &(SDL_Rect) { pos.x, pos.y, size.x, size.y });
     /* TODO: Draw button help overlay? */
