@@ -2509,7 +2509,7 @@ const iWidget *findTopmostFocusRoot_Widget_(const iWidget *d) {
     }
     iReverseConstForEach(ObjectList, i, d->children) {
         const iWidget *child = constAs_Widget(i.object);
-        const iWidget *root = findTopmostFocusRoot_Widget_(child);
+        const iWidget *root  = findTopmostFocusRoot_Widget_(child);
         if (root) {
             return root;
         }

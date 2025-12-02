@@ -1188,7 +1188,8 @@ void setNativeMenuItems_Widget(iWidget *menu, const iMenuItem *items, size_t n) 
     iAssert(flags_Widget(menu) & nativeMenu_WidgetFlag);
     releaseNativeMenu_Widget(menu);
     setUserData_Object(menu, deepCopyMenuItems_(items, n));
-    /* Keyboard shortcuts still need to triggerable via the menu, although the items don't exist. */ {
+    /* Keyboard shortcuts still need to triggerable via the menu, although
+       the items don't exist. */ {
         releaseChildren_Widget(menu);
         for (size_t i = 0; i < n && items[i].label; i++) {
             const iMenuItem *item = &items[i];
@@ -1239,7 +1240,8 @@ void addMenuCancelAction_Widget(iWidget *menu) {
     setFlags_Widget(cancel, disabled_WidgetFlag, iTrue);
 }
 
-iWidget *makeMenuFlags_Widget(iWidget *parent, const iMenuItem *items, size_t n, iBool allowNative) {
+iWidget *makeMenuFlags_Widget(iWidget *parent, const iMenuItem *items, size_t n,
+                              iBool allowNative) {
     iWidget *menu = new_Widget();
 #if defined (LAGRANGE_NATIVE_MENU)
     if (isDesktop_Platform() || (allowNative && isSupported_SystemMenu())) {
