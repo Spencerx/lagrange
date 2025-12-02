@@ -118,7 +118,7 @@ static iBool isSubmenuItem_LabelWidget_(const iLabelWidget *d) {
 
 static void trigger_LabelWidget_(const iLabelWidget *d) {
     const iWidget *w = constAs_Widget(d);
-    if (isTerminal_Platform() && isSubmenuItem_LabelWidget_(d)) {
+    if ((isTerminal_Platform() || isHandheld_Platform()) && isSubmenuItem_LabelWidget_(d)) {
         postCommand_Widget(w, "submenu.open");
         return;
     }

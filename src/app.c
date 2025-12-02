@@ -5271,6 +5271,9 @@ iBool handleCommand_App(const char *cmd) {
                 postCommand_Widget(button, "panel.open");
             }
         }
+        if (isPointerHidden_Gamepad(gamepad_App())) {
+            setFocus_Widget(findFocusable_Widget(dlg, forward_WidgetFocusDir));
+        }
     }
     else if (equal_Command(cmd, "navigate.home") && isMainWin) {
         /* Look for bookmarks tagged "homepage". */

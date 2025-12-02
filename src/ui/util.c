@@ -970,7 +970,7 @@ static iWidget *makeMenuSeparator_(void) {
 }
 
 static iBool submenuItemHandler_(iWidget *d, const char *cmd) {
-    if (equal_Command(cmd, "mouse.hovered") && isVisible_Widget(d)) {
+    if (!isHandheld_Platform() && equal_Command(cmd, "mouse.hovered") && isVisible_Widget(d)) {
         iAssert(isInstance_Object(d, &Class_LabelWidget));
         iLabelWidget *label = (iLabelWidget *) d;
         const iString *subCmd = command_LabelWidget(label);

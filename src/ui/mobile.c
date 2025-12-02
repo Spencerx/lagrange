@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "certlistwidget.h"
 #include "command.h"
 #include "defs.h"
+#include "gamepad.h"
 #include "inputwidget.h"
 #include "labelwidget.h"
 #include "root.h"
@@ -131,18 +132,45 @@ static iWidget *findDetailStack_(iWidget *topPanel) {
     return findChild_Widget(parent_Widget(topPanel), "detailstack");
 }
 
-static void unselectAllPanelButtons_(iWidget *topPanel) {
+static iBool forEachPanelButton_(iWidget *topPanel,
+                                iBool (*callback)(void *context, iAnyObject *object),
+                                void *context) {
     iForEach(ObjectList, i, children_Widget(topPanel)) {
         if (isInstance_Object(i.object, &Class_LabelWidget)) {
-            iLabelWidget *label = i.object;
-            if (!cmp_String(command_LabelWidget(label), "panel.open")) {
-                if (isSelected_Widget(i.object)) {
-                    refresh_Widget(i.object);
+            if (!cmp_String(command_LabelWidget(i.object), "panel.open")) {
+                if (!callback(context, i.object)) {
+                    return iFalse;
                 }
-                setFlags_Widget(i.object, selected_WidgetFlag, iFalse);
             }
         }
     }
+    return iTrue;
+}
+
+static iBool focusSelectedPanelButton_(void *context, iAnyObject *object) {
+    iUnused(context);
+    if (isSelected_Widget(object)) {
+        if (flags_Widget(object) & focusable_WidgetFlag) {
+            setFocus_Widget(object);
+        }
+        else {
+            iWidget *w = findFocusable_Widget(object, forward_WidgetFocusDir);
+            if (w) {
+                setFocus_Widget(w);
+            }
+        }
+        return iFalse;
+    }
+    return iTrue;
+}
+
+static iBool unselectPanelButton_(void *context, iAnyObject *object) {
+    iUnused(context);
+    if (isSelected_Widget(object)) {
+        setFlags_Widget(object, selected_WidgetFlag, iFalse);
+        refresh_Widget(object);
+    }
+    return iTrue;
 }
 
 static iWidget *findTitleLabel_(iWidget *panel) {
@@ -278,7 +306,7 @@ static iBool topPanelHandler_(iWidget *topPanel, const char *cmd) {
         /* This command is sent by the button that opens the panel. */
         iWidget *button = pointer_Command(cmd);
         iWidget *panel = userData_Object(button);
-        unselectAllPanelButtons_(topPanel);
+        forEachPanelButton_(topPanel, unselectPanelButton_, NULL);
         int panelIndex = -1;
         size_t childIndex = 0;
         iForEach(ObjectList, i, children_Widget(findDetailStack_(topPanel))) {
@@ -300,6 +328,9 @@ static iBool topPanelHandler_(iWidget *topPanel, const char *cmd) {
         refresh_Widget(button);
         postCommand_Widget(topPanel, "panel.changed arg:%d", panelIndex);
         updateListHeights_(findDetailStack_(topPanel));
+        if (isPointerHidden_Gamepad(gamepad_App())) {
+            setFocus_Widget(findFocusable_Widget(panel, forward_WidgetFocusDir));
+        }
         return iTrue;
     }
     if (equal_Command(cmd, "swipe.back")) {
@@ -324,7 +355,10 @@ static iBool topPanelHandler_(iWidget *topPanel, const char *cmd) {
             }
         }
         updateNaviActionVisibility_(sheet, topPanel);
-        unselectAllPanelButtons_(topPanel);
+        if (isPointerHidden_Gamepad(gamepad_App())) {
+            forEachPanelButton_(topPanel, focusSelectedPanelButton_, NULL);
+        }
+        forEachPanelButton_(topPanel, unselectPanelButton_, NULL);
         if (!wasClosed) {
             iWidget *widget = NULL;
             /* TODO: Should come up with a more general-purpose approach here. */

@@ -25,17 +25,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #if defined (LAGRANGE_USE_GAMEPAD)
 
 #include "app.h"
+#include "command.h"
 #include "documentwidget.h"
 #include "labelwidget.h"
 #include "paint.h"
 #include "util.h"
 #include "window.h"
+#include <the_Foundation/ptrset.h>
 #include <SDL.h>
 
 struct Impl_Gamepad {
     SDL_GameController *ctl;
     int      joyIndex;
     iWindow *window; /* we assume there is one window and it won't change */
+    iPtrSet *openMenus;
     float    scrollSpeed;
     float    scrollAccum; /* pixels */
     iBool    isScrollCancelled;
@@ -68,7 +71,7 @@ static void open_Gamepad_(iGamepad *d, int index) {
     fprintf(stderr, "[Gamepad] using controller: %s\n", SDL_GameControllerNameForIndex(index));
     /* TODO: Can we determine the type of controller? */
     d->primary   = SDL_CONTROLLER_BUTTON_A;
-    d->secondary = SDL_CONTROLLER_BUTTON_B;
+    d->secondary = SDL_CONTROLLER_BUTTON_X;
     d->isScrollCancelled = iFalse;
 }
 
@@ -204,6 +207,7 @@ void init_Gamepad(iGamepad *d) {
     d->scrollAccum    = 0;
     d->rightTrigger   = iFalse;
     d->window         = (iWindow *) constFront_PtrArray(mainWindows_App());
+    d->openMenus      = new_PtrSet();
     init_Anim(&d->opacity, 0);
     /* Place the soft pointer at the center of the window. */
     d->pointer     = mid_Rect(initSize_Rect(d->window->size.x / d->window->pixelRatio,
@@ -234,6 +238,7 @@ void init_Gamepad(iGamepad *d) {
 void deinit_Gamepad(iGamepad *d) {
     close_Gamepad_(d);
     SDL_GameControllerEventState(SDL_IGNORE);
+    delete_PtrSet(d->openMenus);
 }
 
 iBool isConnected_Gamepad(const iGamepad *d) {
@@ -241,7 +246,7 @@ iBool isConnected_Gamepad(const iGamepad *d) {
 }
 
 iBool isPointing_Gamepad(const iGamepad *d) {
-    return isConnected_Gamepad(d) && value_Anim(&d->opacity) > 0.5f;
+    return isConnected_Gamepad(d) && targetValue_Anim(&d->opacity) > 0.5f;
 }
 
 iInt2 pointerCoord_Gamepad(const iGamepad *d) {
@@ -249,7 +254,40 @@ iInt2 pointerCoord_Gamepad(const iGamepad *d) {
 }
 
 static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
-    if (!focus_Widget() || isInstance_Object(focus_Widget(), &Class_DocumentWidget)) {
+    if (focus_Widget() && isInstance_Object(focus_Widget(), &Class_DocumentWidget)) {
+        setFocus_Widget(NULL);
+    }
+    if (!focus_Widget()) {
+        /* If a dialog or sidebar is open, place the focus there. */
+        iWidget *focusable =
+            !isEmpty_PtrSet(d->openMenus) ? front_PtrSet(d->openMenus) : NULL;
+        if (focusable) {
+            printTree_Widget(focusable);
+            iConstForEach(ObjectList, k, children_Widget(focusable)) {
+                if (flags_Widget(k.object) & focusable_WidgetFlag) {
+                    setFocus_Widget((iWidget *) k.object);
+                    return iTrue;
+                }
+            }
+            return iTrue;
+        }
+        if (!focusable) {
+            iForEach(ObjectList, j, children_Widget(root_Gamepad_(d)->widget)) {
+                const iWidget *child = j.object;
+                if (isVisible_Widget(child) && flags_Widget(child) & focusRoot_WidgetFlag) {
+                    focusable = j.object;
+                    break;
+                }
+            }
+        }
+        if (focusable) {
+            setFocus_Widget(findFocusable_Widget(focusable,
+                                                 button == SDL_CONTROLLER_BUTTON_DPAD_DOWN ||
+                                                         button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT
+                                                     ? forward_WidgetFocusDir
+                                                     : backward_WidgetFocusDir));
+            return iTrue;
+        }
         return iFalse;
     }
     int key = 0;
@@ -281,6 +319,14 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
         pointerOntoFocus_Gamepad_(d);
         return iFalse;
     }
+    else if (isCommand_UserEvent(sdlEvent, "menu.opened")) {
+        insert_PtrSet(d->openMenus, pointer_Command(command_UserEvent(sdlEvent)));
+        return iFalse;
+    }
+    else if (isCommand_UserEvent(sdlEvent, "menu.closed")) {
+        remove_PtrSet(d->openMenus, pointer_Command(command_UserEvent(sdlEvent)));
+        return iFalse;
+    }
     switch (event->type) {
         case SDL_CONTROLLERDEVICEADDED: {
             const SDL_ControllerDeviceEvent *dev = &event->cdevice;
@@ -303,7 +349,6 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 return iTrue;
             }
             const float deadZone = 0.1f;
-            // fprintf(stderr, "[Gamepad] axis:%d value:%5d\n", axis->axis, axis->value);
             float norm = axis->value / (float) SDL_JOYSTICK_AXIS_MAX;
             const int pointerAxis = (axis->axis == SDL_CONTROLLER_AXIS_LEFTY ? 1 : 0);
             if (fabs(norm) < deadZone) {
@@ -404,10 +449,16 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 emulateMouseClick_Widget(nav, SDL_BUTTON_LEFT);
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_BACK && isPress) {
+                hidePointer_Gamepad_(d);
                 postCommand_Root(root_Gamepad_(d), "sidebar.toggle");
             }
-            else if (but->button == SDL_CONTROLLER_BUTTON_X && isPress) {
-                emulateKeyPress_Window(d->window, SDLK_ESCAPE, 0);
+            else if (but->button == SDL_CONTROLLER_BUTTON_B && isPress) {
+                if (d->rightTrigger) {
+                    postCommand_Root(root_Gamepad_(d), "document.reload");
+                }
+                else {
+                    emulateKeyPress_Window(d->window, SDLK_ESCAPE, 0);
+                }
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_Y && isPress) {
                 if (d->rightTrigger) {
