@@ -238,32 +238,18 @@ set (SOURCES
     # User interface:
     src/ui/banner.c
     src/ui/banner.h
-    src/ui/bindingswidget.c
-    src/ui/bindingswidget.h
-    src/ui/certimportwidget.c
-    src/ui/certimportwidget.h
-    src/ui/certlistwidget.c
-    src/ui/certlistwidget.h
     src/ui/color.c
     src/ui/color.h
     src/ui/command.c
     src/ui/command.h
     src/ui/documentview.c
     src/ui/documentview.h
-    src/ui/documentwidget.c
-    src/ui/documentwidget.h
     src/ui/gamepad.c
     src/ui/gamepad.h
-    src/ui/indicatorwidget.c
-    src/ui/indicatorwidget.h
     src/ui/font.c
     src/ui/font.h
     src/ui/linkinfo.c
     src/ui/linkinfo.h
-    src/ui/listwidget.c
-    src/ui/listwidget.h
-    src/ui/lookupwidget.c
-    src/ui/lookupwidget.h
     src/ui/keys.c
     src/ui/keys.h
     src/ui/metrics.c
@@ -276,20 +262,12 @@ set (SOURCES
     src/ui/mediaui.h
     src/ui/mobile.c
     src/ui/mobile.h
-    src/ui/scrollwidget.c
-    src/ui/scrollwidget.h
-    src/ui/sidebarwidget.c
-    src/ui/sidebarwidget.h
-    src/ui/snippetwidget.c
-    src/ui/snippetwidget.h
     src/ui/text.c
     src/ui/text.h
     src/ui/touch.c
     src/ui/touch.h
     src/ui/translation.c
     src/ui/translation.h
-    src/ui/uploadwidget.c
-    src/ui/uploadwidget.h
     src/ui/util.c
     src/ui/util.h
     src/ui/visbuf.c
@@ -299,10 +277,34 @@ set (SOURCES
     # Widgets:
     src/ui/widget.c
     src/ui/widget.h
+    src/ui/bindingswidget.c
+    src/ui/bindingswidget.h
+    src/ui/certimportwidget.c
+    src/ui/certimportwidget.h
+    src/ui/certlistwidget.c
+    src/ui/certlistwidget.h
+    src/ui/documentwidget.c
+    src/ui/documentwidget.h
+    src/ui/indicatorwidget.c
+    src/ui/indicatorwidget.h
     src/ui/inputwidget.c
     src/ui/inputwidget.h
+    src/ui/keyboardwidget.c
+    src/ui/keyboardwidget.h
     src/ui/labelwidget.c
     src/ui/labelwidget.h
+    src/ui/listwidget.c
+    src/ui/listwidget.h
+    src/ui/lookupwidget.c
+    src/ui/lookupwidget.h
+    src/ui/scrollwidget.c
+    src/ui/scrollwidget.h
+    src/ui/sidebarwidget.c
+    src/ui/sidebarwidget.h
+    src/ui/snippetwidget.c
+    src/ui/snippetwidget.h
+    src/ui/uploadwidget.c
+    src/ui/uploadwidget.h
     # Resources:
     res/about/about.gmi
     res/about/help.gmi
