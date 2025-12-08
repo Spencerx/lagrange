@@ -264,6 +264,7 @@ static void aboutToBeDestroyed_Widget_(iWidget *d) {
         win->hover = NULL;
     }
     if (win->focus == d) {
+        postCommandf_App("focus.lost ptr:%p destroyed:1", win->focus);
         win->focus = NULL;
     }
     if (win->keyPriority == d) {

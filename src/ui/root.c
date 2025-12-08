@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "keys.h"
 #include "labelwidget.h"
 #include "lookupwidget.h"
+#include "keyboardwidget.h"
 #include "sidebarwidget.h"
 #include "snippets.h"
 #include "gamepad.h"
@@ -2311,6 +2312,10 @@ void createUserInterface_Root(iRoot *d) {
         setId_Widget(menu, "toolbar.menu"); /* view menu */
     }
 #endif /* iPlatformMobile */
+    if (isHandheld_Platform()) {
+        iKeyboardWidget *kbd = new_KeyboardWidget();
+        addChildIdFlags_Widget(root, iClob(kbd), "keyboard", 0);
+    }
     setupMovableElements_Root_(d);
     updateNavBarActions_(navBar);
     updatePadding_Root(d);

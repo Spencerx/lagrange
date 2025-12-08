@@ -387,6 +387,9 @@ static iBool topPanelHandler_(iWidget *topPanel, const char *cmd) {
             else {
                 postCommand_Widget(topPanel, "cancel");
             }
+            if (isHandheld_Platform()) {
+                postCommand_App("keyboard.hide");
+            }
         }
         return iTrue;
     }

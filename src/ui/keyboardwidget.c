@@ -21,7 +21,11 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "keyboardwidget.h"
+#include "app.h"
+#include "command.h"
+#include "inputwidget.h"
 #include "root.h"
+#include "window.h"
 
 #include <SDL_timer.h>
 
@@ -66,13 +70,47 @@ static void updateHeight_KeyboardWidget_(iKeyboardWidget *d) {
     const int maxRows = 5;
     int rowHeight = maxHeight / maxRows;
     int numRows = 5; /* TODO: check from current page! */
-    setFixedSize_Widget(w, init_I2(-1, numRows * rowHeight));
+    d->height = numRows * rowHeight;
+    setFixedSize_Widget(w, init_I2(-1, d->height));
+    if (!isVisible_Widget(d)) {
+        setVisualOffset_Widget(w, d->height, 0, 0);
+    }
     arrange_Widget(w);
     refresh_Widget(w);
 }
 
 static void showOrHide_KeyboardWidget_(iKeyboardWidget *d, iBool show) {
+    iWidget *w = &d->widget;
+    if (show && !isVisible_Widget(d)) {
+        setVisualOffset_Widget(w, 0, 400, easeOut_AnimFlag | softer_AnimFlag);
+        setFlags_Widget(w, hidden_WidgetFlag, iFalse);
+    }
+    else if (!show && isVisible_Widget(d)) {
+        setVisualOffset_Widget(w, d->height, 400, easeOut_AnimFlag | softer_AnimFlag);
+        setFlags_Widget(w, hidden_WidgetFlag, iTrue);
+    }
+    setKeyboardHeight_MainWindow(as_MainWindow(window_Widget(w)), show ? d->height : 0);
+}
 
+static void draw_KeyboardWidget_(const iKeyboardWidget *d) {
+    const iWidget *w = &d->widget;
+    draw_Widget(w);
+}
+
+static iBool processEvent_KeyboardWidget_(iKeyboardWidget *d, const SDL_Event *event) {
+    if (isCommand_SDLEvent(event)) {
+        const char *cmd = command_UserEvent(event);
+        if (equal_Command(cmd, "focus.gained") || equal_Command(cmd, "focus.lost")) {
+            showOrHide_KeyboardWidget(
+                d, focus_Widget() && isInstance_Object(focus_Widget(), &Class_InputWidget));
+            return iFalse;
+        }
+        else if (equal_Command(cmd, "keyboard.hide")) {
+            showOrHide_KeyboardWidget(d, iFalse);
+            return iTrue;
+        }
+    }
+    return processEvent_Widget(&d->widget, event);
 }
 
 /*-----------------------------------------------------------------------------------------------*/
@@ -81,9 +119,12 @@ void init_KeyboardWidget(iKeyboardWidget *d) {
     iWidget *w = &d->widget;
     init_Widget(w);
     d->repeatTimer = 0;
+    d->height = 50 * gap_UI;
+    setBackgroundColor_Widget(w, red_ColorId);
     setFlags_Widget(w,
-                    fixedHeight_WidgetFlag | resizeToParentWidth_WidgetFlag |
-                        moveToParentBottomEdge_WidgetFlag,
+                    hidden_WidgetFlag | fixedHeight_WidgetFlag | resizeToParentWidth_WidgetFlag |
+                        moveToParentBottomEdge_WidgetFlag | keepOnTop_WidgetFlag |
+                        noFadeBackground_WidgetFlag,
                     iTrue);
 }
 
@@ -93,12 +134,16 @@ void deinit_KeyboardWidget(iKeyboardWidget *d) {
     }
 }
 
-static void draw_KeyboardWidget_(const iKeyboardWidget *d) {
-
-}
-
-static iBool processEvent_KeyboardWidget_(iKeyboardWidget *d, const SDL_Event *event) {
-    return processEvent_Widget(&d->widget, event);
+void showOrHide_KeyboardWidget(iKeyboardWidget *d, iBool show) {
+    iWidget *w = &d->widget;
+    if (show) {
+        updateHeight_KeyboardWidget_(d);
+    }
+    showOrHide_KeyboardWidget_(d, show);
+    if (show) {
+        /* The keyboard must always be on top of everything else. */
+        //changeChildIndex_Widget(parent_Widget(d), d, childCount_Widget(parent_Widget(d)) - 1);
+    }
 }
 
 iBeginDefineSubclass(KeyboardWidget, Widget)

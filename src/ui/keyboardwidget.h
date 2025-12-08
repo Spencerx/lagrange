@@ -26,3 +26,5 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 iDeclareWidgetClass(KeyboardWidget);
 iDeclareObjectConstruction(KeyboardWidget);
+
+void    showOrHide_KeyboardWidget   (iKeyboardWidget *, iBool show);

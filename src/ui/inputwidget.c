@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "app.h"
 #include "command.h"
+#include "keyboardwidget.h"
 #include "keys.h"
 #include "lang.h"
 #include "paint.h"
@@ -2315,7 +2316,7 @@ static void clampWheelAccum_InputWidget_(iInputWidget *d, int wheel) {
 static void overflowScrollToKeepVisible_InputWidget_(iAny *widget) {
     iInputWidget *d = widget;
     iWidget *w = as_Widget(d);
-    if (!isFocused_Widget(w)) { //} || isAffectedByVisualOffset_Widget(w)) {
+    if (!isFocused_Widget(w)) {
         return;
     }
     iRect rect    = boundsWithoutVisualOffset_Widget(w);
