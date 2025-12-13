@@ -504,30 +504,12 @@ static void draw_LabelWidget_(const iLabelWidget *d) {
     else if (~flags & frameless_WidgetFlag) {
         iRect frameRect = adjusted_Rect(rect, zero_I2(), init1_I2(-1));
         if (isButton) {
-            iInt2 points[] = {
-                bottomLeft_Rect(frameRect),
-                topLeft_Rect(frameRect),
-                topRight_Rect(frameRect),
-                bottomRight_Rect(frameRect),
-                bottomLeft_Rect(frameRect)
-            };
-#if SDL_COMPILEDVERSION == SDL_VERSIONNUM(2, 0, 16)
-            if (isOpenGLRenderer_Window()) {
-                /* A very curious regression in SDL 2.0.16. */
-                points[3].x--;
-            }
-#endif
-            if (d->flags.noBottomFrame && !isFocused_Widget(w) && !isHover) {
-                drawLines_Paint(&p, points + 2, 2, frame2);
-                drawLines_Paint(&p, points, 3, frame);
-            }
-            else {
-                drawLines_Paint(&p, points + 2, 3, frame2);
-                drawLines_Paint(&p,
-                                points,
-                                (d->flags.noTopFrame && !isFocused_Widget(w) && !isHover ? 2 : 3),
-                                frame);
-            }
+            drawEmbossedFrame_Paint(&p,
+                                    frameRect,
+                                    frame,
+                                    frame2,
+                                    d->flags.noBottomFrame && !isFocused_Widget(w) && !isHover,
+                                    d->flags.noTopFrame && !isFocused_Widget(w) && !isHover);
         }
     }
     setClip_Paint(&p, rect);
