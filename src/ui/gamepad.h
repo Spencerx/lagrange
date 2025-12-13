@@ -40,6 +40,7 @@ iDeclareTypeConstruction(Gamepad);
 iBool   isConnected_Gamepad     (const iGamepad *);
 iBool   isPointing_Gamepad      (const iGamepad *);
 iInt2   pointerCoord_Gamepad    (const iGamepad *);
+int     modState_Gamepad        (const iGamepad *);
 
 iLocalDef iBool isPointerHidden_Gamepad(const iGamepad *d) {
     return isConnected_Gamepad(d) && !isPointing_Gamepad(d);

@@ -27,6 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "app.h"
 #include "command.h"
 #include "documentwidget.h"
+#include "inputwidget.h"
+#include "keyboardwidget.h"
 #include "labelwidget.h"
 #include "paint.h"
 #include "resources.h"
@@ -265,6 +267,10 @@ iInt2 pointerCoord_Gamepad(const iGamepad *d) {
     return d ? d->pointer : zero_I2();
 }
 
+int modState_Gamepad(const iGamepad *d) {
+    return d->rightTrigger ? KMOD_SHIFT : 0;
+}
+
 static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
     if (focus_Widget() && isInstance_Object(focus_Widget(), &Class_DocumentWidget)) {
         setFocus_Widget(NULL);
@@ -302,7 +308,8 @@ static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
         }
         return iFalse;
     }
-    int key = 0;
+    int key   = 0;
+    int kmods = d->rightTrigger ? KMOD_SHIFT : 0;
     switch (button) {
         case SDL_CONTROLLER_BUTTON_DPAD_UP:
             key = SDLK_UP;
@@ -318,7 +325,7 @@ static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
             break;
     }
     if (key) {
-        emulateKeyPress_Window(d->window, key, 0);
+        emulateKeyPress_Window(d->window, key, kmods);
         pointerOntoFocus_Gamepad_(d);
         return iTrue;
     }
@@ -358,7 +365,15 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             const SDL_ControllerAxisEvent *axis = &event->caxis;
             // printf("[Gamepad] axis:%d value:%d\n", axis->axis, axis->value);
             if (axis->axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) {
-                d->rightTrigger = axis->value > (SDL_JOYSTICK_AXIS_MAX / 2);
+                const iBool isDown = axis->value > (SDL_JOYSTICK_AXIS_MAX / 2);
+                if (d->rightTrigger != isDown) {
+                    d->rightTrigger = isDown;
+                    SDL_PushEvent((SDL_Event *) &(SDL_KeyboardEvent) {
+                        .type     = isDown ? SDL_KEYDOWN : SDL_KEYUP,
+                        .keysym   = { .sym = SDLK_LSHIFT, .mod = 0 },
+                        .windowID = id_Window(d->window),
+                    });
+                }
                 return iTrue;
             }
             const float deadZone = 0.1f;
@@ -388,7 +403,11 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             else if (axis->axis == SDL_CONTROLLER_AXIS_LEFTX ||
                      axis->axis == SDL_CONTROLLER_AXIS_LEFTY) {
                 d->pointerSpeed[pointerAxis] = norm;
-                if (focus_Widget()) setFocus_Widget(NULL);
+                /* Moving the pointer resets focus unless we're on an input field, in which
+                   case the keyboard is visible. */
+                if (focus_Widget() && !isInstance_Object(focus_Widget(), &Class_InputWidget)) {
+                    setFocus_Widget(NULL);
+                }
                 showPointer_Gamepad_(d);
                 addTicker_Gamepad_(d);
             }
@@ -482,7 +501,10 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 }
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_Y && isPress) {
-                if (d->rightTrigger) {
+                if (focus_Widget() && isInstance_Object(focus_Widget(), &Class_InputWidget)) {
+                    emulateKeyPress_Window(d->window, SDLK_RETURN, 0);
+                }
+                else if (d->rightTrigger) {
                     iRoot *root = root_Gamepad_(d);
                     showToolbar_Root(root, iTrue);
                     iWidget *nav = findChild_Widget(root->widget, "pagemenubutton");
@@ -495,7 +517,12 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             else if ((but->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER ||
                       but->button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) &&
                      isPress) {
-                if (isVisible_Widget(findWidget_App("sidebar"))) {
+                iKeyboardWidget *keyboard = findWidget_App("keyboard");
+                if (isVisible_Widget(keyboard)) {
+                    cyclePage_KeyboardWidget(
+                        keyboard, but->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER ? -1 : +1);
+                }
+                else if (isVisible_Widget(findWidget_App("sidebar"))) {
                     postCommandf_Root(root_Gamepad_(d),
                                       "sidebar.cycle arg:%d",
                                       but->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER ? -1 : +1);
@@ -567,6 +594,11 @@ iBool isPointing_Gamepad(const iGamepad *d) {
 iInt2 pointerCoord_Gamepad(const iGamepad *d) {
     iUnused(d);
     return zero_I2();
+}
+
+int modState_Gamepad(const iGamepad *d) {
+    iUnused(d);
+    return 0;
 }
 
 iBool processEvent_Gamepad(iGamepad *d, const void *event) {

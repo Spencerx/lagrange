@@ -28,3 +28,4 @@ iDeclareWidgetClass(KeyboardWidget);
 iDeclareObjectConstruction(KeyboardWidget);
 
 void    showOrHide_KeyboardWidget   (iKeyboardWidget *, iBool show);
+void    cyclePage_KeyboardWidget    (iKeyboardWidget *, int dir);

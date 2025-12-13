@@ -2802,18 +2802,18 @@ static iBool processEvent_InputWidget_(iInputWidget *d, const SDL_Event *ev) {
             case SDLK_a:
             case SDLK_e:
                 if (mods == KMOD_CTRL || mods == (KMOD_CTRL | KMOD_SHIFT)) {
-#  if defined (iPlatformTerminal)
-                    /* Move to the start/end of the current wrapped line. */
-                    moveCursorByLine_InputWidget_(d, 0, key == 'a' ? -1 : +1);
-                    refresh_Widget(w);
-                    return iTrue;
-#  endif
-#  if defined (iPlatformApple)
-                    /* Move to the start/end of the current paragraph. */
-                    setCursor_InputWidget(d, key == 'a' ? lineFirst : lineLast);
-                    refresh_Widget(w);
-                    return iTrue;
-#  endif
+                    if (isTerminal_Platform()) {
+                        /* Move to the start/end of the current wrapped line. */
+                        moveCursorByLine_InputWidget_(d, 0, key == 'a' ? -1 : +1);
+                        refresh_Widget(w);
+                        return iTrue;
+                    }
+                    if (isApple_Platform()) {
+                        /* Move to the start/end of the current paragraph. */
+                        setCursor_InputWidget(d, key == 'a' ? lineFirst : lineLast);
+                        refresh_Widget(w);
+                        return iTrue;
+                    }
                 }
                 break;
             case SDLK_LEFT:
@@ -2852,9 +2852,6 @@ static iBool processEvent_InputWidget_(iInputWidget *d, const SDL_Event *ev) {
                     refresh_Widget(d);
                     return iTrue;
                 }
-                // if (isArrowUpDownConsumed_InputWidget_(d)) {
-                //     return iTrue;
-                // }
                 /* For moving to lookup from url entry. */
                 if (processEvent_Widget(as_Widget(d), ev)) {
                     return iTrue;

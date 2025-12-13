@@ -24,6 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "app.h"
 #include "command.h"
+#include "gamepad.h"
 #include "inputwidget.h"
 #include "paint.h"
 #include "root.h"
@@ -41,12 +42,13 @@ iDeclareType(KeyRow);
 iDeclareType(Key);
 
 enum iKeyFlags {
-    pressed_KeyFlag = iBit(1),
-    invert_KeyFlag  = iBit(2),
-    expand_KeyFlag  = iBit(3),
-    spacer_KeyFlag  = iBit(4), /* half-wide */
-    wide_KeyFlag    = iBit(5), /* double-wide */
-    bigFont_KeyFlag = iBit(6),
+    pressed_KeyFlag     = iBit(1),
+    invert_KeyFlag      = iBit(2),
+    expand_KeyFlag      = iBit(3),
+    spacer_KeyFlag      = iBit(4), /* half-wide */
+    oneHalfWide_KeyFlag = iBit(5), /* one-and-half-wide */
+    doubleWide_KeyFlag  = iBit(6), /* double-wide */
+    bigFont_KeyFlag     = iBit(7),
 };
 
 struct Impl_Key {
@@ -60,6 +62,7 @@ struct Impl_Key {
 static void init_Key(iKey *d, int flags) {
     iZap(*d);
     d->flags = flags;
+    d->pageId = -1;
 }
 
 static void deinit_Key(iKey *d) {
@@ -85,13 +88,15 @@ struct Impl_KeyPage {
     int id;
     int height;
     size_t maxRowKeys;
+    int onKeyPageId; /* after press, switch page */
     iArray rows;
 };
 
 static void init_KeyPage(iKeyPage *d) {
     init_Array(&d->rows, sizeof(iKeyRow));
-    d->height     = 0;
-    d->maxRowKeys = 0;
+    d->height      = 0;
+    d->maxRowKeys  = 0;
+    d->onKeyPageId = -1;
 }
 
 static void deinit_KeyPage(iKeyPage *d) {
@@ -99,6 +104,17 @@ static void deinit_KeyPage(iKeyPage *d) {
         deinit_KeyRow(i.value);
     }
     deinit_Array(&d->rows);
+}
+
+static iKey *find_KeyPage_(iKeyPage *d, int sym) {
+    iForEach(Array, r, &d->rows) {
+        iKeyRow *row = r.value;
+        iForEach(Array, k, &row->keys) {
+            iKey *key = k.value;
+            if (key->keySym == sym) return key;
+        }
+    }
+    return NULL;
 }
 
 /*-----------------------------------------------------------------------------------------------*/
@@ -125,22 +141,23 @@ static const char *defaultKeyboardConfig_ =
     "row: 1 2 3 4 5 6 7 8 9 0\n"
     "row: q w e r t y u i o p\n"
     "row: a s d f g h j k l\n"
-    "row: {@uppercase " shift_Icon "} {} z x c v b n m {} {0x8 " delete_Icon "}\n"
-    "row: {+@symbols #+=} {-0x20} {+0xd " return_Icon "}\n"
+    "row: {+@uppercase " shift_Icon "} z x c v b n m {+0x8 " delete_Icon "}\n"
+    "row: {++@symbols #+=} {-0x20} {++0xd " return_Icon "}\n"
 
     "page: uppercase\n"
     "row: 1 2 3 4 5 6 7 8 9 0\n"
     "row: Q W E R T Y U I O P\n"
     "row: A S D F G H J K L\n"
-    "row: {@lowercase " shift_Icon "} {} Z X C V B N M {} {0x8 " delete_Icon "}\n"
-    "row: {+@symbols #+=} {-0x20} {+0xd " return_Icon "}\n"
+    "row: {!+@lowercase " shift_Icon "} Z X C V B N M {+0x8 " delete_Icon "}\n"
+    "row: {++@symbols #+=} {-0x20} {++0xd " return_Icon "}\n"
+    "onkey: lowercase\n"
 
     "page: symbols\n"
     "row: [ ] {{ } # % ^ * + =\n"
-    "row: - / : ; ( ) $ & @ \"\n"
-    "row: _ \\ | ~ < > € £ ¥ •\n"
-    "row: . , ? ! ' {0x8 " delete_Icon "}\n"
-    "row: {+@lowercase abc} {-0x20} {+0xd " return_Icon "}\n"
+    "row: - / : ; ( ) $ & @ •\n"
+    "row: _ \\ | ~ < > € £ ¥\n"
+    "row: {-} . , ? ! ' ` \" {+0x8 " delete_Icon "}\n"
+    "row: {++@lowercase abc} {-0x20} {++0xd " return_Icon "}\n"
     ;
 
 static void clear_KeyboardWidget_(iKeyboardWidget *d) {
@@ -177,7 +194,7 @@ static void doLayout_KeyboardWidget(iKeyboardWidget *d) {
             iKeyRow *row = j.value;
             /* Determine key widths and the total width of the row. */
             int rowWidth = 0;
-            int nonExpandingWidth = 0;
+            int numExpanding = 0;
             iForEach(Array, j, &row->keys) {
                 iKey *key = j.value;
                 if (key->label && length_String(key->label) == 1) {
@@ -185,9 +202,11 @@ static void doLayout_KeyboardWidget(iKeyboardWidget *d) {
                 }
                 key->rect.size.y = keyHeight;
                 int width = 0;
-                const int mul = (key->flags & wide_KeyFlag ? 2 : 1);
+                const float mul = (key->flags & doubleWide_KeyFlag    ? 2.0f
+                                   : key->flags & oneHalfWide_KeyFlag ? 1.5f
+                                                                      : 1.0f);
                 if (key->flags & expand_KeyFlag) {
-                    rowWidth = pageWidth;
+                    numExpanding++;
                 }
                 else if (key->flags & spacer_KeyFlag) {
                     width = keyWidth / 2;
@@ -195,19 +214,24 @@ static void doLayout_KeyboardWidget(iKeyboardWidget *d) {
                 else if (key->label) {
                     const int labelWidth =
                         measureRange_Text(d->font, range_String(key->label)).advance.x;
-                    width = iMax(labelWidth, mul * keyWidth);
+                    width = iMax(labelWidth, (int) (mul * keyWidth));
                 }
                 else {
-                    width = mul * keyWidth;
+                    width = (int) (mul * keyWidth);
                 }
                 key->rect.size.x = width;
-                if (~key->flags & expand_KeyFlag) {
-                    nonExpandingWidth += width;
-                }
                 rowWidth += width;
             }
-
             rowWidth = iMin(rowWidth, pageWidth);
+            if (numExpanding) {
+                iForEach(Array, k, &row->keys) {
+                    iKey *key = k.value;
+                    if (key->flags & expand_KeyFlag) {
+                        key->rect.size.x = (pageWidth - rowWidth) / numExpanding;
+                    }
+                }
+                rowWidth = pageWidth;
+            }
             /* Position the keys sequentially. */
             int x = (pageWidth - rowWidth) / 2;
             for (init_ArrayIterator(&j, &row->keys); j.value; next_ArrayIterator(&j)) {
@@ -251,6 +275,11 @@ static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *config)
             }
             loadPage = at_Array(&d->pages, pageId);
         }
+        else if (loadPage && startsWith_Rangecc(line, "onkey:")) {
+            iRangecc name = { line.start + 6, line.end };
+            trim_Rangecc(&name);
+            loadPage->onKeyPageId = pageId_(pageNames, name);
+        }
         else if (loadPage && startsWith_Rangecc(line, "row:")) {
             size_t numRowKeys = 0; /* excluding spacers */
             /* Add a new row. */
@@ -272,20 +301,30 @@ static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *config)
                         }
                         trim_Rangecc(&symbol);
                         if (isEmpty_Range(&symbol)) {
-                            /* A special spacer key. */
+                            /* A simple spacer key. */
                             iKey key;
                             init_Key(&key, spacer_KeyFlag);
                             pushBack_Array(&row.keys, &key);
                         }
                         else {
                             int flags = 0;
-                            if (*symbol.start == '-') {
-                                flags |= expand_KeyFlag;
-                                symbol.start++;
-                            }
-                            else if (*symbol.start == '+') {
-                                flags |= wide_KeyFlag;
-                                symbol.start++;
+                            for (; symbol.start < symbol.end; symbol.start++) {
+                                if (*symbol.start == '!') {
+                                    flags |= invert_KeyFlag;
+                                }
+                                else if (*symbol.start == '-') {
+                                    flags |= expand_KeyFlag;
+                                }
+                                else if (*symbol.start == '+') {
+                                    if (~flags & oneHalfWide_KeyFlag) {
+                                        flags |= oneHalfWide_KeyFlag;
+                                    }
+                                    else {
+                                        flags |= doubleWide_KeyFlag;
+                                    }
+                                    flags &= ~expand_KeyFlag;
+                                }
+                                else break;
                             }
                             iKey key;
                             init_Key(&key, flags);
@@ -310,6 +349,9 @@ static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *config)
                             /* Code point is followed by the label string. */
                             if (!isEmpty_Range(&symbol)) {
                                 key.label = newRange_String(symbol);
+                            }
+                            if (!key.label && !key.keySym) {
+                                key.flags |= spacer_KeyFlag;
                             }
                             pushBack_Array(&row.keys, &key);
                             numRowKeys++;
@@ -386,22 +428,26 @@ static void draw_KeyboardWidget_(const iKeyboardWidget *d) {
             if (key->flags & spacer_KeyFlag) {
                 continue;
             }
-            if (key == d->pressedKey) {
+            const iBool isPressed = (key == d->pressedKey);
+            const iBool isDown    = isPressed | ((key->flags & invert_KeyFlag) != 0);
+            if (isDown) {
                 fillRect_Paint(&p, rect, uiBackgroundUnfocusedSelection_ColorId);
-                fillRect_Paint(&p, (iRect){ rect.pos, init_I2(width_Rect(rect), gap_UI) },
-                    uiEmboss2_ColorId);
+                fillRect_Paint(
+                    &p, (iRect) { rect.pos, init_I2(width_Rect(rect), gap_UI) }, uiEmboss2_ColorId);
             }
             if (key == d->hoverKey) {
-                drawRectThickness_Paint(&p, rect, gap_UI / 2, uiEmbossHover1_ColorId);
+                drawRectThickness_Paint(&p,
+                                        expanded_Rect(rect, init1_I2(gap_UI / 2)),
+                                        gap_UI / 2,
+                                        uiEmbossHover1_ColorId);
             }
-            else {
-                drawEmbossedFrame_Paint(
-                    &p, rect, uiEmboss1_ColorId, uiEmboss2_ColorId, iFalse, iFalse);
-            }
+            int c1 = uiEmboss1_ColorId, c2 = uiEmboss2_ColorId;
+            if (isDown) iSwap(int, c1, c2);
+            drawEmbossedFrame_Paint(&p, rect, c1, c2, iFalse, iFalse);
             if (key->label) {
                 drawCenteredRange_Text(
                     key->flags & bigFont_KeyFlag ? d->bigFont : d->font,
-                    moved_Rect(rect, init_I2(0, d->pressedKey == key ? gap_UI : 0)),
+                    moved_Rect(rect, init_I2(0, isDown ? gap_UI : 0)),
                     iFalse,
                     uiTextStrong_ColorId,
                     range_String(key->label));
@@ -415,6 +461,9 @@ static iKey *hitKey_KeyboardWidget_(iKeyboardWidget *d, iInt2 coord) {
         iKeyRow *row = i.value;
         iForEach(Array, k, &row->keys) {
             iKey *key = k.value;
+            if (key->flags & spacer_KeyFlag) {
+                continue;
+            }
             if (coord.y >= bottom_Rect(key->rect)) {
                 break; /* not on this row, but could be below */
             }
@@ -451,24 +500,51 @@ static iBool processEvent_KeyboardWidget_(iKeyboardWidget *d, const SDL_Event *e
         }
     }
     else if ((event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP) &&
+             event->button.button == SDL_BUTTON_RIGHT) {
+        if (event->type == SDL_MOUSEBUTTONUP) {
+            emulateKeyPress_Window(window_Widget(d), SDLK_BACKSPACE, 0);
+        }
+        iKey *bspKey = find_KeyPage_(d->visPage, SDLK_BACKSPACE);
+        if (bspKey) {
+            iChangeFlags(bspKey->flags, invert_KeyFlag, event->type == SDL_MOUSEBUTTONDOWN);
+            refresh_Widget(d);
+        }
+        return iTrue;
+    }
+    else if ((event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP) &&
              event->button.button == SDL_BUTTON_LEFT) {
+        const iInt2 relPos = sub_I2(mouseCoord_SDLEvent(event), w->rect.pos);
         const iKey *key =
-            hitKey_KeyboardWidget_(d, sub_I2(mouseCoord_SDLEvent(event), w->rect.pos));
+            hitKey_KeyboardWidget_(d, relPos);
         if (key && event->type == SDL_MOUSEBUTTONDOWN) {
             d->pressedKey = key;
             refresh_Widget(d);
         }
         else if (d->pressedKey && event->type == SDL_MOUSEBUTTONUP) {
             key = d->pressedKey;
-            if (key->keySym) {
+            /* Automatic page switch after keypress. */
+            if (d->visPage->onKeyPageId >= 0) {
+                d->visPage = at_Array(&d->pages, d->visPage->onKeyPageId);
+                d->hoverKey = hitKey_KeyboardWidget_(d, relPos);
+            }
+            if (key->pageId >= 0) {
+                d->visPage = at_Array(&d->pages, key->pageId);
+                d->hoverKey = hitKey_KeyboardWidget_(d, relPos);
+            }
+            else if (key->keySym && key->keySym != SDLK_SPACE) {
                 emulateKeyPress_Window(window_Widget(d), key->keySym, 0);
             }
-            else if (key->label) {
+            else if (key->label || key->keySym == SDLK_SPACE) {
                 SDL_TextInputEvent input = {
                     .type     = SDL_TEXTINPUT,
                     .windowID = id_Window(window_Widget(d)),
                 };
-                strcpy(input.text, cstr_String(key->label));
+                if (key->label) {
+                    strcpy(input.text, cstr_String(key->label));
+                }
+                else {
+                    strcpy(input.text, " ");
+                }
                 SDL_PushEvent((SDL_Event *) &input);
             }
             d->pressedKey = NULL;
@@ -522,6 +598,18 @@ void showOrHide_KeyboardWidget(iKeyboardWidget *d, iBool show) {
         updateHeight_KeyboardWidget_(d);
     }
     showOrHide_KeyboardWidget_(d, show);
+}
+
+void cyclePage_KeyboardWidget(iKeyboardWidget *d, int dir) {
+    int index = d->visPage - (const iKeyPage *) constData_Array(&d->pages);
+    index = iWrap(index + dir, 0, size_Array(&d->pages));
+    d->visPage = at_Array(&d->pages, index);
+    d->hoverKey =
+        hitKey_KeyboardWidget_(d,
+                               sub_I2(mouseCoord_Window(window_Widget(d), mouseId_Gamepad),
+                                      topLeft_Rect(bounds_Widget(&d->widget))));
+    d->pressedKey = NULL;
+    refresh_Widget(d);
 }
 
 iBeginDefineSubclass(KeyboardWidget, Widget)
