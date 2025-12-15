@@ -111,6 +111,18 @@ static void addTicker_Gamepad_(iGamepad *d) {
 void movePointer_Gamepad(iGamepad *d, iInt2 coord, int span) {
     setValue_Anim(&d->pointerf[0], coord.x, span);
     setValue_Anim(&d->pointerf[1], coord.y, span);
+    d->pointer = divf_I2(coord, d->window->pixelRatio);
+    const iInt2 delta = sub_I2(d->pointer, d->lastPointer);
+    SDL_PushEvent((SDL_Event *) &(SDL_MouseMotionEvent) {
+        .type      = SDL_MOUSEMOTION,
+        .which     = mouseId_Gamepad,
+        .windowID  = id_Window(d->window),
+        .x         = d->pointer.x,
+        .y         = d->pointer.y,
+        .xrel      = delta.x,
+        .yrel      = delta.y,
+    });
+    d->lastPointer = d->pointer;
     animate_Gamepad_(d);
 }
 
@@ -332,9 +344,22 @@ static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
     return iFalse;
 }
 
+static iBool isInputFocused_(void) {
+    return focus_Widget() && isInstance_Object(focus_Widget(), &Class_InputWidget);
+}
+
+static iBool isPointerOnKeyboard_Gamepad_(const iGamepad *d) {
+    if (isInputFocused_()) {
+        return contains_Widget(
+            findWidget_App("keyboard"),
+            init_I2(targetValue_Anim(&d->pointerf[0]), targetValue_Anim(&d->pointerf[1])));
+    }
+    return iFalse;
+}
+
 iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
     const SDL_Event *event = sdlEvent;
-    if (isCommand_UserEvent(sdlEvent, "focus.gained")) {
+    if (isCommand_UserEvent(sdlEvent, "")) {
         pointerOntoFocus_Gamepad_(d);
         return iFalse;
     }
@@ -442,15 +467,41 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 updateHover_Gamepad_(d);
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_LEFT && isPress) {
+                if (isPointerOnKeyboard_Gamepad_(d)) {
+                    if (moveHover_KeyboardWidget(findWidget_App("keyboard"), left_Direction)) {
+                        return iTrue;
+                    }
+                }
                 if (moveFocusToDirection_Gamepad_(d, but->button)) return iTrue;
                 postCommand_Root(root_Gamepad_(d), "navigate.back");
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT && isPress) {
+                if (isPointerOnKeyboard_Gamepad_(d)) {
+                    if (moveHover_KeyboardWidget(findWidget_App("keyboard"), right_Direction)) {
+                        return iTrue;
+                    }
+                }
                 if (moveFocusToDirection_Gamepad_(d, but->button)) return iTrue;
                 postCommand_Root(root_Gamepad_(d), "navigate.forward");
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
                 if (isPress) {
+                    if (isInputFocused_()) {
+                        if (isPointerOnKeyboard_Gamepad_(d)) {
+                            iKeyboardWidget *keyboard = findWidget_App("keyboard");
+                            if (keyboard) {
+                                const iRect target = keyRectAtX_KeyboardWidget(
+                                    keyboard, targetValue_Anim(&d->pointerf[0]), iInvalidPos, -1);
+                                if (!isEmpty_Rect(target)) {
+                                    movePointer_Gamepad(d, mid_Rect(target), 100);
+                                }
+                                else {
+                                    movePointerOntoWidget_Gamepad(d, focus_Widget(), 100);
+                                }
+                            }
+                        }
+                        return iTrue;
+                    }
                     if (d->rightTrigger) {
                         postCommand_Root(root_Gamepad_(d), "zoom.delta arg:10");
                         return iTrue;
@@ -462,6 +513,20 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
                 if (isPress) {
+                    if (isInputFocused_()) {
+                        iKeyboardWidget *keyboard = findWidget_App("keyboard");
+                        if (keyboard) {
+                            const size_t fromRow =
+                                isPointerOnKeyboard_Gamepad_(d) ? iInvalidPos : 0;
+                            const int   offset = isPointerOnKeyboard_Gamepad_(d) ? +1 : 0;
+                            const iRect target = keyRectAtX_KeyboardWidget(
+                                keyboard, targetValue_Anim(&d->pointerf[0]), fromRow, offset);
+                            if (!isEmpty_Rect(target)) {
+                                movePointer_Gamepad(d, mid_Rect(target), 100);
+                            }
+                            return iTrue;
+                        }
+                    }
                     if (d->rightTrigger) {
                         postCommand_Root(root_Gamepad_(d), "zoom.delta arg:-10");
                         return iTrue;
@@ -501,8 +566,13 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 }
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_Y && isPress) {
-                if (focus_Widget() && isInstance_Object(focus_Widget(), &Class_InputWidget)) {
-                    emulateKeyPress_Window(d->window, SDLK_RETURN, 0);
+                if (isInputFocused_()) {
+                    SDL_PushEvent((SDL_Event *) &(SDL_TextInputEvent) {
+                        .type     = SDL_TEXTINPUT,
+                        .windowID = id_Window(d->window),
+                        .text     = " ",
+                    });
+                    return iTrue;
                 }
                 else if (d->rightTrigger) {
                     iRoot *root = root_Gamepad_(d);

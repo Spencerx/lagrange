@@ -29,3 +29,6 @@ iDeclareObjectConstruction(KeyboardWidget);
 
 void    showOrHide_KeyboardWidget   (iKeyboardWidget *, iBool show);
 void    cyclePage_KeyboardWidget    (iKeyboardWidget *, int dir);
+iBool   moveHover_KeyboardWidget    (iKeyboardWidget *, enum iDirection dir);
+
+iRect keyRectAtX_KeyboardWidget(const iKeyboardWidget *, int x, size_t rowIndex, int rowOffset);

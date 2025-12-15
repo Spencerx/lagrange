@@ -117,6 +117,16 @@ static iKey *find_KeyPage_(iKeyPage *d, int sym) {
     return NULL;
 }
 
+static const iKeyRow *row_KeyPage_(const iKeyPage *d, const iKey *key) {
+    iConstForEach(Array, r, &d->rows) {
+        const iKeyRow *row = r.value;
+        iConstForEach(Array, k, &row->keys) {
+            if (key == k.value) return row;
+        }
+    }
+    return NULL;
+}
+
 /*-----------------------------------------------------------------------------------------------*/
 
 struct Impl_KeyboardWidget {
@@ -456,7 +466,7 @@ static void draw_KeyboardWidget_(const iKeyboardWidget *d) {
     }
 }
 
-static iKey *hitKey_KeyboardWidget_(iKeyboardWidget *d, iInt2 coord) {
+static iKey *hitKey_KeyboardWidget_(const iKeyboardWidget *d, iInt2 coord /* local */) {
     iForEach(Array, i, &d->visPage->rows) {
         iKeyRow *row = i.value;
         iForEach(Array, k, &row->keys) {
@@ -473,6 +483,17 @@ static iKey *hitKey_KeyboardWidget_(iKeyboardWidget *d, iInt2 coord) {
             if (coord.x >= left_Rect(key->rect) && coord.x < right_Rect(key->rect)) {
                 return key;
             }
+        }
+    }
+    return NULL;
+}
+
+static iKeyRow *hitRow_KeyboardWidget_(const iKeyboardWidget *d, iInt2 coord /* local */) {
+    iForEach(Array, i, &d->visPage->rows) {
+        iKeyRow    *row   = i.value;
+        const iKey *first = constData_Array(&row->keys);
+        if (coord.y >= top_Rect(first->rect) && coord.y < bottom_Rect(first->rect)) {
+            return row;
         }
     }
     return NULL;
@@ -514,8 +535,7 @@ static iBool processEvent_KeyboardWidget_(iKeyboardWidget *d, const SDL_Event *e
     else if ((event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP) &&
              event->button.button == SDL_BUTTON_LEFT) {
         const iInt2 relPos = sub_I2(mouseCoord_SDLEvent(event), w->rect.pos);
-        const iKey *key =
-            hitKey_KeyboardWidget_(d, relPos);
+        const iKey *key    = hitKey_KeyboardWidget_(d, relPos);
         if (key && event->type == SDL_MOUSEBUTTONDOWN) {
             d->pressedKey = key;
             refresh_Widget(d);
@@ -610,6 +630,72 @@ void cyclePage_KeyboardWidget(iKeyboardWidget *d, int dir) {
                                       topLeft_Rect(bounds_Widget(&d->widget))));
     d->pressedKey = NULL;
     refresh_Widget(d);
+}
+
+iRect keyRectAtX_KeyboardWidget(const iKeyboardWidget *d, int x, size_t rowIndex, int rowOffset) {
+    const iWidget *w       = &d->widget;
+    const iRect    bounds  = bounds_Widget(w);
+    const size_t   numRows = size_Array(&d->visPage->rows);
+    if (rowIndex == iInvalidPos) {
+        const iInt2 relPos =
+            sub_I2(mouseCoord_Window(window_Widget(w), mouseId_Gamepad), topLeft_Rect(bounds));
+        const iKeyRow *pRow = hitRow_KeyboardWidget_(d, relPos);
+        if (pRow) {
+            rowIndex = pRow - (const iKeyRow *) constData_Array(&d->visPage->rows);
+        }
+        else {
+            rowIndex = (relPos.y >= height_Rect(bounds) / 2 ? numRows - 1 : 0);
+        }
+    }
+    rowIndex += rowOffset;
+    if (rowIndex >= numRows) {
+        return zero_Rect();
+    }
+    const iKeyRow *row = constAt_Array(&d->visPage->rows, rowIndex);
+    iConstForEach(Array, k, &row->keys) {
+        const iKey *key = k.value;
+        if (key->flags & spacer_KeyFlag) continue;
+        if (x >= left_Rect(key->rect) && x < right_Rect(key->rect)) {
+            return moved_Rect(key->rect, topLeft_Rect(bounds));
+        }
+    }
+    /* No suitable key was there, so just use the row's Y coord at the requested X. */
+    const iKey *first = constData_Array(&row->keys);
+    return init_Rect(x, top_Rect(bounds) + mid_Rect(first->rect).y, 0, 0);
+}
+
+iBool moveHover_KeyboardWidget(iKeyboardWidget *d, enum iDirection dir) {
+    if (!d->hoverKey) {
+        return iFalse;
+    }
+    iWidget *w = &d->widget;
+    const iKeyRow *hoverRow = row_KeyPage_(d->visPage, d->hoverKey);
+    const iKey    *first    = constData_Array(&hoverRow->keys);
+    const iKey    *last     = constEnd_Array(&hoverRow->keys);
+    switch (dir) {
+        case left_Direction:
+            for (const iKey *k = d->hoverKey - 1; k >= first; k--) {
+                if (~k->flags & spacer_KeyFlag) {
+                    d->hoverKey = k;
+                    break;
+                }
+            }
+            break;
+        case right_Direction:
+            for (const iKey *k = d->hoverKey + 1; k < last; k++) {
+                if (~k->flags & spacer_KeyFlag) {
+                    d->hoverKey = k;
+                    break;
+                }
+            }
+            break;
+        default:
+            break;
+    }
+    movePointer_Gamepad(
+        gamepad_App(), add_I2(mid_Rect(d->hoverKey->rect), topLeft_Rect(bounds_Widget(w))), 100);
+    refresh_Widget(d);
+    return iTrue;
 }
 
 iBeginDefineSubclass(KeyboardWidget, Widget)
