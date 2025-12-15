@@ -338,7 +338,6 @@ static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
     }
     if (key) {
         emulateKeyPress_Window(d->window, key, kmods);
-        pointerOntoFocus_Gamepad_(d);
         return iTrue;
     }
     return iFalse;
@@ -359,7 +358,7 @@ static iBool isPointerOnKeyboard_Gamepad_(const iGamepad *d) {
 
 iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
     const SDL_Event *event = sdlEvent;
-    if (isCommand_UserEvent(sdlEvent, "")) {
+    if (isCommand_UserEvent(sdlEvent, "focus.gained")) {
         pointerOntoFocus_Gamepad_(d);
         return iFalse;
     }
