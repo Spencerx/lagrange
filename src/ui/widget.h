@@ -137,6 +137,7 @@ enum iWidgetFlag2 {
     leftEdgeResizing_WidgetFlag2            = iBit(10),
     rightEdgeResizing_WidgetFlag2           = iBit(11),
     childMenuOpenedAsPopup_WidgetFlag2      = iBit(12),
+    mustStayOnTop_WidgetFlag2               = iBit(13),
 };
 
 enum iWidgetAddPos {

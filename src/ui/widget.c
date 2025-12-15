@@ -315,6 +315,20 @@ int64_t flags_Widget(const iWidget *d) {
     return d ? d->flags : 0;
 }
 
+static void addToOnTop_Widget_(iWidget *d) {
+    iPtrArray *onTop = onTop_Root(d->root);
+    iAssert(indexOf_PtrArray(onTop, d) == iInvalidPos);
+    /* Ensure the overlay widgets are really on top. */
+    size_t pos = size_PtrArray(onTop);
+    if (!isEmpty_PtrArray(onTop)) {
+        for (; pos > 0 &&
+               ((iWidget *) at_PtrArray(onTop, pos - 1))->flags2 & mustStayOnTop_WidgetFlag2;
+             pos--) {
+        }
+    }
+    insert_PtrArray(onTop, pos, d);
+}
+
 void setFlags_Widget(iWidget *d, int64_t flags, iBool set) {
     if (d) {
         if (deviceType_App() != desktop_AppDeviceType) {
@@ -330,7 +344,7 @@ void setFlags_Widget(iWidget *d, int64_t flags, iBool set) {
                     raise_Widget(d);
                 }
                 else {
-                    pushBack_PtrArray(onTop, d);
+                    addToOnTop_Widget_(d);
                 }
             }
             else {
@@ -441,12 +455,12 @@ void setCommandHandler_Widget(iWidget *d, iBool (*handler)(iWidget *, const char
 
 void setRoot_Widget(iWidget *d, iRoot *root) {
     if (d->flags & keepOnTop_WidgetFlag) {
-        iAssert(indexOf_PtrArray(onTop_Root(root), d) == iInvalidPos);
+        iPtrArray *onTop = onTop_Root(root);
+        iAssert(indexOf_PtrArray(onTop, d) == iInvalidPos);
         /* Move it over the new root's onTop list. */
-        removeOne_PtrArray(onTop_Root(d->root), d);
+        removeOne_PtrArray(onTop, d);
         if (d != root->widget) {
-            iAssert(indexOf_PtrArray(onTop_Root(d->root), d) == iInvalidPos);
-            pushBack_PtrArray(onTop_Root(root), d);
+            addToOnTop_Widget_(d);
         }
     }
     if (d->root != root) {
@@ -2641,7 +2655,7 @@ void raise_Widget(iWidget *d) {
     if (d->flags & keepOnTop_WidgetFlag && !isRoot_Widget_(d)) {
         iAssert(indexOf_PtrArray(onTop, d) != iInvalidPos);
         removeOne_PtrArray(onTop, d);
-        pushBack_PtrArray(onTop, d);
+        addToOnTop_Widget_(d);
     }
 }
 
