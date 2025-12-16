@@ -155,7 +155,7 @@ static const char *defaultKeyboardConfig_ =
     "row: {++@symbols #+=} {-0x20} {++0xd " return_Icon "}\n"
 
     "page: uppercase\n"
-    "row: 1 2 3 4 5 6 7 8 9 0\n"
+    "row: ! \" # $ % ^ & * ( )\n"
     "row: Q W E R T Y U I O P\n"
     "row: A S D F G H J K L\n"
     "row: {!+@lowercase " shift_Icon "} Z X C V B N M {+0x8 " delete_Icon "}\n"
@@ -163,7 +163,7 @@ static const char *defaultKeyboardConfig_ =
     "onkey: lowercase\n"
 
     "page: symbols\n"
-    "row: [ ] {{ } # % ^ * + =\n"
+    "row: [ ] # + % ^ = * {{ }\n"
     "row: - / : ; ( ) $ & @ •\n"
     "row: _ \\ | ~ < > € £ ¥\n"
     "row: {-} . , ? ! ' ` \" {+0x8 " delete_Icon "}\n"
@@ -434,20 +434,25 @@ static void draw_KeyboardWidget_(const iKeyboardWidget *d) {
         const iKeyRow *row = i.value;
         iConstForEach(Array, k, &row->keys) {
             const iKey *key = k.value;
-            const iRect rect = shrunk_Rect(moved_Rect(key->rect, bounds.pos), divi_I2(gap2_UI, 2));
+            const iRect rect =
+                shrunk_Rect(moved_Rect(key->rect, bounds.pos), mulf_I2(gap2_UI, 0.75f));
             if (key->flags & spacer_KeyFlag) {
                 continue;
             }
             const iBool isPressed = (key == d->pressedKey);
             const iBool isDown    = isPressed | ((key->flags & invert_KeyFlag) != 0);
+            fillRect_Paint(&p,
+                           rect,
+                           isDown               ? uiBackgroundSelected_ColorId
+                           : key == d->hoverKey ? uiBackgroundUnfocusedSelection_ColorId
+                                                : uiBackground_ColorId);
             if (isDown) {
-                fillRect_Paint(&p, rect, uiBackgroundUnfocusedSelection_ColorId);
                 fillRect_Paint(
                     &p, (iRect) { rect.pos, init_I2(width_Rect(rect), gap_UI) }, uiEmboss2_ColorId);
             }
             if (key == d->hoverKey) {
                 drawRectThickness_Paint(&p,
-                                        expanded_Rect(rect, init1_I2(gap_UI / 2)),
+                                        expanded_Rect(rect, init1_I2(gap_UI)),
                                         gap_UI / 2,
                                         uiEmbossHover1_ColorId);
             }
@@ -459,7 +464,7 @@ static void draw_KeyboardWidget_(const iKeyboardWidget *d) {
                     key->flags & bigFont_KeyFlag ? d->bigFont : d->font,
                     moved_Rect(rect, init_I2(0, isDown ? gap_UI : 0)),
                     iFalse,
-                    uiTextStrong_ColorId,
+                    key->keySym || key->pageId >= 0 ? uiTextAction_ColorId : uiTextStrong_ColorId,
                     range_String(key->label));
             }
         }
@@ -521,7 +526,8 @@ static iBool processEvent_KeyboardWidget_(iKeyboardWidget *d, const SDL_Event *e
         }
     }
     else if ((event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP) &&
-             event->button.button == SDL_BUTTON_RIGHT) {
+             event->button.button == SDL_BUTTON_RIGHT &&
+             contains_Widget(w, pointerCoord_Gamepad(gamepad_App()))) {
         if (event->type == SDL_MOUSEBUTTONUP) {
             emulateKeyPress_Window(window_Widget(d), SDLK_BACKSPACE, 0);
         }
@@ -595,7 +601,7 @@ void init_KeyboardWidget(iKeyboardWidget *d) {
     d->font = uiContent_FontId;
     d->bigFont = uiLabelLarge_FontId;
     d->needLayout = iFalse;
-    setBackgroundColor_Widget(w, uiBackground_ColorId);
+    setBackgroundColor_Widget(w, uiBackgroundSidebar_ColorId);
     setFlags_Widget(w,
                     hidden_WidgetFlag | fixedHeight_WidgetFlag | resizeToParentWidth_WidgetFlag |
                         moveToParentBottomEdge_WidgetFlag | keepOnTop_WidgetFlag |
@@ -653,10 +659,16 @@ iRect keyRectAtX_KeyboardWidget(const iKeyboardWidget *d, int x, size_t rowIndex
         return zero_Rect();
     }
     const iKeyRow *row = constAt_Array(&d->visPage->rows, rowIndex);
+    const iBool isEvenRow = (rowIndex & 1) != 0;
     iConstForEach(Array, k, &row->keys) {
         const iKey *key = k.value;
         if (key->flags & spacer_KeyFlag) continue;
-        if (x >= left_Rect(key->rect) && x < right_Rect(key->rect)) {
+        const iBool isFirst = index_ArrayConstIterator(&k) == 0;
+        const iBool isLast  = index_ArrayConstIterator(&k) == size_Array(&row->keys) - 1;
+        const int   left    = isFirst ? 0 : left_Rect(key->rect);
+        const int   right   = isLast ? width_Rect(bounds) : right_Rect(key->rect);
+        /* Alternate boundaries on rows to avoid stepping sideways when moving up/down. */
+        if ((isEvenRow && (x >= left && x < right) || (!isEvenRow && (x > left && x <= right)))) {
             return moved_Rect(key->rect, topLeft_Rect(bounds));
         }
     }
@@ -694,7 +706,10 @@ iBool moveHover_KeyboardWidget(iKeyboardWidget *d, enum iDirection dir) {
             break;
     }
     movePointer_Gamepad(
-        gamepad_App(), add_I2(mid_Rect(d->hoverKey->rect), topLeft_Rect(bounds_Widget(w))), 100);
+        gamepad_App(),
+        add_I2(addY_I2(mid_Rect(d->hoverKey->rect), height_Rect(d->hoverKey->rect) / 4),
+               topLeft_Rect(bounds_Widget(w))),
+        100);
     refresh_Widget(d);
     return iTrue;
 }

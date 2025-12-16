@@ -492,7 +492,8 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                                 const iRect target = keyRectAtX_KeyboardWidget(
                                     keyboard, targetValue_Anim(&d->pointerf[0]), iInvalidPos, -1);
                                 if (!isEmpty_Rect(target)) {
-                                    movePointer_Gamepad(d, mid_Rect(target), 100);
+                                    movePointer_Gamepad(
+                                        d, addY_I2(mid_Rect(target), height_Rect(target) / 4), 100);
                                 }
                                 else {
                                     movePointerOntoWidget_Gamepad(d, focus_Widget(), 100);
@@ -521,7 +522,8 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                             const iRect target = keyRectAtX_KeyboardWidget(
                                 keyboard, targetValue_Anim(&d->pointerf[0]), fromRow, offset);
                             if (!isEmpty_Rect(target)) {
-                                movePointer_Gamepad(d, mid_Rect(target), 100);
+                                movePointer_Gamepad(
+                                    d, addY_I2(mid_Rect(target), height_Rect(target) / 4), 100);
                             }
                             return iTrue;
                         }
@@ -565,7 +567,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 }
             }
             else if (but->button == SDL_CONTROLLER_BUTTON_Y && isPress) {
-                if (isInputFocused_()) {
+                if (isInputFocused_() && isPointerOnKeyboard_Gamepad_(d)) {
                     SDL_PushEvent((SDL_Event *) &(SDL_TextInputEvent) {
                         .type     = SDL_TEXTINPUT,
                         .windowID = id_Window(d->window),
