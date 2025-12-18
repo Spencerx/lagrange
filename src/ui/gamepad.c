@@ -276,7 +276,7 @@ iBool isPointing_Gamepad(const iGamepad *d) {
 }
 
 iInt2 pointerCoord_Gamepad(const iGamepad *d) {
-    return d ? d->pointer : zero_I2();
+    return d ? coord_Window(d->window, d->pointer.x, d->pointer.y) : zero_I2();
 }
 
 int modState_Gamepad(const iGamepad *d) {

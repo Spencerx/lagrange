@@ -1969,8 +1969,7 @@ iInt2 mouseCoord_Window(const iWindow *d, int whichDevice) {
         return latestPosition_Touch();
     }
     if (whichDevice == mouseId_Gamepad) {
-        const iInt2 coord = pointerCoord_Gamepad(gamepad_App());
-        return coord_Window(d, coord.x, coord.y);
+        return pointerCoord_Gamepad(gamepad_App());
     }
     if (!d->isMouseInside) {
         return init_I2(-1000000, -1000000);
