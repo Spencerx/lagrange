@@ -109,6 +109,7 @@ static void addTicker_Gamepad_(iGamepad *d) {
 }
 
 void movePointer_Gamepad(iGamepad *d, iInt2 coord, int span) {
+    if (!d) return;
     setValue_Anim(&d->pointerf[0], coord.x, span);
     setValue_Anim(&d->pointerf[1], coord.y, span);
     d->pointer = divf_I2(coord, d->window->pixelRatio);
@@ -127,7 +128,7 @@ void movePointer_Gamepad(iGamepad *d, iInt2 coord, int span) {
 }
 
 void movePointerOntoWidget_Gamepad(iGamepad *d, iWidget *widget, int span) {
-    if (widget) {
+    if (d && widget) {
         const iInt2 mid = mid_Rect(boundsWithoutVisualOffset_Widget(widget));
         movePointer_Gamepad(d, mid, span);
         setHover_Widget(widget);
@@ -292,7 +293,7 @@ static iBool moveFocusToDirection_Gamepad_(iGamepad *d, int button) {
         iWidget *focusable =
             !isEmpty_PtrSet(d->openMenus) ? front_PtrSet(d->openMenus) : NULL;
         if (focusable) {
-            printTree_Widget(focusable);
+            // printTree_Widget(focusable);
             iConstForEach(ObjectList, k, children_Widget(focusable)) {
                 if (flags_Widget(k.object) & focusable_WidgetFlag) {
                     setFocus_Widget((iWidget *) k.object);
@@ -357,6 +358,9 @@ static iBool isPointerOnKeyboard_Gamepad_(const iGamepad *d) {
 }
 
 iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
+    if (!d) {
+        return iFalse;
+    }
     const SDL_Event *event = sdlEvent;
     if (isCommand_UserEvent(sdlEvent, "focus.gained")) {
         pointerOntoFocus_Gamepad_(d);
@@ -620,6 +624,9 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
 }
 
 void draw_Gamepad(const iGamepad *d) {
+    if (!d) {
+        return;
+    }
     /* Draw the pointer. */
     iPaint p;
     init_Paint(&p);

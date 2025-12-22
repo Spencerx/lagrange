@@ -375,6 +375,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         { "prefs.expandline", &d->prefs.expandToLongLines },
         { "prefs.font.smooth", &d->prefs.fontSmoothing },
         { "prefs.font.warnmissing", &d->prefs.warnAboutMissingGlyphs },
+        { "prefs.gamepad", &d->prefs.useGamepad },
         { "prefs.gopher.gemstyle", &d->prefs.geminiStyledGopher },
         { "prefs.hidetabs", &d->prefs.hideTabBar },
         { "prefs.hoverlink", &d->prefs.hoverLink },
@@ -1577,7 +1578,7 @@ static void init_App_(iApp *d, int argc, char **argv) {
         d->idleSleepDelayMs *= 0.9f;
     }
 #endif
-    d->gamepad = new_Gamepad();
+    d->gamepad = (prefs_App()->useGamepad ? new_Gamepad() : NULL);
     d->isFinishedLaunching = iTrue;
     /* Run any commands that were pending completion of launch. */ {
         iForEach(StringList, i, d->launchCommands) {
@@ -3850,6 +3851,17 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         }
         return iTrue;
     }
+    else if (equal_Command(cmd, "prefs.gamepad.changed")) {
+        d->prefs.useGamepad = arg_Command(cmd) != 0;
+        if (d->prefs.useGamepad && !d->gamepad) {
+            d->gamepad = new_Gamepad();
+        }
+        else if (!d->prefs.useGamepad && d->gamepad) {
+            delete_Gamepad(d->gamepad);
+            d->gamepad = NULL;
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "prefs.evensplit.changed")) {
         d->prefs.evenSplit = arg_Command(cmd) != 0;
         if (!isFrozen) {
@@ -5189,6 +5201,7 @@ iBool handleCommand_App(const char *cmd) {
         setToggle_Widget(findChild_Widget(dlg, "prefs.editor.highlight"),
                          d->prefs.editorSyntaxHighlighting);
         setToggle_Widget(findChild_Widget(dlg, "prefs.tui.simple"), d->prefs.simpleChars);
+        setToggle_Widget(findChild_Widget(dlg, "prefs.gamepad"), d->prefs.useGamepad);
         setFlags_Widget(
             findChild_Widget(dlg, format_CStr("prefs.linewidth.%d", d->prefs.lineWidth)),
             selected_WidgetFlag,

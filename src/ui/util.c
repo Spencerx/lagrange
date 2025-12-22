@@ -3757,8 +3757,52 @@ iWidget *makePreferences_Widget(void) {
                                "prefs.uilang");
         }
     }
+    /* UI behavior. */ {
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs, computer_Icon " ${heading.prefs.interface}", red_ColorId, '2', &headings, &values),
+                     "prefs.page.ui");
+        addDialogToggle_Widget(headings, values, "${prefs.hoverlink}", "prefs.hoverlink");
+        addDialogToggle_Widget(headings, values, "${prefs.bookmarks.addbottom}", "prefs.bookmarks.addbottom");
+        /* Return key behaviors. */
+        addDialogDropMenu_(headings,
+                           values,
+                           "${prefs.returnkey}",
+                           returnKeyBehaviorItems,
+                           iInvalidSize,
+                           "prefs.returnkey");
+        if (!isTerminal_Platform()) {
+            addDialogToggle_Widget(headings, values, "${prefs.imageloadscroll}", "prefs.imageloadscroll");
+        }
+        addDialogToggle_Widget(headings, values, "${prefs.time.24h}", "prefs.time.24h");
+        addDialogPadding_(headings, values);
+        addDialogToggle_Widget(headings, values, "${prefs.animate}", "prefs.animate");
+        if (!isTerminal_Platform()) {
+            addDialogToggle_Widget(headings, values, "${prefs.blink}", "prefs.blink");
+        }
+        //        makeTwoColumnHeading_("${heading.prefs.scrolling}", headings, values);
+        addDialogToggle_Widget(headings, values, "${prefs.smoothscroll}", "prefs.smoothscroll");
+        /* Scroll speeds. */ {
+            for (int type = 0; type < max_ScrollType; type++) {
+                const char *typeStr = (type == mouse_ScrollType ? "mouse" : "keyboard");
+                addChild_Widget(headings,
+                                iClob(makeHeading_Widget(type == mouse_ScrollType
+                                                             ? "${prefs.scrollspeed.mouse}"
+                                                             : "${prefs.scrollspeed.keyboard}")));
+                /* TODO: Make a SliderWidget. */
+                iWidget *scrollSpeed = new_Widget();
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.7",  typeStr), "0", format_CStr("scrollspeed arg:7  type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.10", typeStr), "1", format_CStr("scrollspeed arg:10 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.13", typeStr), "2", format_CStr("scrollspeed arg:13 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.17", typeStr), "3", format_CStr("scrollspeed arg:17 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.23", typeStr), "4", format_CStr("scrollspeed arg:23 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.30", typeStr), "5", format_CStr("scrollspeed arg:30 type:%d", type));
+                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.40", typeStr), "6", format_CStr("scrollspeed arg:40 type:%d", type));
+                addChildFlags_Widget(
+                    values, iClob(scrollSpeed), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
+            }
+        }
+    }
     /* Appearance. */ {
-        setId_Widget(appendTwoColumnTabPage_Widget(tabs, eye_Icon " ${heading.prefs.appearance}", red_ColorId, '2', &headings, &values),
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs, eye_Icon " ${heading.prefs.appearance}", red_ColorId, '3', &headings, &values),
                      "prefs.page.appearance");
         if (isTerminal_Platform()) {
             /* Display character set. */
@@ -3818,50 +3862,6 @@ iWidget *makePreferences_Widget(void) {
 #endif
             addDialogPadding_(headings, values);
             addDialogToggle_Widget(headings, values, "${prefs.editor.highlight}", "prefs.editor.highlight");
-        }
-    }
-    /* UI behavior. */ {
-        setId_Widget(appendTwoColumnTabPage_Widget(tabs, computer_Icon " ${heading.prefs.interface}", red_ColorId, '3', &headings, &values),
-                     "prefs.page.ui");
-        addDialogToggle_Widget(headings, values, "${prefs.hoverlink}", "prefs.hoverlink");
-        addDialogToggle_Widget(headings, values, "${prefs.bookmarks.addbottom}", "prefs.bookmarks.addbottom");
-        /* Return key behaviors. */
-        addDialogDropMenu_(headings,
-                           values,
-                           "${prefs.returnkey}",
-                           returnKeyBehaviorItems,
-                           iInvalidSize,
-                           "prefs.returnkey");
-        if (!isTerminal_Platform()) {
-            addDialogToggle_Widget(headings, values, "${prefs.imageloadscroll}", "prefs.imageloadscroll");
-        }
-        addDialogToggle_Widget(headings, values, "${prefs.time.24h}", "prefs.time.24h");
-        addDialogPadding_(headings, values);
-        addDialogToggle_Widget(headings, values, "${prefs.animate}", "prefs.animate");
-        if (!isTerminal_Platform()) {
-            addDialogToggle_Widget(headings, values, "${prefs.blink}", "prefs.blink");
-        }
-        //        makeTwoColumnHeading_("${heading.prefs.scrolling}", headings, values);
-        addDialogToggle_Widget(headings, values, "${prefs.smoothscroll}", "prefs.smoothscroll");
-        /* Scroll speeds. */ {
-            for (int type = 0; type < max_ScrollType; type++) {
-                const char *typeStr = (type == mouse_ScrollType ? "mouse" : "keyboard");
-                addChild_Widget(headings,
-                                iClob(makeHeading_Widget(type == mouse_ScrollType
-                                                             ? "${prefs.scrollspeed.mouse}"
-                                                             : "${prefs.scrollspeed.keyboard}")));
-                /* TODO: Make a SliderWidget. */
-                iWidget *scrollSpeed = new_Widget();
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.7",  typeStr), "0", format_CStr("scrollspeed arg:7  type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.10", typeStr), "1", format_CStr("scrollspeed arg:10 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.13", typeStr), "2", format_CStr("scrollspeed arg:13 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.17", typeStr), "3", format_CStr("scrollspeed arg:17 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.23", typeStr), "4", format_CStr("scrollspeed arg:23 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.30", typeStr), "5", format_CStr("scrollspeed arg:30 type:%d", type));
-                addRadioButton_(scrollSpeed, format_CStr("prefs.scrollspeed.%s.40", typeStr), "6", format_CStr("scrollspeed arg:40 type:%d", type));
-                addChildFlags_Widget(
-                    values, iClob(scrollSpeed), arrangeHorizontal_WidgetFlag | arrangeSize_WidgetFlag);
-            }
         }
     }
     /* Page theme. */ {
@@ -4078,6 +4078,18 @@ iWidget *makePreferences_Widget(void) {
         appendFramelessTabPage_Widget(tabs, iClob(bind), keyboard_Icon " ${heading.prefs.keys}",
                                       cyan_ColorId, '9', KMOD_PRIMARY);
     }
+#if defined (LAGRANGE_USE_GAMEPAD)
+    /* Gamepad. */ {
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs,
+                                                   gamepad_Icon " ${heading.prefs.gamepad}",
+                                                   cyan_ColorId,
+                                                   0,
+                                                   &headings,
+                                                   &values),
+                     "prefs.page.gamepad");
+        addDialogToggle_Widget(headings, values, "${prefs.gamepad}", "prefs.gamepad");
+    }
+#endif /* LAGRANGE_USE_GAMEPAD */
     /* Network. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    network_Icon " ${heading.prefs.network}",

@@ -285,6 +285,7 @@ iLocalDef int acceptKeyMod_ReturnKeyBehavior(int behavior) {
 #define fontpack_Icon       "\U0001f520"
 #define fonts_Icon          "\U0001f5da"
 #define forwardArrow_Icon   "\U0001f872"
+#define gamepad_Icon        "\U0001f3ae"
 #define gear_Icon           "\u2699"
 #define globe_Icon          "\U0001f310"
 #define guppy_Icon          "\U0001f41f"

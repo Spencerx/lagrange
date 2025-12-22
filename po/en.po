@@ -1909,6 +1909,9 @@ msgstr "Right"
 msgid "heading.prefs.keys"
 msgstr "Keys"
 
+msgid "heading.prefs.gamepad"
+msgstr "Gamepad"
+
 msgid "heading.prefs.layout"
 msgstr "Page Layout"
 
@@ -2343,6 +2346,9 @@ msgstr "Gopher proxy:"
 
 msgid "prefs.proxy.http"
 msgstr "HTTP proxy:"
+
+msgid "prefs.gamepad"
+msgstr "Gamepad enabled:"
 
 msgid "menu.binding.reset"
 msgstr "Reset to Default"

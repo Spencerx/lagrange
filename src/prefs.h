@@ -76,6 +76,7 @@ enum iPrefsBool {
     evenSplit_PrefsBool,
     detachedPrefs_PrefsBool,
     editorSyntaxHighlighting_PrefsBool,
+    useGamepad_PrefsBool,
 
     /* Document presentation */
     italicQuote_PrefsBool,
@@ -161,6 +162,7 @@ struct Impl_Prefs {
             iBool evenSplit;
             iBool detachedPrefs;
             iBool editorSyntaxHighlighting;
+            iBool useGamepad;
 
             /* Document presentation */
             iBool italicQuote;

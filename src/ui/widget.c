@@ -454,19 +454,18 @@ void setCommandHandler_Widget(iWidget *d, iBool (*handler)(iWidget *, const char
 }
 
 void setRoot_Widget(iWidget *d, iRoot *root) {
-    if (d->flags & keepOnTop_WidgetFlag) {
-        iPtrArray *onTop = onTop_Root(root);
-        iAssert(indexOf_PtrArray(onTop, d) == iInvalidPos);
-        /* Move it over the new root's onTop list. */
-        removeOne_PtrArray(onTop, d);
-        if (d != root->widget) {
-            addToOnTop_Widget_(d);
-        }
-    }
     if (d->root != root) {
+        if (d->flags & keepOnTop_WidgetFlag) {
+            iPtrArray *onTop = onTop_Root(d->root);
+            iAssert(indexOf_PtrArray(onTop, d) != iInvalidPos);
+            removeOne_PtrArray(onTop, d);
+        }
         d->root = root;
         if (class_Widget(d)->rootChanged) {
             class_Widget(d)->rootChanged(d);
+        }
+        if (d->flags & keepOnTop_WidgetFlag && d != root->widget) {
+            addToOnTop_Widget_(d);
         }
     }
     iForEach(ObjectList, i, d->children) {

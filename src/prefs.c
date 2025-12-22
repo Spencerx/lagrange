@@ -51,6 +51,7 @@ void init_Prefs(iPrefs *d) {
     d->inputZoomLevel           = 0;
     d->editorZoomLevel          = 0;
     d->editorSyntaxHighlighting = iTrue;
+    d->useGamepad               = iTrue;
     d->zoomPercent              = 100;
     d->navbarActions[0]         = back_ToolbarAction;
     d->navbarActions[1]         = forward_ToolbarAction;
