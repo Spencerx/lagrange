@@ -349,7 +349,7 @@ static iBool isInputFocused_(void) {
 }
 
 static iBool isPointerOnKeyboard_Gamepad_(const iGamepad *d) {
-    if (isInputFocused_()) {
+    if (isInputFocused_() && isHandheld_Platform()) {
         return contains_Widget(
             findWidget_App("keyboard"),
             init_I2(targetValue_Anim(&d->pointerf[0]), targetValue_Anim(&d->pointerf[1])));
