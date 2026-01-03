@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-01-25 09:20+0000\n"
-"PO-Revision-Date: 2025-09-02 06:26+0000\n"
+"PO-Revision-Date: 2026-01-04 06:44+0000\n"
 "Last-Translator: josé m. <correoxm@disroot.org>\n"
 "Language-Team: Galician <http://weblate.skyjake.fi/projects/lagrange/ui/gl/>"
 "\n"
@@ -69,8 +69,8 @@ msgstr "O certificado recibido caducou en %s."
 
 msgid "dlg.certwarn.domain"
 msgstr ""
-"O certificado recibido é para o dominio incorrecto (%s). Podería deberse a "
-"un problema na configuración do servidor."
+"Enviouse a solicitude a \"%s\" pero recibeuse un certificado dun dominio "
+"diferente (%s). Pode deberse a un problema de configuración do servidor."
 
 msgid "dlg.certimport.notfound.page"
 msgstr "Non se atopa certificado ou chave na páxina actual."
@@ -2951,3 +2951,19 @@ msgstr "Barra esqueda de pestanas"
 
 msgid "heading.prefs.toolbartabs.right"
 msgstr "Barra dereita de pestanas"
+
+msgid "menu.input.pasteprompt"
+msgstr "Pegar Indicación"
+
+msgid "heading.prefs.gamepad"
+msgstr "Gamepad"
+
+msgid "menu.input.copyprompt"
+msgstr "Copia Indicación"
+
+msgid "prefs.gamepad"
+msgstr "Gamepad activado:"
+
+# Context menu action for warning/error banners.
+msgid "menu.banner.copy"
+msgstr "Copiar mensaxe"
