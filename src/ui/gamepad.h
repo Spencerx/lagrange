@@ -34,6 +34,22 @@ iDeclareType(Window);
 /* Device ID used for emulated mouse events. */
 #define mouseId_Gamepad ((uint32_t) -2)
 
+enum iGamepadAction {
+    primary_GamepadAction,
+    secondary_GamepadAction,
+    cancel_GamepadAction,
+    openNavMenu_GamepadAction,
+    openPageMenu_GamepadAction,
+    openSidebar_GamepadAction,
+    reloadPage_GamepadAction,
+    focusUrl_GamepadAction,
+    max_GamepadAction,
+};
+
+#define triggerMod_Gamepad  0x1000
+
+extern int actions_Gamepad[max_GamepadAction];
+
 iDeclareType(Gamepad);
 iDeclareTypeConstruction(Gamepad);
 
@@ -41,6 +57,8 @@ iBool   isConnected_Gamepad     (const iGamepad *);
 iBool   isPointing_Gamepad      (const iGamepad *);
 iInt2   pointerCoord_Gamepad    (const iGamepad *);
 int     modState_Gamepad        (const iGamepad *);
+
+const char *buttonName_Gamepad  (const iGamepad *, int sdlGameControllerButton);
 
 iLocalDef iBool isPointerHidden_Gamepad(const iGamepad *d) {
     return isConnected_Gamepad(d) && !isPointing_Gamepad(d);

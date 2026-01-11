@@ -4088,6 +4088,41 @@ iWidget *makePreferences_Widget(void) {
                                                    &values),
                      "prefs.page.gamepad");
         addDialogToggle_Widget(headings, values, "${prefs.gamepad}", "prefs.gamepad");
+        struct { int button; iBool trigger; const char *id;
+        } gamepadButtons[] = {
+            { SDL_CONTROLLER_BUTTON_A, iFalse, "prefs.gamepad.a" },
+            { SDL_CONTROLLER_BUTTON_B, iFalse, "prefs.gamepad.b" },
+            { SDL_CONTROLLER_BUTTON_X, iFalse, "prefs.gamepad.x" },
+            { SDL_CONTROLLER_BUTTON_Y, iFalse, "prefs.gamepad.y" },
+            { SDL_CONTROLLER_BUTTON_A, iTrue, "prefs.gamepad.trig.a" },
+            { SDL_CONTROLLER_BUTTON_B, iTrue, "prefs.gamepad.trig.b" },
+            { SDL_CONTROLLER_BUTTON_X, iTrue, "prefs.gamepad.trig.x" },
+            { SDL_CONTROLLER_BUTTON_Y, iTrue, "prefs.gamepad.trig.y" },
+        };
+        iForIndices(i, gamepadButtons) {
+            /* clang-format off */
+            const iMenuItem gamepadItems[] = {
+                { "${prefs.gamepad.primary}",   0, 0, format_CStr("%s arg:0", gamepadButtons[i].id) },
+                { "${prefs.gamepad.secondary}", 0, 0, format_CStr("%s arg:1", gamepadButtons[i].id) },
+                { "${prefs.gamepad.cancel}",    0, 0, format_CStr("%s arg:2", gamepadButtons[i].id) },
+                { "${prefs.gamepad.mainmenu}",  0, 0, format_CStr("%s arg:3", gamepadButtons[i].id) },
+                { "${prefs.gamepad.pagemenu}",  0, 0, format_CStr("%s arg:4", gamepadButtons[i].id) },
+                { "${prefs.gamepad.sidebar}",   0, 0, format_CStr("%s arg:5", gamepadButtons[i].id) },
+                { "${prefs.gamepad.reload}",    0, 0, format_CStr("%s arg:6", gamepadButtons[i].id) },
+                { "${prefs.gamepad.editurl}",   0, 0, format_CStr("%s arg:7", gamepadButtons[i].id) },
+                { NULL }
+            };
+            /* clang-format on */
+            addDialogDropMenu_(
+                headings,
+                values,
+                format_CStr("%s%s",
+                            gamepadButtons[i].trigger ? "${prefs.gamepad.triggermod}" : "",
+                            buttonName_Gamepad(gamepad_App(), gamepadButtons[i].button)),
+                gamepadItems,
+                iInvalidSize,
+                gamepadButtons[i].id);
+        }
     }
 #endif /* LAGRANGE_USE_GAMEPAD */
     /* Network. */ {

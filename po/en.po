@@ -2350,6 +2350,33 @@ msgstr "HTTP proxy:"
 msgid "prefs.gamepad"
 msgstr "Gamepad enabled:"
 
+msgid "prefs.gamepad.primary"
+msgstr "Primary Click"
+
+msgid "prefs.gamepad.secondary"
+msgstr "Secondary Click"
+
+msgid "prefs.gamepad.cancel"
+msgstr "Cancel"
+
+msgid "prefs.gamepad.mainmenu"
+msgstr "Main Menu"
+
+msgid "prefs.gamepad.pagemenu"
+msgstr "Page Menu"
+
+msgid "prefs.gamepad.sidebar"
+msgstr "Sidebar"
+
+msgid "prefs.gamepad.reload"
+msgstr "Reload Page"
+
+msgid "prefs.gamepad.editurl"
+msgstr "Edit Page URL"
+
+msgid "prefs.gamepad.triggermod"
+msgstr "R.Trigger + "
+
 msgid "menu.binding.reset"
 msgstr "Reset to Default"
 
