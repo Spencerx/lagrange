@@ -3338,6 +3338,14 @@ static iBool handlePrefsCommands_(iWidget *d, const char *cmd) {
                                             format_CStr("returnkey.set arg:%d", arg_Command(cmd)));
         return iFalse;
     }
+    else if (equal_Command(cmd, "gamepad.set")) {
+        const int trig   = argLabel_Command(cmd, "trig");
+        const int button = argLabel_Command(cmd, "button");
+        updateDropdownSelection_LabelWidget(
+            findChild_Widget(d, format_CStr("gamepad.set trig:%d button:%d", trig, button)),
+            format_CStr(" arg:%d", arg_Command(cmd)));
+        return iFalse;
+    }
     else if (equal_Command(cmd, "toolbar.action.set")) {
         updatePrefsToolBarActionButton_(d, argLabel_Command(cmd, "button"), arg_Command(cmd));
         return iFalse;
@@ -4173,6 +4181,15 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "returnkey.set")) {
         d->prefs.returnKey = arg_Command(cmd);
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "gamepad.set")) {
+        const int trig   = argLabel_Command(cmd, "trig");
+        const int button = argLabel_Command(cmd, "button");
+        const int action = arg_Command(cmd);
+        if (action >= 0 && action < max_GamepadAction) {
+            actions_Gamepad[action] = button | (trig ? triggerMod_Gamepad : 0);
+        }
         return iTrue;
     }
     else if (equal_Command(cmd, "pinsplit.set")) {

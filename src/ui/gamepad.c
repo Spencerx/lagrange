@@ -460,6 +460,7 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             const SDL_ControllerButtonEvent *but = &event->cbutton;
             const int   modButton = but->button | (d->rightTrigger ? triggerMod_Gamepad : 0);
             const iBool isPress   = (but->state != 0);
+            printf("modButton:%x isPress:%d\n", modButton, isPress); fflush(stdout);
             iChangeFlags(d->buttons, 1 << but->button, isPress);
             if (but->button == SDL_CONTROLLER_BUTTON_DPAD_LEFT && isPress) {
                 if (isPointerOnKeyboard_Gamepad_(d)) {
@@ -602,7 +603,12 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
                 setValue_Anim(&d->opacity, 0.25f, 0);
                 showToolbar_Root(root, iTrue);
                 iWidget *nav = findChild_Widget(root->widget, "toolbar.navmenu");
-                emulateMouseClick_Widget(nav, SDL_BUTTON_LEFT);
+                if (nav) {
+                    emulateMouseClick_Widget(nav, SDL_BUTTON_LEFT);
+                }
+                else {
+                    /* Show the desktop main menu? */
+                }
             }
             else if (modButton == actions_Gamepad[openSidebar_GamepadAction] && isPress) {
                 hidePointer_Gamepad_(d, iFalse);
@@ -617,8 +623,10 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             else if (modButton == actions_Gamepad[openPageMenu_GamepadAction] && isPress) {
                 iRoot *root = root_Gamepad_(d);
                 showToolbar_Root(root, iTrue);
-                iWidget *nav = findChild_Widget(root->widget, "pagemenubutton");
-                emulateMouseClick_Widget(nav, SDL_BUTTON_LEFT);
+                iWidget *button = findChild_Widget(root->widget, "pagemenubutton");
+                if (button) {
+                    emulateMouseClick_Widget(button, SDL_BUTTON_LEFT);
+                }
             }
             else if (modButton == actions_Gamepad[focusUrl_GamepadAction] && isPress) {
                 postCommand_Root(root_Gamepad_(d), "navigate.focus");
