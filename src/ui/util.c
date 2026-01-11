@@ -4088,8 +4088,12 @@ iWidget *makePreferences_Widget(void) {
                                                    &values),
                      "prefs.page.gamepad");
         addDialogToggle_Widget(headings, values, "${prefs.gamepad}", "prefs.gamepad");
+        addDialogPadding_(headings, values);
+        /* clang-format off */
         struct {
-            int button; iBool trigger; const char *cmd;
+            int button;
+            iBool trigger;
+            const char *cmd;
         } gamepadButtons[] = {
             { SDL_CONTROLLER_BUTTON_A, iFalse, format_CStr("gamepad.set trig:0 button:%d", SDL_CONTROLLER_BUTTON_A) },
             { SDL_CONTROLLER_BUTTON_B, iFalse, format_CStr("gamepad.set trig:0 button:%d", SDL_CONTROLLER_BUTTON_B) },
@@ -4101,7 +4105,6 @@ iWidget *makePreferences_Widget(void) {
             { SDL_CONTROLLER_BUTTON_Y, iTrue,  format_CStr("gamepad.set trig:1 button:%d", SDL_CONTROLLER_BUTTON_Y) },
         };
         iForIndices(i, gamepadButtons) {
-            /* clang-format off */
             const iMenuItem gamepadItems[] = {
                 { "${prefs.gamepad.primary}",   0, 0, format_CStr("%s arg:0", gamepadButtons[i].cmd) },
                 { "${prefs.gamepad.secondary}", 0, 0, format_CStr("%s arg:1", gamepadButtons[i].cmd) },
@@ -4111,10 +4114,12 @@ iWidget *makePreferences_Widget(void) {
                 { "${prefs.gamepad.sidebar}",   0, 0, format_CStr("%s arg:5", gamepadButtons[i].cmd) },
                 { "${prefs.gamepad.reload}",    0, 0, format_CStr("%s arg:6", gamepadButtons[i].cmd) },
                 { "${prefs.gamepad.editurl}",   0, 0, format_CStr("%s arg:7", gamepadButtons[i].cmd) },
+                { "---" },
+                { "${prefs.gamepad.none}",      0, 0, format_CStr("%s arg:-1", gamepadButtons[i].cmd) },
                 { NULL }
             };
             /* clang-format on */
-            addDialogDropMenu_(
+            iLabelWidget *drop = addDialogDropMenu_(
                 headings,
                 values,
                 format_CStr("%s%s",
@@ -4123,6 +4128,11 @@ iWidget *makePreferences_Widget(void) {
                 gamepadItems,
                 iInvalidSize,
                 gamepadButtons[i].cmd);
+            updateDropdownSelection_LabelWidget(
+                drop,
+                format_CStr(
+                    " arg:%d",
+                    findAction_Gamepad(gamepadButtons[i].button, gamepadButtons[i].trigger)));
         }
     }
 #endif /* LAGRANGE_USE_GAMEPAD */

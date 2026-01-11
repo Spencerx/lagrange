@@ -50,6 +50,10 @@ enum iGamepadAction {
 
 extern int actions_Gamepad[max_GamepadAction];
 
+int     findAction_Gamepad      (int button, iBool trigger);
+
+/*----------------------------------------------------------------------------------------------*/
+
 iDeclareType(Gamepad);
 iDeclareTypeConstruction(Gamepad);
 

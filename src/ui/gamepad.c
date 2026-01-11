@@ -49,6 +49,17 @@ int actions_Gamepad[max_GamepadAction] = {
     SDL_CONTROLLER_BUTTON_Y,
 };
 
+int findAction_Gamepad(int button, iBool trigger) {
+    for (int i = 0; i < max_GamepadAction; i++) {
+        if (actions_Gamepad[i] == (button | (trigger ? triggerMod_Gamepad : 0))) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/*----------------------------------------------------------------------------------------------*/
+
 struct Impl_Gamepad {
     SDL_GameController *ctl;
     int      joyIndex;
