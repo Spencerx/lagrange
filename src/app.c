@@ -334,6 +334,18 @@ static iString *serializePrefs_App_(const iApp *d) {
     for (size_t i = 0; i < iElemCount(d->prefs.navbarActions); i++) {
         appendFormat_String(str, "navbar.action.set arg:%d button:%d\n", d->prefs.navbarActions[i], i);
     }
+#if defined (LAGRANGE_USE_GAMEPAD)
+    appendFormat_String(str, "gamepad.set clear:1\n");
+    for (int i = 0; i < max_GamepadAction; i++) {
+        if (actions_Gamepad[i] & ~triggerMod_Gamepad) {
+            appendFormat_String(str,
+                                "gamepad.set trig:%d button:%d arg:%d\n",
+                                (actions_Gamepad[i] & triggerMod_Gamepad) != 0,
+                                actions_Gamepad[i] & ~triggerMod_Gamepad,
+                                i);
+        }
+    }
+#endif /* LAGRANGE_USE_GAMEPAD */
     if (isMobile_Platform()) {
         appendFormat_String(str, "hidetoolbarscroll arg:%d\n", d->prefs.hideToolbarOnScroll);
         appendFormat_String(str, "toolbar.action.set arg:%d button:0\n", d->prefs.toolbarActions[0]);
@@ -4184,6 +4196,12 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "gamepad.set")) {
+        if (argLabel_Command(cmd, "clear")) {
+            for (int i = 0; i < max_GamepadAction; i++) {
+                actions_Gamepad[i] = 0;
+            }
+            return iTrue;
+        }
         const int trig   = argLabel_Command(cmd, "trig");
         const int button = argLabel_Command(cmd, "button");
         const int action = arg_Command(cmd);
