@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-26 11:35+0000\n"
-"PO-Revision-Date: 2025-12-31 17:42+0000\n"
+"PO-Revision-Date: 2026-01-13 18:34+0000\n"
 "Last-Translator: Страхиња Радић <sr@strahinja.org>\n"
 "Language-Team: Serbian <http://weblate.skyjake.fi/projects/lagrange/ui/sr/>\n"
 "Language: sr\n"
@@ -2981,3 +2981,30 @@ msgstr "Гејмпед"
 
 msgid "prefs.gamepad"
 msgstr "Гејмпед активан:"
+
+msgid "prefs.gamepad.primary"
+msgstr "Примарни клик"
+
+msgid "prefs.gamepad.secondary"
+msgstr "Секундарни клик"
+
+msgid "prefs.gamepad.cancel"
+msgstr "Поништи"
+
+msgid "prefs.gamepad.mainmenu"
+msgstr "Главни мени"
+
+msgid "prefs.gamepad.pagemenu"
+msgstr "Мени странице"
+
+msgid "prefs.gamepad.sidebar"
+msgstr "Панел"
+
+msgid "prefs.gamepad.reload"
+msgstr "Поново учитај"
+
+msgid "prefs.gamepad.editurl"
+msgstr "Уреди УРЛ стране"
+
+msgid "prefs.gamepad.triggermod"
+msgstr "RT + "
