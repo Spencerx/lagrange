@@ -2981,9 +2981,6 @@ msgstr "Oyun kolu"
 msgid "prefs.gamepad"
 msgstr "Oyun kolu etkin:"
 
-msgid "prefs.gamepad.none"
-msgstr "Yok"
-
 msgid "prefs.gamepad.primary"
 msgstr "Birincil tık"
 
