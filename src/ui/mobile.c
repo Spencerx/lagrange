@@ -607,7 +607,15 @@ void makePanelItem_Mobile(iWidget *panel, const iMenuItem *item) {
         setFlags_Widget(as_Widget(drop),
                         alignRight_WidgetFlag | noBackground_WidgetFlag |
                             frameless_WidgetFlag, iTrue);
-        setId_Widget(as_Widget(drop), id);
+        if (startsWith_CStr(id, "prefs.gamepad.")) {
+            /* Special case: we are using this ID for identifying the button and trigger
+               as well during command handling. */
+            setId_Widget(as_Widget(drop),
+                         format_CStr("gamepad.set trig:%c button:%c", id[16], id[14]));
+        }
+        else {
+            setId_Widget(as_Widget(drop), id);
+        }
         if (argLabel_Command(spec, "noheading")) {
             widget = makeValuePadding_(as_Widget(drop));
         }

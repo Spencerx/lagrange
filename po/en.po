@@ -2374,11 +2374,8 @@ msgstr "Reload Page"
 msgid "prefs.gamepad.editurl"
 msgstr "Edit Page URL"
 
-msgid "prefs.gamepad.none"
-msgstr "None"
-
 msgid "prefs.gamepad.triggermod"
-msgstr "R.Trigger + "
+msgstr "RT + "
 
 msgid "menu.binding.reset"
 msgstr "Reset to Default"

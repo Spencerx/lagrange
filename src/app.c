@@ -337,7 +337,7 @@ static iString *serializePrefs_App_(const iApp *d) {
 #if defined (LAGRANGE_USE_GAMEPAD)
     appendFormat_String(str, "gamepad.set clear:1\n");
     for (int i = 0; i < max_GamepadAction; i++) {
-        if (actions_Gamepad[i] & ~triggerMod_Gamepad) {
+        if (actions_Gamepad[i] != unassigned_Gamepad) {
             appendFormat_String(str,
                                 "gamepad.set trig:%d button:%d arg:%d\n",
                                 (actions_Gamepad[i] & triggerMod_Gamepad) != 0,
@@ -3353,9 +3353,24 @@ static iBool handlePrefsCommands_(iWidget *d, const char *cmd) {
     else if (equal_Command(cmd, "gamepad.set")) {
         const int trig   = argLabel_Command(cmd, "trig");
         const int button = argLabel_Command(cmd, "button");
+        const int action = arg_Command(cmd);
         updateDropdownSelection_LabelWidget(
             findChild_Widget(d, format_CStr("gamepad.set trig:%d button:%d", trig, button)),
-            format_CStr(" arg:%d", arg_Command(cmd)));
+            format_CStr(" arg:%d", action));
+        /* Each action can be assigned to a single button only, so another dropdown
+           may need updating, too. */
+        for (int b = SDL_CONTROLLER_BUTTON_A; b <= SDL_CONTROLLER_BUTTON_START; b++) {
+            for (int t = 0; t <= 1; t++) {
+                if (b != button || t != trig) {
+                    if (findAction_Gamepad(b, t) == action) {
+                        updateDropdownSelection_LabelWidget(
+                            findChild_Widget(d, format_CStr("gamepad.set trig:%d button:%d", t, b)),
+                            " arg:-1");
+                    }
+                }
+            }
+        }
+        refresh_Widget(d);
         return iFalse;
     }
     else if (equal_Command(cmd, "toolbar.action.set")) {
@@ -4198,15 +4213,23 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     else if (equal_Command(cmd, "gamepad.set")) {
         if (argLabel_Command(cmd, "clear")) {
             for (int i = 0; i < max_GamepadAction; i++) {
-                actions_Gamepad[i] = 0;
+                actions_Gamepad[i] = unassigned_Gamepad;
             }
             return iTrue;
         }
-        const int trig   = argLabel_Command(cmd, "trig");
-        const int button = argLabel_Command(cmd, "button");
-        const int action = arg_Command(cmd);
+        const int trig      = argLabel_Command(cmd, "trig");
+        const int button    = argLabel_Command(cmd, "button");
+        const int modButton = button | (trig ? triggerMod_Gamepad : 0);
+        const int action    = arg_Command(cmd);
         if (action >= 0 && action < max_GamepadAction) {
-            actions_Gamepad[action] = button | (trig ? triggerMod_Gamepad : 0);
+            actions_Gamepad[action] = modButton;
+        }
+        else {
+            for (int i = 0; i < max_GamepadAction; i++) {
+                if (actions_Gamepad[i] == modButton) {
+                    actions_Gamepad[i] = unassigned_Gamepad;
+                }
+            }
         }
         return iTrue;
     }

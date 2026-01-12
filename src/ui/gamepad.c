@@ -55,7 +55,7 @@ int findAction_Gamepad(int button, iBool trigger) {
             return i;
         }
     }
-    return -1;
+    return unassigned_Gamepad;
 }
 
 /*----------------------------------------------------------------------------------------------*/
@@ -471,7 +471,6 @@ iBool processEvent_Gamepad(iGamepad *d, const void *sdlEvent) {
             const SDL_ControllerButtonEvent *but = &event->cbutton;
             const int   modButton = but->button | (d->rightTrigger ? triggerMod_Gamepad : 0);
             const iBool isPress   = (but->state != 0);
-            printf("modButton:%x isPress:%d\n", modButton, isPress); fflush(stdout);
             iChangeFlags(d->buttons, 1 << but->button, isPress);
             if (but->button == SDL_CONTROLLER_BUTTON_DPAD_LEFT && isPress) {
                 if (isPointerOnKeyboard_Gamepad_(d)) {

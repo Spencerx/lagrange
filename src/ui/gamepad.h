@@ -46,6 +46,7 @@ enum iGamepadAction {
     max_GamepadAction,
 };
 
+#define unassigned_Gamepad  -1
 #define triggerMod_Gamepad  0x1000
 
 extern int actions_Gamepad[max_GamepadAction];

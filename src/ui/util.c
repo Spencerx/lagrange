@@ -3309,6 +3309,46 @@ static const char *returnKeyBehaviorStr_(int behavior) {
                        cstr_String(ac));
 }
 
+static const iArray *gamepadButtonItems_(const char *cmd) {
+    iArray *items = collectNew_Array(sizeof(iMenuItem));
+    pushBackN_Array(
+        items,
+        (iMenuItem[]) { { "${prefs.gamepad.primary}", 0, 0, format_CStr("%s arg:0", cmd) },
+                        { "${prefs.gamepad.secondary}", 0, 0, format_CStr("%s arg:1", cmd) },
+                        { "${prefs.gamepad.cancel}", 0, 0, format_CStr("%s arg:2", cmd) },
+                        { "${prefs.gamepad.mainmenu}", 0, 0, format_CStr("%s arg:3", cmd) },
+                        { "${prefs.gamepad.pagemenu}", 0, 0, format_CStr("%s arg:4", cmd) },
+                        { "${prefs.gamepad.sidebar}", 0, 0, format_CStr("%s arg:5", cmd) },
+                        { "${prefs.gamepad.reload}", 0, 0, format_CStr("%s arg:6", cmd) },
+                        { "${prefs.gamepad.editurl}", 0, 0, format_CStr("%s arg:7", cmd) },
+                        { "---" },
+                        { "\u2014", 0, 0, format_CStr("%s arg:-1", cmd) },
+                        { NULL } },
+        11);
+    return items;
+}
+
+iDeclareType(GamepadButtonInfo);
+
+struct Impl_GamepadButtonInfo {
+    int         button;
+    iBool       trigger;
+    const char *cmd;
+};
+
+static iArray *gamepadButtonInfo_(void) {
+    iArray *info = collectNew_Array(sizeof(iGamepadButtonInfo));
+    for (int t = 0; t <= 1; t++) {
+        for (int b = SDL_CONTROLLER_BUTTON_A; b <= SDL_CONTROLLER_BUTTON_START; b++) {
+            if (b > SDL_CONTROLLER_BUTTON_Y && t) continue; /* trigger only for A, B, X, Y */
+            pushBack_Array(info,
+                           (iGamepadButtonInfo[]) {
+                               b, t, format_CStr("gamepad.set trig:%d button:%d", t, b) });
+        }
+    }
+    return info;
+};
+
 iWidget *makePreferences_Widget(void) {
     /* Common items. */
     const iMenuItem langItems[] = { { u8"Čeština - cs", 0, 0, "uilang id:cs" },
@@ -3682,7 +3722,8 @@ iWidget *makePreferences_Widget(void) {
             { "button text:" bug_Icon " ${menu.debug}", 0, 0, "!open url:about:debug" },
             { NULL }
         };
-        iWidget *dlg = makePanels_Mobile("prefs", (iMenuItem[]){
+        iArray *mainItems = collectNew_Array(sizeof(iMenuItem));
+        pushBackN_Array(mainItems, (iMenuItem[]){
             { "padding arg:0.333" },
             { "title id:heading.settings" },
             { "padding arg:0.167" },
@@ -3703,7 +3744,49 @@ iWidget *makePreferences_Widget(void) {
             // { "button text:" info_Icon " ${menu.help}", 0, 0, "!open url:about:help" },
             // { "panel text:" planet_Icon " ${menu.about}", 0, 0, (const void *) aboutPanelItems },
             { NULL }
-        }, NULL, 0);
+        }, 17);
+        const iBool haveGamepad = isConnected_Gamepad(gamepad_App());
+        if (haveGamepad) {
+            /* The gamepad settings only appears when the controller is connected. */
+            iArray *gamepadItems = collectNew_Array(sizeof(iMenuItem));
+            pushBackN_Array(gamepadItems,
+                            (iMenuItem[]) { { "title id:heading.prefs.gamepad" },
+                                            { "padding arg:0.667" },
+                                            { "toggle id:prefs.gamepad" },
+                                            { "padding" } },
+                            4);
+            iConstForEach(Array, btInfo, gamepadButtonInfo_()) {
+                const iGamepadButtonInfo *info = btInfo.value;
+                pushBack_Array(
+                    gamepadItems,
+                    /* This ID is translated to "trig:%d button:%d", we can't include spaces in
+                       the ID in the panel item syntax. */
+                    &(iMenuItem) { format_CStr("dropdown id:prefs.gamepad.%d.%d text:%s%s",
+                                               info->button,
+                                               info->trigger,
+                                               info->trigger ? "${prefs.gamepad.triggermod}" : "",
+                                               buttonName_Gamepad(gamepad_App(), info->button)),
+                                   0,
+                                   0,
+                                   constData_Array(gamepadButtonItems_(info->cmd)) });
+            }
+            pushBack_Array(gamepadItems, &(iMenuItem) { NULL });
+            insert_Array(mainItems,
+                         5 /* after UI */,
+                         &(iMenuItem) { "panel icon:0x1f3ae id:heading.prefs.gamepad",
+                                        0,
+                                        0,
+                                        constData_Array(gamepadItems) });
+        }
+        iWidget *dlg = makePanels_Mobile("prefs", constData_Array(mainItems), NULL, 0);
+        if (haveGamepad) {
+            iConstForEach(Array, i, gamepadButtonInfo_()) {
+                const iGamepadButtonInfo *info = i.value;
+                updateDropdownSelection_LabelWidget(
+                    findChild_Widget(dlg, info->cmd),
+                    format_CStr(" arg:%d", findAction_Gamepad(info->button, info->trigger)));
+            }
+        }
         setupSheetTransition_Mobile(dlg, iTrue);
         return dlg;
     }
@@ -4089,50 +4172,22 @@ iWidget *makePreferences_Widget(void) {
                      "prefs.page.gamepad");
         addDialogToggle_Widget(headings, values, "${prefs.gamepad}", "prefs.gamepad");
         addDialogPadding_(headings, values);
-        /* clang-format off */
-        struct {
-            int button;
-            iBool trigger;
-            const char *cmd;
-        } gamepadButtons[] = {
-            { SDL_CONTROLLER_BUTTON_A, iFalse, format_CStr("gamepad.set trig:0 button:%d", SDL_CONTROLLER_BUTTON_A) },
-            { SDL_CONTROLLER_BUTTON_B, iFalse, format_CStr("gamepad.set trig:0 button:%d", SDL_CONTROLLER_BUTTON_B) },
-            { SDL_CONTROLLER_BUTTON_X, iFalse, format_CStr("gamepad.set trig:0 button:%d", SDL_CONTROLLER_BUTTON_X) },
-            { SDL_CONTROLLER_BUTTON_Y, iFalse, format_CStr("gamepad.set trig:0 button:%d", SDL_CONTROLLER_BUTTON_Y) },
-            { SDL_CONTROLLER_BUTTON_A, iTrue,  format_CStr("gamepad.set trig:1 button:%d", SDL_CONTROLLER_BUTTON_A) },
-            { SDL_CONTROLLER_BUTTON_B, iTrue,  format_CStr("gamepad.set trig:1 button:%d", SDL_CONTROLLER_BUTTON_B) },
-            { SDL_CONTROLLER_BUTTON_X, iTrue,  format_CStr("gamepad.set trig:1 button:%d", SDL_CONTROLLER_BUTTON_X) },
-            { SDL_CONTROLLER_BUTTON_Y, iTrue,  format_CStr("gamepad.set trig:1 button:%d", SDL_CONTROLLER_BUTTON_Y) },
-        };
-        iForIndices(i, gamepadButtons) {
-            const iMenuItem gamepadItems[] = {
-                { "${prefs.gamepad.primary}",   0, 0, format_CStr("%s arg:0", gamepadButtons[i].cmd) },
-                { "${prefs.gamepad.secondary}", 0, 0, format_CStr("%s arg:1", gamepadButtons[i].cmd) },
-                { "${prefs.gamepad.cancel}",    0, 0, format_CStr("%s arg:2", gamepadButtons[i].cmd) },
-                { "${prefs.gamepad.mainmenu}",  0, 0, format_CStr("%s arg:3", gamepadButtons[i].cmd) },
-                { "${prefs.gamepad.pagemenu}",  0, 0, format_CStr("%s arg:4", gamepadButtons[i].cmd) },
-                { "${prefs.gamepad.sidebar}",   0, 0, format_CStr("%s arg:5", gamepadButtons[i].cmd) },
-                { "${prefs.gamepad.reload}",    0, 0, format_CStr("%s arg:6", gamepadButtons[i].cmd) },
-                { "${prefs.gamepad.editurl}",   0, 0, format_CStr("%s arg:7", gamepadButtons[i].cmd) },
-                { "---" },
-                { "${prefs.gamepad.none}",      0, 0, format_CStr("%s arg:-1", gamepadButtons[i].cmd) },
-                { NULL }
-            };
-            /* clang-format on */
-            iLabelWidget *drop = addDialogDropMenu_(
-                headings,
-                values,
-                format_CStr("%s%s",
-                            gamepadButtons[i].trigger ? "${prefs.gamepad.triggermod}" : "",
-                            buttonName_Gamepad(gamepad_App(), gamepadButtons[i].button)),
-                gamepadItems,
-                iInvalidSize,
-                gamepadButtons[i].cmd);
+        const iArray *buttonInfo = gamepadButtonInfo_();
+        iConstForEach(Array, i, buttonInfo) {
+            iBeginCollect();
+            const iGamepadButtonInfo *info = i.value;
+            iLabelWidget             *drop =
+                addDialogDropMenu_(headings,
+                                   values,
+                                   format_CStr("%s%s",
+                                               info->trigger ? "${prefs.gamepad.triggermod}" : "",
+                                               buttonName_Gamepad(gamepad_App(), info->button)),
+                                   constData_Array(gamepadButtonItems_(info->cmd)),
+                                   iInvalidSize,
+                                   info->cmd);
             updateDropdownSelection_LabelWidget(
-                drop,
-                format_CStr(
-                    " arg:%d",
-                    findAction_Gamepad(gamepadButtons[i].button, gamepadButtons[i].trigger)));
+                drop, format_CStr(" arg:%d", findAction_Gamepad(info->button, info->trigger)));
+            iEndCollect();
         }
     }
 #endif /* LAGRANGE_USE_GAMEPAD */
