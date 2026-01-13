@@ -295,6 +295,7 @@ static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *source,
     iRangecc      lineSeg   = iNullRange;
     iKeyPage     *loadPage  = NULL;
     iBool         skipping  = iTrue;
+    iBool         wasLoaded = iFalse;
     while (nextSplit_Rangecc(range_CStr(source), "\n", &lineSeg)) {
         iRangecc line = lineSeg;
         trim_Rangecc(&line);
@@ -308,13 +309,15 @@ static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *source,
             const char *sep = strchr(line.start + 1, ':');
             if (contains_Range(&line, sep)) {
                 const iRangecc confName  = { line.start + 1, sep };
-                const iRangecc confLabel = { sep + 1, line.end };
+                iRangecc       confLabel = { sep + 1, line.end };
                 if (name && !cmp_Rangecc(confName, cstr_String(name))) {
                     /* This is the one that was requested to be loaded. */
                     set_String(&d->currentConfigName, name);
+                    trim_Rangecc(&confLabel);
                     setRange_String(&d->currentConfigLabel, confLabel);
                     clear_KeyboardWidget_(d);
                     skipping = iFalse;
+                    wasLoaded = iTrue;
                     d->needLayout = iTrue;
                 }
                 else {
@@ -447,7 +450,7 @@ static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *source,
         }
     }
     iRelease(pageNames);
-    if (name) {
+    if (wasLoaded) {
         d->visPage = front_Array(&d->pages);
     }
     return iTrue;
