@@ -33,6 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <SDL_timer.h>
 #include <the_Foundation/stringarray.h>
+#include <the_Foundation/file.h>
+#include <the_Foundation/fileinfo.h>
 
 static int initialRepeatDelayMs_ = 350;
 static int repeatDelayMs_        = 100;
@@ -59,6 +61,18 @@ struct Impl_Key {
     iRect    rect; /* relative to widget */
 };
 
+struct Impl_KeyRow {
+    iArray keys;
+};
+
+struct Impl_KeyPage {
+    int    id;
+    int    height;
+    size_t maxRowKeys;
+    int    onKeyPageId; /* after press, switch page */
+    iArray rows;
+};
+
 static void init_Key(iKey *d, int flags) {
     iZap(*d);
     d->flags  = flags;
@@ -69,9 +83,6 @@ static void deinit_Key(iKey *d) {
     delete_String(d->label);
 }
 
-struct Impl_KeyRow {
-    iArray keys;
-};
 
 static void init_KeyRow(iKeyRow *d) {
     init_Array(&d->keys, sizeof(iKey));
@@ -83,14 +94,6 @@ static void deinit_KeyRow(iKeyRow *d) {
     }
     deinit_Array(&d->keys);
 }
-
-struct Impl_KeyPage {
-    int    id;
-    int    height;
-    size_t maxRowKeys;
-    int    onKeyPageId; /* after press, switch page */
-    iArray rows;
-};
 
 static void init_KeyPage(iKeyPage *d) {
     init_Array(&d->rows, sizeof(iKeyRow));
@@ -138,6 +141,9 @@ struct Impl_KeyboardWidget {
     SDL_Event    repeatEvent;
     int          height; /* depends on screen dimensions, key layout */
     iArray       pages;
+    iStringArray *availableConfigs; /* pairs of "id: name" */
+    iString      currentConfigName;
+    iString      currentConfigLabel;
     iBool        needLayout;
     iBool        repeatWasTriggered;
     enum iFontId font;
@@ -172,7 +178,7 @@ static const char *defaultKeyboardConfig_ =
     "row: {++@lowercase abc} {-0x20} {++0xd " return_Icon "}\n"
 
     "page: emoji\n"
-    u8"row: 🙂 😊 😃 😂 😅 🙁 \n"
+    u8"row: 🙂 😊 😃 😂 😅 🙁 {0x8 " delete_Icon "}\n"
     "row: {++@lowercase abc} {-0x20} {++0xd " return_Icon "}\n";
 
 static uint32_t keyRepeater_KeyboardWidget_(uint32_t interval, void *param) {
@@ -283,22 +289,44 @@ static void doLayout_KeyboardWidget(iKeyboardWidget *d) {
     d->needLayout = iFalse;
 }
 
-static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *config) {
+static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *source,
+                                         const iString *name) {
     iStringArray *pageNames = new_StringArray();
     iRangecc      lineSeg   = iNullRange;
     iKeyPage     *loadPage  = NULL;
-    while (nextSplit_Rangecc(range_CStr(config), "\n", &lineSeg)) {
+    iBool         skipping  = iTrue;
+    while (nextSplit_Rangecc(range_CStr(source), "\n", &lineSeg)) {
         iRangecc line = lineSeg;
         trim_Rangecc(&line);
         if (isEmpty_Range(&line) || line.start[0] == '#') {
             continue;
         }
         if (line.start[0] == '@') {
-            /* This starts a new layout. We could have a parameter for selecting which
-               layout will be applied if there are multiple. Also, we could remember
-               the name of the layout. */
-            clear_KeyboardWidget_(d);
+            /* Starts of a new layout. */
+            skipping = iTrue;
             loadPage = NULL;
+            const char *sep = strchr(line.start + 1, ':');
+            if (contains_Range(&line, sep)) {
+                const iRangecc confName  = { line.start + 1, sep };
+                const iRangecc confLabel = { sep + 1, line.end };
+                if (name && !cmp_Rangecc(confName, cstr_String(name))) {
+                    /* This is the one that was requested to be loaded. */
+                    set_String(&d->currentConfigName, name);
+                    setRange_String(&d->currentConfigLabel, confLabel);
+                    clear_KeyboardWidget_(d);
+                    skipping = iFalse;
+                    d->needLayout = iTrue;
+                }
+                else {
+                    if (!name) {
+                        pushBackRange_StringArray(d->availableConfigs,
+                                                  (iRangecc) { line.start + 1, line.end });
+                    }
+                }
+            }
+            continue;
+        }
+        if (skipping) {
             continue;
         }
         if (startsWith_Rangecc(line, "page:")) {
@@ -419,8 +447,9 @@ static iBool parseConfig_KeyboardWidget_(iKeyboardWidget *d, const char *config)
         }
     }
     iRelease(pageNames);
-    d->needLayout = iTrue;
-    d->visPage    = front_Array(&d->pages);
+    if (name) {
+        d->visPage = front_Array(&d->pages);
+    }
     return iTrue;
 }
 
@@ -643,6 +672,32 @@ static iBool processEvent_KeyboardWidget_(iKeyboardWidget *d, const SDL_Event *e
     return processEvent_Widget(&d->widget, event);
 }
 
+static void parseAllConfigs_KeyboardWidget_(iKeyboardWidget *d, const iString *loadName) {
+    parseConfig_KeyboardWidget_(d, defaultKeyboardConfig_, loadName);
+    /* Look for other keyboard configs in the user directory. */
+    iForEach(DirFileInfo, info, iClob(new_DirFileInfo(dataDir_App()))) {
+        const iString *path = path_FileInfo(info.value);
+        if (endsWith_String(path, ".lkb")) {
+            iFile *f = new_File(path);
+            if (open_File(f, readOnly_FileMode)) {
+                iString *source = readString_File(f);
+                parseConfig_KeyboardWidget_(d, cstr_String(source), loadName);
+                delete_String(source);
+            }
+            iRelease(f);
+        }
+    }
+}
+
+static void findAllLayouts_KeyboardWidget_(iKeyboardWidget *d) {
+    clear_StringArray(d->availableConfigs);
+    parseAllConfigs_KeyboardWidget_(d, NULL);
+}
+
+static void loadConfig_KeyboardWidget_(iKeyboardWidget *d, const iString *name) {
+    parseAllConfigs_KeyboardWidget_(d, name);
+}
+
 /*-----------------------------------------------------------------------------------------------*/
 
 void init_KeyboardWidget(iKeyboardWidget *d) {
@@ -653,6 +708,9 @@ void init_KeyboardWidget(iKeyboardWidget *d) {
     d->font        = uiContent_FontId;
     d->bigFont     = uiLabelLarge_FontId;
     d->needLayout  = iFalse;
+    init_String(&d->currentConfigName);
+    init_String(&d->currentConfigLabel);
+    d->availableConfigs = new_StringArray();
     setBackgroundColor_Widget(w, uiBackgroundSidebar_ColorId);
     setFlags_Widget(w,
                     hidden_WidgetFlag | fixedHeight_WidgetFlag | resizeToParentWidth_WidgetFlag |
@@ -662,10 +720,13 @@ void init_KeyboardWidget(iKeyboardWidget *d) {
     w->flags2 |= mustStayOnTop_WidgetFlag2; /* really, keep it on top */
     init_Array(&d->pages, sizeof(iKeyPage));
     setDrawBufferEnabled_Widget(w, iTrue);
-    parseConfig_KeyboardWidget_(d, defaultKeyboardConfig_);
+    findAllLayouts_KeyboardWidget_(d);
 }
 
 void deinit_KeyboardWidget(iKeyboardWidget *d) {
+    iRelease(d->availableConfigs);
+    deinit_String(&d->currentConfigLabel);
+    deinit_String(&d->currentConfigName);
     if (d->repeatTimer) {
         SDL_RemoveTimer(d->repeatTimer);
     }
@@ -674,6 +735,10 @@ void deinit_KeyboardWidget(iKeyboardWidget *d) {
 void showOrHide_KeyboardWidget(iKeyboardWidget *d, iBool show) {
     iWidget *w = &d->widget;
     if (show) {
+        const iString *kbd = &prefs_App()->strings[keyboardLayout_PrefsString];
+        if (cmpString_String(&d->currentConfigName, kbd)) {
+            loadConfig_KeyboardWidget_(d, kbd);
+        }
         updateHeight_KeyboardWidget_(d);
     }
     showOrHide_KeyboardWidget_(d, show);

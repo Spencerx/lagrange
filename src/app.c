@@ -302,6 +302,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         }
     }
     appendFormat_String(str, "uilang id:%s\n", cstr_String(&d->prefs.strings[uiLanguage_PrefsString]));
+    appendFormat_String(str, "keyboard id:%s\n", cstr_String(&d->prefs.strings[keyboardLayout_PrefsString]));
     if (d->window) {
         appendFormat_String(str, "uiscale arg:%f\n", uiScale_Window(as_Window(d->window)));
     }
@@ -3351,6 +3352,7 @@ static iBool handlePrefsCommands_(iWidget *d, const char *cmd) {
         return iFalse;
     }
     else if (equal_Command(cmd, "gamepad.set")) {
+#if defined (LAGRANGE_USE_GAMEPAD)
         const int trig   = argLabel_Command(cmd, "trig");
         const int button = argLabel_Command(cmd, "button");
         const int action = arg_Command(cmd);
@@ -3371,6 +3373,7 @@ static iBool handlePrefsCommands_(iWidget *d, const char *cmd) {
             }
         }
         refresh_Widget(d);
+#endif /* LAGRANGE_USE_GAMEPAD */
         return iFalse;
     }
     else if (equal_Command(cmd, "toolbar.action.set")) {
@@ -3820,6 +3823,10 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         }
         return iTrue;
     }
+    else if (equal_Command(cmd, "keyboard")) {
+        set_String(&d->prefs.strings[keyboardLayout_PrefsString], string_Command(cmd, "id"));
+        return iTrue;
+    }
     else if (equal_Command(cmd, "navbar.action.set")) {
         d->prefs.navbarActions[iClamp(argLabel_Command(cmd, "button"), 0, maxNavbarActions_Prefs - 1)] =
             iClamp(arg_Command(cmd), 0, max_ToolbarAction - 1);
@@ -4211,6 +4218,7 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "gamepad.set")) {
+#if defined (LAGRANGE_USE_GAMEPAD)
         if (argLabel_Command(cmd, "clear")) {
             for (int i = 0; i < max_GamepadAction; i++) {
                 actions_Gamepad[i] = unassigned_Gamepad;
@@ -4231,6 +4239,7 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
                 }
             }
         }
+#endif
         return iTrue;
     }
     else if (equal_Command(cmd, "pinsplit.set")) {

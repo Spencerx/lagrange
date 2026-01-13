@@ -3328,6 +3328,8 @@ static const iArray *gamepadButtonItems_(const char *cmd) {
     return items;
 }
 
+#if defined (LAGRANGE_USE_GAMEPAD)
+
 iDeclareType(GamepadButtonInfo);
 
 struct Impl_GamepadButtonInfo {
@@ -3348,6 +3350,8 @@ static iArray *gamepadButtonInfo_(void) {
     }
     return info;
 };
+
+#endif /* LAGRANGE_USE_GAMEPAD */
 
 iWidget *makePreferences_Widget(void) {
     /* Common items. */
@@ -3745,6 +3749,7 @@ iWidget *makePreferences_Widget(void) {
             // { "panel text:" planet_Icon " ${menu.about}", 0, 0, (const void *) aboutPanelItems },
             { NULL }
         }, 17);
+#if defined (LAGRANGE_USE_GAMEPAD)
         const iBool haveGamepad = isConnected_Gamepad(gamepad_App());
         if (haveGamepad) {
             /* The gamepad settings only appears when the controller is connected. */
@@ -3778,7 +3783,9 @@ iWidget *makePreferences_Widget(void) {
                                         0,
                                         constData_Array(gamepadItems) });
         }
+#endif /* LAGRANGE_USE_GAMEPAD */
         iWidget *dlg = makePanels_Mobile("prefs", constData_Array(mainItems), NULL, 0);
+#if defined (LAGRANGE_USE_GAMEPAD)
         if (haveGamepad) {
             iConstForEach(Array, i, gamepadButtonInfo_()) {
                 const iGamepadButtonInfo *info = i.value;
@@ -3787,6 +3794,7 @@ iWidget *makePreferences_Widget(void) {
                     format_CStr(" arg:%d", findAction_Gamepad(info->button, info->trigger)));
             }
         }
+#endif /* LAGRANGE_USE_GAMEPAD */
         setupSheetTransition_Mobile(dlg, iTrue);
         return dlg;
     }

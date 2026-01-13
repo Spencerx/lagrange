@@ -35,6 +35,7 @@ iDeclareType(Prefs);
 enum iPrefsString {
     /* General */
     uiLanguage_PrefsString,
+    keyboardLayout_PrefsString,
     downloadDir_PrefsString,
     searchUrl_PrefsString,
     recentMisfinId_PrefsString,
