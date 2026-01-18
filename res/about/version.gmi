@@ -15,6 +15,9 @@ New features:
 Changes and enhancements:
 * Improved warning message when there is a problem with the proxy server certificate.
 
+Fixes:
+* Crash in the simple text renderer (e.g., TUI) when encountering a Backspace character.
+
 ## 1.19.4
 * Fixed: Context menu for Nex links.
 * Titan: Don't send requests with an empty path.
