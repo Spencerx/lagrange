@@ -6,6 +6,10 @@
 ```
 # Release notes
 
+## 1.19 (9)
+* Fixed spurious focus set in context menus.
+* Updated Help page for iOS/iPadOS.
+
 ## 1.19 (8)
 * Added gamepad support (for testing, work-in-progress).
 
