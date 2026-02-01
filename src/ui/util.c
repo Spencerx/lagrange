@@ -1826,7 +1826,8 @@ int checkContextMenu_Widget(iWidget *menu, const SDL_Event *ev) {
         const iInt2 mousePos = init_I2(ev->button.x, ev->button.y);
         if (contains_Widget(menu->parent, mousePos)) {
             openMenu_Widget(menu, mousePos);
-            if (isEmulatedMouseDevice_UserEvent(ev)) {
+            if (isEmulatedMouseDevice_UserEvent(ev) &&
+                (!isMobile_Platform() || isPointing_Gamepad(gamepad_App()))) {
                 /* Move input focus to the menu since we're using the keyboard. */
                 setFocus_Widget(child_Widget(menu, 0));
             }
