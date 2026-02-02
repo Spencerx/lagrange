@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.19 (10)
+* Fixed "Manage Identities" opening the wrong page in Settings when a gamepad is connected.
+
 ## 1.19 (9)
 * Fixed spurious focus set in context menus.
 * Updated Help page for iOS/iPadOS.
