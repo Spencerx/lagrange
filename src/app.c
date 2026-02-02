@@ -3168,6 +3168,11 @@ iRoot *submenuRoot_MacOS(void) {
 
 iBool isLandscape_App(void) {
     const iInt2 size = size_Window(get_Window());
+    if (isHandheld_Platform()) {
+        /* Prefer the portrait layout due to the larger default font size.
+           Can't fit as much stuff in the landscape navbar. */
+        return size.x > size.y * 1.4f;
+    }
     return size.x > size.y;
 }
 
@@ -5325,7 +5330,10 @@ iBool handleCommand_App(const char *cmd) {
             promoteDialogToWindow_Widget(dlg);
         }
         if (argLabel_Command(cmd, "idents") && deviceType_App() != desktop_AppDeviceType) {
-            iWidget *idPanel = panel_Mobile(dlg, 3);/* TODO: Don't hardcode the panel index. */
+            iWidget *idPanel = panel_Mobile(dlg,
+                                            isConnected_Gamepad(gamepad_App())
+                                                ? 4
+                                                : 3); /* TODO: Don't hardcode the panel index. */
             iWidget *button  = findUserData_Widget(findChild_Widget(dlg, "panel.top"), idPanel);
             postCommand_Widget(button, "panel.open");
         }
@@ -5335,7 +5343,8 @@ iBool handleCommand_App(const char *cmd) {
             }
             else {
                 /* TODO: Don't hardcode the panel index. */
-                iWidget *snippetPanel = panel_Mobile(dlg, 8);
+                iWidget *snippetPanel =
+                    panel_Mobile(dlg, isConnected_Gamepad(gamepad_App()) ? 9 : 8);
                 iWidget *button  = findUserData_Widget(findChild_Widget(dlg, "panel.top"), snippetPanel);
                 postCommand_Widget(button, "panel.open");
             }
