@@ -22,7 +22,7 @@ project (Lagrange
     DESCRIPTION "A Beautiful Gemini Client"
     LANGUAGES C
 )
-set (COPYRIGHT_YEAR 2025)
+set (COPYRIGHT_YEAR 2026)
 if (IOS)
     set (PROJECT_VERSION 1.19)
     set (IOS_BUNDLE_VERSION 9)
