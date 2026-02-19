@@ -1,5 +1,5 @@
 # Lagrange - A Beautiful Gemini Client
-# Copyright: 2020-2025 Jaakko Keränen <jaakko.keranen@iki.fi>
+# Copyright: 2020-2026 Jaakko Keränen <jaakko.keranen@iki.fi>
 #
 # Notes:
 # - Required dependencies: SDL 2, OpenSSL 1.1.1, libpcre,
