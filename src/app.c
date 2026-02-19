@@ -379,6 +379,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         { "prefs.boldlink.light", &d->prefs.boldLinkLight },
         { "prefs.boldlink.visited", &d->prefs.boldLinkVisited },
         { "prefs.bookmarks.addbottom", &d->prefs.addBookmarksToBottom },
+        { "prefs.bottominput", &d->prefs.bottomInput },
         { "prefs.bottomnavbar", &d->prefs.bottomNavBar },
         { "prefs.bottomtabbar", &d->prefs.bottomTabBar },
         { "prefs.centershort", &d->prefs.centerShortDocs },
@@ -3898,6 +3899,10 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         }
         return iTrue;
     }
+    else if (equal_Command(cmd, "prefs.bottominput.changed")) {
+        d->prefs.bottomInput = arg_Command(cmd) != 0;
+        return iTrue;
+    }
     else if (equal_Command(cmd, "prefs.gamepad.changed")) {
         d->prefs.useGamepad = arg_Command(cmd) != 0;
         if (d->prefs.useGamepad && !d->gamepad) {
@@ -5214,6 +5219,7 @@ iBool handleCommand_App(const char *cmd) {
         setToggle_Widget(findChild_Widget(dlg, "prefs.animate"), d->prefs.uiAnimations);
         setToggle_Widget(findChild_Widget(dlg, "prefs.bottomnavbar"), d->prefs.bottomNavBar);
         setToggle_Widget(findChild_Widget(dlg, "prefs.bottomtabbar"), d->prefs.bottomTabBar);
+        setToggle_Widget(findChild_Widget(dlg, "prefs.bottominput"), d->prefs.bottomInput);
         setToggle_Widget(findChild_Widget(dlg, "prefs.hidetabs"), d->prefs.hideTabBar);
         setToggle_Widget(findChild_Widget(dlg, "prefs.menubar"), d->prefs.menuBar);
         setToggle_Widget(findChild_Widget(dlg, "prefs.blink"), d->prefs.blinkingCursor);

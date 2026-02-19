@@ -99,6 +99,7 @@ void init_Prefs(iPrefs *d) {
     if (isTerminal_Platform()) {
         d->bottomNavBar = iTrue;
     }
+    d->bottomInput                            = iFalse; /* affects desktop only */
     d->menuBar                                = (deviceType_App() == desktop_AppDeviceType);
     d->simpleChars                            = iTrue;  /* only in terminal */
     d->evenSplit                              = iFalse; /* split mode tabs have even width */

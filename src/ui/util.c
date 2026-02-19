@@ -2493,6 +2493,9 @@ int dialogTransitionDir_Widget(const iWidget *dlg) {
 }
 
 iBool valueInputHandler_(iWidget *dlg, const char *cmd) {
+    const int transitionDir = isDesktop_Platform() && prefs_App()->bottomInput
+                                  ? bottom_TransitionDir
+                                  : dialogTransitionDir_Widget(dlg);
     iWidget *ptr = as_Widget(pointer_Command(cmd));
     if (equal_Command(cmd, "window.resized") || equal_Command(cmd, "keyboard.changed")) {
         if (isVisible_Widget(dlg)) {
@@ -2522,7 +2525,7 @@ iBool valueInputHandler_(iWidget *dlg, const char *cmd) {
                 postCommandf_App("valueinput.cancelled id:%s", cstr_String(id_Widget(dlg)));
                 setId_Widget(dlg, ""); /* no further commands to emit */
             }
-            setupSheetTransition_Mobile(dlg, dialogTransitionDir_Widget(dlg));
+            setupSheetTransition_Mobile(dlg, transitionDir);
             destroy_Widget(dlg);
             return iTrue;
         }
@@ -2555,20 +2558,20 @@ iBool valueInputHandler_(iWidget *dlg, const char *cmd) {
         setUrl_UploadWidget(upload, url);
         setResponseViewer_UploadWidget(upload, document_Command(cmd));
         addChild_Widget(get_Root()->widget, iClob(upload));
-        setupSheetTransition_Mobile(dlg, dialogTransitionDir_Widget(dlg));
+        setupSheetTransition_Mobile(dlg, transitionDir);
         destroy_Widget(dlg);
         return iTrue;
     }
     else if (equal_Command(cmd, "valueinput.cancel")) {
         postCommandf_App("valueinput.cancelled id:%s", cstr_String(id_Widget(dlg)));
         setId_Widget(dlg, ""); /* no further commands to emit */
-        setupSheetTransition_Mobile(dlg, dialogTransitionDir_Widget(dlg));
+        setupSheetTransition_Mobile(dlg, transitionDir);
         destroy_Widget(dlg);
         return iTrue;
     }
     else if (equal_Command(cmd, "valueinput.accept")) {
         acceptValueInput_(dlg);
-        setupSheetTransition_Mobile(dlg, dialogTransitionDir_Widget(dlg));
+        setupSheetTransition_Mobile(dlg, transitionDir);
         destroy_Widget(dlg);
         return iTrue;
     }
@@ -2586,6 +2589,13 @@ iBool valueInputHandler_(iWidget *dlg, const char *cmd) {
     else if (equal_Command(cmd, "valueinput.prompt.copy")) {
         SDL_SetClipboardText(
             cstr_String(text_LabelWidget(findChild_Widget(dlg, "valueinput.prompt"))));
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "valueinput.togglebottom")) {
+        dlg->rect.pos.y = 0;
+        setFlags_Widget(dlg, moveToParentBottomEdge_WidgetFlag, !prefs_App()->bottomInput);
+        postCommand_Widget(dlg, "prefs.bottominput.changed arg:%d", !prefs_App()->bottomInput);
+        arrange_Widget(dlg);
         return iTrue;
     }
     else if (isMobile_Platform() && equal_Command(cmd, "mouse.clicked") &&
@@ -2731,7 +2741,11 @@ iWidget *makeValueInputWithAdditionalActions_Widget(iWidget *parent, const iStri
     }
     setCommandHandler_Widget(dlg, valueInputHandler_);
     if (parent) {
-        addChild_Widget(parent, iClob(dlg));
+        addChildFlags_Widget(parent,
+                             iClob(dlg),
+                             isDesktop_Platform() && prefs_App()->bottomInput
+                                 ? moveToParentBottomEdge_WidgetFlag
+                                 : 0);
     }
     if (deviceType_App() == desktop_AppDeviceType) { /* conserve space on mobile */
         addDialogTitle_(dlg, title, "valueinput.title");
@@ -2776,11 +2790,10 @@ iWidget *makeValueInputWithAdditionalActions_Widget(iWidget *parent, const iStri
                                  SDLK_RETURN,
                                  acceptKeyMod_ReturnKeyBehavior(prefs_App()->returnKey),
                                  "valueinput.accept" });
-    addChildPos_Widget(dlg,
-                       iClob(makeDialogButtons_Widget(constData_Array(&actions),
-                                                      size_Array(&actions))),
-                       deviceType_App() != desktop_AppDeviceType ?
-                        front_WidgetAddPos : back_WidgetAddPos);
+    addChildPos_Widget(
+        dlg,
+        iClob(makeDialogButtons_Widget(constData_Array(&actions), size_Array(&actions))),
+        deviceType_App() != desktop_AppDeviceType ? front_WidgetAddPos : back_WidgetAddPos);
     deinit_Array(&actions);
     arrange_Widget(dlg);
     if (parent) {
@@ -2788,13 +2801,19 @@ iWidget *makeValueInputWithAdditionalActions_Widget(iWidget *parent, const iStri
     }
     /* Check that the top is in the safe area. */
     if (deviceType_App() != desktop_AppDeviceType) {
-        dlg->rect.pos.y = windowToLocal_Widget(dlg, init_I2(0, bottom_Rect(visibleRect_Root(dlg->root)) -
-            dlg->rect.size.y)).y;
+        dlg->rect.pos.y =
+            windowToLocal_Widget(
+                dlg, init_I2(0, bottom_Rect(visibleRect_Root(dlg->root)) - dlg->rect.size.y))
+                .y;
         setFlags_Widget(dlg, drawBackgroundToBottom_WidgetFlag, iTrue);
     }
     updateValueInputSizing_(dlg);
     enableResizing_Widget(dlg, width_Widget(dlg), "input");
-    setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | dialogTransitionDir_Widget(dlg));
+    setupSheetTransition_Mobile(dlg,
+                                incoming_TransitionFlag |
+                                    (isDesktop_Platform() && prefs_App()->bottomInput
+                                         ? bottom_TransitionDir
+                                         : dialogTransitionDir_Widget(dlg)));
     return dlg;
 }
 
@@ -3944,6 +3963,9 @@ iWidget *makePreferences_Widget(void) {
             iInvalidSize);
         addDialogToggle_Widget(headings, values, "${prefs.hidetabs}", "prefs.hidetabs");
         addDialogToggle_Widget(headings, values, "${prefs.evensplit}", "prefs.evensplit");
+        if (isDesktop_Platform()) {
+            addDialogToggle_Widget(headings, values, "${prefs.bottominput}", "prefs.bottominput");
+        }
         if (!isTerminal_Platform()) {
             addDialogPadding_(headings, values);
             // makeTwoColumnHeading_("${heading.prefs.sizing}", headings, values);

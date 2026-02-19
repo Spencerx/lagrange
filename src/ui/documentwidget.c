@@ -2110,6 +2110,18 @@ static const iArray *updateInputPromptMenuItems_(iWidget *menu) {
     makePastePrecedingLineMenuItem_(&pasteItem, buttons, precedingLine);
     pushBack_Array(items, &pasteItem);
     pushBack_Array(items, &(iMenuItem){ "${menu.paste.snippet}", 0, 0, "submenu id:snippetmenu" });
+    if (isDesktop_Platform()) {
+        /* Location of the prompt. */
+        pushBackN_Array(
+            items,
+            (iMenuItem[]) {
+                { "---" },
+                { prefs_App()->bottomInput ? "${menu.input.showtop}" : "${menu.input.showbottom}",
+                  0,
+                  0,
+                  format_CStr("!valueinput.togglebottom ptr:%p", buttons) } },
+            2);
+    }
     pushBackN_Array(
         items,
         (iMenuItem[]){
@@ -2123,8 +2135,6 @@ static const iArray *updateInputPromptMenuItems_(iWidget *menu) {
         const iStringArray *recentInput = recentlySubmittedInput_App();
         if (!isEmpty_StringArray(recentInput)) {
             pushBack_Array(items, &(iMenuItem){ "---" });
-            pushBack_Array(items,
-                           &(iMenuItem){ "${menu.input.clear}", 0, 0, "!recentinput.clear" });
             pushBack_Array(items, &(iMenuItem){
                 isMobile_Platform() ? "---${ST:menu.input.restore}" : "```${menu.input.restore}"
             });
@@ -2147,6 +2157,10 @@ static const iArray *updateInputPromptMenuItems_(iWidget *menu) {
                                                          buttons,
                                                          cstr_String(i.value)) });
             }
+            pushBackN_Array(
+                items,
+                (iMenuItem[]) { { "---" }, { "${menu.input.clear}", 0, 0, "!recentinput.clear" } },
+                2);
         }
     }
     return items;

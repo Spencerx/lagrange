@@ -1159,8 +1159,8 @@ void setupSheetTransition_Mobile(iWidget *sheet, int flags) {
     if (!isUsingPanelLayout_Mobile()) {
         if (prefs_App()->uiAnimations) {
             setFlags_Widget(sheet, horizontalOffset_WidgetFlag, iFalse);
-            const int offscreenShift = dir == top_TransitionDir ? -height_Widget(sheet)
-                                                                : height_Widget(sheet);
+            const int offscreenShift = (dir == top_TransitionDir ? -height_Widget(sheet)
+                                                                 : height_Widget(sheet));
             if (isIncoming) {
                 setVisualOffset_Widget(sheet, offscreenShift, 0, 0);
                 setVisualOffset_Widget(sheet, 0, 200, easeOut_AnimFlag | softer_AnimFlag);

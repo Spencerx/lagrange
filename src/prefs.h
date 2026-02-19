@@ -71,12 +71,14 @@ enum iPrefsBool {
     blinkingCursor_PrefsBool,
     bottomNavBar_PrefsBool,
     bottomTabBar_PrefsBool,
-    menuBar_PrefsBool,
+    bottomInput_PrefsBool,
 
+    menuBar_PrefsBool,
     simpleChars_PrefsBool,
     evenSplit_PrefsBool,
     detachedPrefs_PrefsBool,
     editorSyntaxHighlighting_PrefsBool,
+
     useGamepad_PrefsBool,
 
     /* Document presentation */
@@ -157,12 +159,14 @@ struct Impl_Prefs {
             iBool blinkingCursor;
             iBool bottomNavBar;
             iBool bottomTabBar;
-            iBool menuBar;
+            iBool bottomInput;
 
+            iBool menuBar;
             iBool simpleChars;
             iBool evenSplit;
             iBool detachedPrefs;
             iBool editorSyntaxHighlighting;
+
             iBool useGamepad;
 
             /* Document presentation */
