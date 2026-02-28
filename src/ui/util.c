@@ -3440,6 +3440,10 @@ iWidget *makePreferences_Widget(void) {
           0,
           format_CStr("returnkey.set arg:%d", RETURN_KEY_BEHAVIOR(gui_ReturnKeyFlag, 0)) },
 #endif
+        { returnKeyBehaviorStr_(onlyWithMods_ReturnKeyBehavior),
+          0,
+          0,
+          format_CStr("returnkey.set arg:%d", onlyWithMods_ReturnKeyBehavior) },
         { NULL }
     };
     iMenuItem toolbarActionItems[2][max_ToolbarAction + 1];

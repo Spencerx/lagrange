@@ -12,6 +12,7 @@ New features:
 * Option to show input prompts at bottom of window.
 * Context menu for error/warning messages. These messages are not selectable text so this way one can copy the message to the clipboard.
 * Context menu for input dialog prompt text.
+* Return key behavior: Shift for newline, Command/Control for accept.
 
 Changes and enhancements:
 * Improved warning message when there is a problem with the proxy server certificate.
@@ -19,6 +20,7 @@ Changes and enhancements:
 
 Fixes:
 * Crash in the simple text renderer (e.g., TUI) when encountering a Backspace character.
+* OpenSSL error messages are no longer printed to stderr.
 
 ## 1.19.4
 * Fixed: Context menu for Nex links.

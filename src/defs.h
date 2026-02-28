@@ -224,6 +224,12 @@ enum iReturnKeyBehavior {
 #else
         RETURN_KEY_BEHAVIOR(control_ReturnKeyFlag, 0),
 #endif
+    onlyWithMods_ReturnKeyBehavior =
+#if defined (iPlatformApple)
+        RETURN_KEY_BEHAVIOR(shift_ReturnKeyFlag, gui_ReturnKeyFlag),
+#else
+        RETURN_KEY_BEHAVIOR(shift_ReturnKeyFlag, control_ReturnKeyFlag),
+#endif
 #if defined (iPlatformTerminal)
     default_ReturnKeyBehavior = RETURN_KEY_BEHAVIOR(gui_ReturnKeyFlag, 0),
 #elif defined (iPlatformAndroidMobile)
