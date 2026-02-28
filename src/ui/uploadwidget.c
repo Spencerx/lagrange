@@ -1322,7 +1322,7 @@ static iBool processEvent_UploadWidget_(iUploadWidget *d, const SDL_Event *ev) {
     }
 #endif
     else if (equal_Command(cmd, "upload.cancel")) {
-        setupSheetTransition_Mobile(w, iFalse);
+        setupSheetTransition_Mobile(w, top_TransitionDir);
         destroy_Widget(w);
         return iTrue;
     }
@@ -1488,7 +1488,7 @@ static iBool processEvent_UploadWidget_(iUploadWidget *d, const SDL_Event *ev) {
             takeRequest_DocumentWidget(d->viewer, d->request);
             d->request = NULL; /* DocumentWidget has it now. */
         }
-        setupSheetTransition_Mobile(w, iFalse);
+        setupSheetTransition_Mobile(w, top_TransitionDir);
         releaseFile_UploadWidget_(d);
         destroy_Widget(w);
         return iTrue;

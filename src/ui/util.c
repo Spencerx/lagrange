@@ -2948,7 +2948,7 @@ iWidget *makeQuestion_Widget(const char *title, const char *msg,
     class_Widget(as_Widget(msgLabel))->sizeChanged(as_Widget(msgLabel));
     arrange_Widget(dlg); /* BUG: This extra arrange shouldn't be needed but the dialog won't
                             be arranged correctly unless it's here. */
-    setupSheetTransition_Mobile(dlg, iTrue);
+    setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | top_TransitionDir);
     /* If this prompt is opened as a result of a context menu action, the menu
        will switch keyboard focus back to its owner when it closes. This would
        leave keyboard focus outside the dialog's focus root. */
@@ -3313,7 +3313,7 @@ iWidget *makeDialog_Widget(const char *id,
     addChild_Widget(dlg, iClob(makeDialogButtons_Widget(actions, numActions)));
     addChild_Widget(dlg->root->widget, iClob(dlg));
     arrange_Widget(dlg);
-    setupSheetTransition_Mobile(dlg, iTrue);
+    setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | top_TransitionDir);
     return dlg;
 }
 
@@ -3815,7 +3815,7 @@ iWidget *makePreferences_Widget(void) {
             }
         }
 #endif /* LAGRANGE_USE_GAMEPAD */
-        setupSheetTransition_Mobile(dlg, iTrue);
+        setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | top_TransitionDir);
         return dlg;
     }
     iWidget *dlg = makeSheet_Widget("prefs");
@@ -4252,7 +4252,7 @@ iWidget *makePreferences_Widget(void) {
         dlg, iClob(makeDialogButtons_Widget(actions + actOffset, iElemCount(actions) - actOffset)));
     setId_Widget(child_Widget(buttons, 0), "prefs.aboutfonts");
     addChild_Widget(dlg->root->widget, iClob(dlg));
-    setupSheetTransition_Mobile(dlg, iTrue);
+    setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | top_TransitionDir);
     return dlg;
 }
 
@@ -4454,7 +4454,7 @@ iWidget *makeBookmarkEditor_Widget(uint32_t folderId, iBool withDup) {
                                                        withDup ? iElemCount(dupActions)
                                                                : iElemCount(actions))));
         addChild_Widget(get_Root()->widget, iClob(dlg));
-        setupSheetTransition_Mobile(dlg, iTrue);
+        setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | top_TransitionDir);
         if (isDesktop_Platform()) {
             arrange_Widget(dlg);
             enableResizing_Widget(dlg, width_Widget(dlg), NULL);
