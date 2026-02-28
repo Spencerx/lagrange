@@ -1213,7 +1213,9 @@ iBool containsExpanded_Widget(const iWidget *d, iInt2 windowCoord, int expand) {
 }
 
 iLocalDef iBool isKeyboardEvent_(const SDL_Event *ev) {
-    return (ev->type == SDL_KEYUP || ev->type == SDL_KEYDOWN || ev->type == SDL_TEXTINPUT);
+    return (ev->type == SDL_KEYUP || ev->type == SDL_KEYDOWN ||
+            ev->type == SDL_TEXTINPUT || ev->type == SDL_TEXTEDITING ||
+            ev->type == SDL_TEXTEDITING_EXT);
 }
 
 iLocalDef iBool isMouseEvent_(const SDL_Event *ev) {
