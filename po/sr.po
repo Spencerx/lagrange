@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-26 11:35+0000\n"
-"PO-Revision-Date: 2026-01-13 18:34+0000\n"
+"PO-Revision-Date: 2026-03-02 09:24+0000\n"
 "Last-Translator: Страхиња Радић <sr@strahinja.org>\n"
 "Language-Team: Serbian <http://weblate.skyjake.fi/projects/lagrange/ui/sr/>\n"
 "Language: sr\n"
@@ -3008,3 +3008,12 @@ msgstr "Уреди УРЛ стране"
 
 msgid "prefs.gamepad.triggermod"
 msgstr "RT + "
+
+msgid "menu.input.showtop"
+msgstr "Прикажи промпт на врху"
+
+msgid "menu.input.showbottom"
+msgstr "Прикажи промпт на дну"
+
+msgid "prefs.bottominput"
+msgstr "Промпт за унос на дну:"
