@@ -61,6 +61,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <the_Foundation/file.h>
 #include <the_Foundation/fileinfo.h>
 #include <the_Foundation/garbage.h>
+#include <the_Foundation/networkproxy.h>
 #include <the_Foundation/path.h>
 #include <the_Foundation/process.h>
 #include <the_Foundation/sortedarray.h>
@@ -429,6 +430,9 @@ static iString *serializePrefs_App_(const iApp *d) {
     appendFormat_String(str, "proxy.gemini address:%s\n", cstr_String(&d->prefs.strings[geminiProxy_PrefsString]));
     appendFormat_String(str, "proxy.gopher address:%s\n", cstr_String(&d->prefs.strings[gopherProxy_PrefsString]));
     appendFormat_String(str, "proxy.http address:%s\n", cstr_String(&d->prefs.strings[httpProxy_PrefsString]));
+    appendFormat_String(str, "proxy.socks address:%s\n", cstr_String(&d->prefs.strings[socksServer_PrefsStrings]));
+    appendFormat_String(str, "proxy.socks user:%s\n", cstr_String(&d->prefs.strings[socksUser_PrefsStrings]));
+    appendFormat_String(str, "proxy.socks password:%s\n", cstr_String(&d->prefs.strings[socksPassword_PrefsStrings]));
 #if defined (LAGRANGE_ENABLE_DOWNLOAD_EDIT)
     appendFormat_String(str, "downloads path:%s\n", cstr_String(&d->prefs.strings[downloadDir_PrefsString]));
 #endif
@@ -4400,6 +4404,22 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "proxy.http")) {
         setCStr_String(&d->prefs.strings[httpProxy_PrefsString], suffixPtr_Command(cmd, "address"));
+        return iTrue;
+    }
+    else if (equal_Command(cmd, "proxy.socks")) {
+        if (hasLabel_Command(cmd, "address")) {
+            setCStr_String(&d->prefs.strings[socksServer_PrefsStrings],
+                           suffixPtr_Command(cmd, "address"));
+        }
+        else if (hasLabel_Command(cmd, "user")) {
+            setCStr_String(&d->prefs.strings[socksUser_PrefsStrings],
+                           suffixPtr_Command(cmd, "user"));
+        }
+        else if (hasLabel_Command(cmd, "password")) {
+            setCStr_String(&d->prefs.strings[socksPassword_PrefsStrings],
+                           suffixPtr_Command(cmd, "pasword"));
+        }
+        /* Update the network proxy accordingly. */
         return iTrue;
     }
 #if defined (LAGRANGE_ENABLE_DOWNLOAD_EDIT)
