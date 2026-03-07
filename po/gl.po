@@ -996,9 +996,6 @@ msgstr "Válido ata:"
 msgid "hint.newident.date"
 msgstr "YYYY ou YYYY-MM-DD"
 
-msgid "hint.newident.optional"
-msgstr "optativo"
-
 msgid "dlg.newident.commonname"
 msgstr "Nome común:"
 

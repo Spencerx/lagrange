@@ -618,9 +618,6 @@ msgstr "Turkisa"
 msgid "dlg.translate.from"
 msgstr "De:"
 
-msgid "hint.newident.optional"
-msgstr "nedeviga"
-
 msgid "prefs.accent.orange"
 msgstr "Oranĝa"
 

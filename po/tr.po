@@ -1785,9 +1785,6 @@ msgstr "İspanyolca"
 msgid "dlg.newident.rsa.selfsign"
 msgstr "Kendinden imzalı 2048 bit RSA sertifikası oluşturuluyor."
 
-msgid "hint.newident.optional"
-msgstr "isteğe bağlı"
-
 msgid "dlg.newident.notsaved"
 msgstr "diske kaydedilmedi"
 

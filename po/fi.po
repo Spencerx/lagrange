@@ -654,9 +654,6 @@ msgstr "Voimassa:"
 msgid "hint.newident.date"
 msgstr "VVVV tai VVVV-KK-PP"
 
-msgid "hint.newident.optional"
-msgstr "vapaaehtoinen"
-
 msgid "dlg.newident.commonname"
 msgstr "Yleisnimi:"
 

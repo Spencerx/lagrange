@@ -663,9 +663,6 @@ msgstr "Действителен до:"
 msgid "hint.newident.date"
 msgstr "ГГГГ или ГГГ-ММ-ДД"
 
-msgid "hint.newident.optional"
-msgstr "необязательно"
-
 msgid "dlg.newident.commonname"
 msgstr "Субъект:"
 

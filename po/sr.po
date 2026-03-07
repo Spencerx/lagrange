@@ -493,9 +493,6 @@ msgstr "Важи до:"
 msgid "hint.newident.date"
 msgstr "ГГГГ или ГГГГ-ММ-ДД"
 
-msgid "hint.newident.optional"
-msgstr "необавезно"
-
 msgid "dlg.newident.notsaved"
 msgstr "не чува се на диск"
 
