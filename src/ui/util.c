@@ -3145,7 +3145,10 @@ void updatePreferencesLayout_Widget(iWidget *prefs) {
         "prefs.ca.path",
         "prefs.proxy.gemini",
         "prefs.proxy.gopher",
-        "prefs.proxy.http"
+        "prefs.proxy.http",
+        "prefs.socks.server",
+        "prefs.socks.user",
+        "prefs.socks.password",
     };
     iWidget *tabs = findChild_Widget(prefs, "prefs.tabs");
     tabs->rect.size = zero_I2();
@@ -3168,8 +3171,9 @@ void updatePreferencesLayout_Widget(iWidget *prefs) {
     }
 }
 
-static void addDialogInputWithHeadingAndFlags_(iWidget *headings, iWidget *values, const char *labelText,
-                                               const char *inputId, iInputWidget *input, int64_t flags) {
+static void addDialogInputWithHeadingAndFlags_(iWidget *headings, iWidget *values,
+                                               const char *labelText, const char *inputId,
+                                               iInputWidget *input, int64_t flags) {
     iLabelWidget *head = addChild_Widget(headings, iClob(makeHeading_Widget(labelText)));
     if (isMobile_Platform()) {
         /* On mobile, inputs have 2 gaps of extra padding. */
@@ -3832,7 +3836,7 @@ iWidget *makePreferences_Widget(void) {
     /* General settings. */ {
         setId_Widget(appendTwoColumnTabPage_Widget(tabs,
                                                    gear_Icon " ${heading.prefs.general}",
-                                                   cyan_ColorId,
+                                                   red_ColorId,
                                                    '1',
                                                    &headings,
                                                    &values),
@@ -4048,15 +4052,18 @@ iWidget *makePreferences_Widget(void) {
             addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.mono}")));
             addFontButtons_(values, "mono");
             addDialogPadding_(headings, values);
+            addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.ui}")));
+            addFontButtons_(values, "ui");
+            makeTwoColumnHeading_("${heading.prefs.monodoc}", headings, values);
             addDialogToggleGroup_(headings,
-                                  values,
-                                  "${prefs.mono}",
-                                  (const char *[]){ "prefs.mono.gemini", "prefs.mono.gopher" },
-                                  2);
+                                values,
+                                "${prefs.mono}",
+                                (const char *[]){ "prefs.mono.gemini", "prefs.mono.gopher" },
+                                2);
             addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.monodoc}")));
             addFontButtons_(values, "monodoc");
         }
-        addDialogPadding_(headings, values);
+        makeTwoColumnHeading_("${heading.font.options}", headings, values);
         addDialogToggleGroup_(headings,
                               values,
                               "${prefs.boldlink}",
@@ -4066,9 +4073,6 @@ iWidget *makePreferences_Widget(void) {
                               3);
         addDialogToggle_Widget(headings, values, "${prefs.quote.italic}", "prefs.quote.italic");
         if (!isTerminal_Platform()) {
-            addDialogPadding_(headings, values);
-            addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.font.ui}")));
-            addFontButtons_(values, "ui");
             addDialogPadding_(headings, values);
             addDialogToggle_Widget(headings, values, "${prefs.font.smooth}", "prefs.font.smooth");
         }
@@ -4171,6 +4175,7 @@ iWidget *makePreferences_Widget(void) {
             "documents",
             "history",
         };
+        makeTwoColumnHeading_("${heading.prefs.sidebars.tabs}", headings, values);
         iForIndices(sm, modes) {
             addDialogToggleGroupWithLabels_(
                 headings,
@@ -4236,15 +4241,36 @@ iWidget *makePreferences_Widget(void) {
                      "prefs.page.network");
         addDialogToggle_Widget(headings, values, "${prefs.warn.security}", "prefs.warn.security");
         addDialogToggle_Widget(headings, values, "${prefs.redirect.allowscheme}", "prefs.redirect.allowscheme");
+        addDialogPadding_(headings, values);
         addDialogToggle_Widget(headings, values, "${prefs.decodeurls}", "prefs.decodeurls");
         addPrefsInputWithHeading_(headings, values, "prefs.urlsize", iClob(new_InputWidget(10)));
+        makeTwoColumnHeading_("${heading.prefs.certs}", headings, values);
+        addPrefsInputWithHeading_(headings, values, "prefs.ca.file", iClob(new_InputWidget(0)));
+        addPrefsInputWithHeading_(headings, values, "prefs.ca.path", iClob(new_InputWidget(0)));
+    }
+    /* Proxy configuration. */ {
+        setId_Widget(appendTwoColumnTabPage_Widget(tabs,
+                                                   networkProxy_Icon " ${heading.prefs.proxy}",
+                                                   blue_ColorId,
+                                                   0,
+                                                   &headings,
+                                                   &values),
+                     "prefs.page.proxy");
+        /* Gemini proxies. */
         makeTwoColumnHeading_("${heading.prefs.proxies}", headings, values);
         addPrefsInputWithHeading_(headings, values, "prefs.proxy.gemini", iClob(new_InputWidget(0)));
         addPrefsInputWithHeading_(headings, values, "prefs.proxy.gopher", iClob(new_InputWidget(0)));
         addPrefsInputWithHeading_(headings, values, "prefs.proxy.http", iClob(new_InputWidget(0)));
-        makeTwoColumnHeading_("${heading.prefs.certs}", headings, values);
-        addPrefsInputWithHeading_(headings, values, "prefs.ca.file", iClob(new_InputWidget(0)));
-        addPrefsInputWithHeading_(headings, values, "prefs.ca.path", iClob(new_InputWidget(0)));
+        /* SOCKS configuration. */
+        makeTwoColumnHeading_("${heading.prefs.socks}", headings, values);
+        iInputWidget *field = new_InputWidget(0);
+        setHint_InputWidget(field, "${hint.socks.server}");
+        addPrefsInputWithHeading_(headings, values, "prefs.socks.server", iClob(field));
+        addDialogPadding_(headings, values);
+        addPrefsInputWithHeading_(headings, values, "prefs.socks.user", iClob(field = new_InputWidget(0)));
+        setHint_InputWidget(field, "${hint.optional}");
+        addPrefsInputWithHeading_(headings, values, "prefs.socks.password", iClob(field = new_InputWidget(0)));
+        setHint_InputWidget(field, "${hint.optional}");
     }
     addChild_Widget(dlg, iClob(makePadding_Widget(gap_UI)));
     updatePreferencesLayout_Widget(dlg);
@@ -4963,11 +4989,11 @@ iWidget *makeIdentityCreation_Widget(void) {
             { "heading id:dlg.newident.commonname" },
             { "input id:ident.common noheading:1" },
             { "padding collapse:1" },
-            { "input collapse:1 id:ident.email hint:hint.newident.optional text:${dlg.newident.email}" },
-            { "input collapse:1 id:ident.userid hint:hint.newident.optional text:${dlg.newident.userid}" },
-            { "input collapse:1 id:ident.domain hint:hint.newident.optional text:${dlg.newident.domain}" },
-            { "input collapse:1 id:ident.org hint:hint.newident.optional text:${dlg.newident.org}" },
-            { "input collapse:1 id:ident.country hint:hint.newident.optional text:${dlg.newident.country}" },
+            { "input collapse:1 id:ident.email hint:hint.optional text:${dlg.newident.email}" },
+            { "input collapse:1 id:ident.userid hint:hint.optional text:${dlg.newident.userid}" },
+            { "input collapse:1 id:ident.domain hint:hint.optional text:${dlg.newident.domain}" },
+            { "input collapse:1 id:ident.org hint:hint.optional text:${dlg.newident.org}" },
+            { "input collapse:1 id:ident.country hint:hint.optional text:${dlg.newident.country}" },
             { NULL }
         }, actions, iElemCount(actions));
     }
@@ -5023,11 +5049,11 @@ iWidget *makeIdentityCreation_Widget(void) {
         }
         addChildFlags_Widget(headings, iClob(makePadding_Widget(gap_UI)), collapse_WidgetFlag | hidden_WidgetFlag);
         addChildFlags_Widget(values, iClob(makePadding_Widget(gap_UI)), collapse_WidgetFlag | hidden_WidgetFlag);
-        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.email}",   "ident.email",   iClob(inputs[1] = newHint_InputWidget(0, "${hint.newident.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
-        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.userid}",  "ident.userid",  iClob(inputs[2] = newHint_InputWidget(0, "${hint.newident.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
-        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.domain}",  "ident.domain",  iClob(inputs[3] = newHint_InputWidget(0, "${hint.newident.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
-        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.org}",     "ident.org",     iClob(inputs[4] = newHint_InputWidget(0, "${hint.newident.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
-        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.country}", "ident.country", iClob(inputs[5] = newHint_InputWidget(0, "${hint.newident.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
+        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.email}",   "ident.email",   iClob(inputs[1] = newHint_InputWidget(0, "${hint.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
+        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.userid}",  "ident.userid",  iClob(inputs[2] = newHint_InputWidget(0, "${hint.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
+        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.domain}",  "ident.domain",  iClob(inputs[3] = newHint_InputWidget(0, "${hint.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
+        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.org}",     "ident.org",     iClob(inputs[4] = newHint_InputWidget(0, "${hint.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
+        addDialogInputWithHeadingAndFlags_(headings, values, "${dlg.newident.country}", "ident.country", iClob(inputs[5] = newHint_InputWidget(0, "${hint.optional}")), collapse_WidgetFlag | hidden_WidgetFlag);
         arrange_Widget(dlg);
         for (size_t i = 0; i < iElemCount(inputs); ++i) {
             as_Widget(inputs[i])->rect.size.x = 100 * gap_UI * aspect_UI - headings->rect.size.x;

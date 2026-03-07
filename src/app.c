@@ -430,9 +430,9 @@ static iString *serializePrefs_App_(const iApp *d) {
     appendFormat_String(str, "proxy.gemini address:%s\n", cstr_String(&d->prefs.strings[geminiProxy_PrefsString]));
     appendFormat_String(str, "proxy.gopher address:%s\n", cstr_String(&d->prefs.strings[gopherProxy_PrefsString]));
     appendFormat_String(str, "proxy.http address:%s\n", cstr_String(&d->prefs.strings[httpProxy_PrefsString]));
-    appendFormat_String(str, "proxy.socks address:%s\n", cstr_String(&d->prefs.strings[socksServer_PrefsStrings]));
-    appendFormat_String(str, "proxy.socks user:%s\n", cstr_String(&d->prefs.strings[socksUser_PrefsStrings]));
-    appendFormat_String(str, "proxy.socks password:%s\n", cstr_String(&d->prefs.strings[socksPassword_PrefsStrings]));
+    appendFormat_String(str, "proxy.socks address:%s\n", cstr_String(&d->prefs.strings[socksServer_PrefsString]));
+    appendFormat_String(str, "proxy.socks user:%s\n", cstr_String(&d->prefs.strings[socksUser_PrefsString]));
+    appendFormat_String(str, "proxy.socks password:%s\n", cstr_String(&d->prefs.strings[socksPassword_PrefsString]));
 #if defined (LAGRANGE_ENABLE_DOWNLOAD_EDIT)
     appendFormat_String(str, "downloads path:%s\n", cstr_String(&d->prefs.strings[downloadDir_PrefsString]));
 #endif
@@ -4408,18 +4408,40 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
     }
     else if (equal_Command(cmd, "proxy.socks")) {
         if (hasLabel_Command(cmd, "address")) {
-            setCStr_String(&d->prefs.strings[socksServer_PrefsStrings],
+            setCStr_String(&d->prefs.strings[socksServer_PrefsString],
                            suffixPtr_Command(cmd, "address"));
         }
         else if (hasLabel_Command(cmd, "user")) {
-            setCStr_String(&d->prefs.strings[socksUser_PrefsStrings],
+            setCStr_String(&d->prefs.strings[socksUser_PrefsString],
                            suffixPtr_Command(cmd, "user"));
         }
         else if (hasLabel_Command(cmd, "password")) {
-            setCStr_String(&d->prefs.strings[socksPassword_PrefsStrings],
-                           suffixPtr_Command(cmd, "pasword"));
+            setCStr_String(&d->prefs.strings[socksPassword_PrefsString],
+                           suffixPtr_Command(cmd, "password"));
         }
         /* Update the network proxy accordingly. */
+        iNetworkProxy *proxy = NULL;
+        if (!isEmpty_String(&d->prefs.strings[socksServer_PrefsString])) {
+            iString *uri = collect_String(copy_String(&d->prefs.strings[socksServer_PrefsString]));
+            if (indexOfCStr_String(uri, "://") == iInvalidPos) {
+                prependCStr_String(uri, "socks5://");
+            }
+            iUrl parts;
+            init_Url(&parts, uri);
+            if (isEmpty_Range(&parts.host)) {
+                use_NetworkProxy(NULL);
+                return iTrue;
+            }
+            const uint16_t port = port_Url(&parts);
+            proxy = new_NetworkProxy(collectNewRange_String(parts.host), port ? port : 1080);
+            setCredentials_NetworkProxy(proxy,
+                                        &d->prefs.strings[socksUser_PrefsString],
+                                        &d->prefs.strings[socksPassword_PrefsString]);
+            use_NetworkProxy(proxy);
+        }
+        else {
+            use_NetworkProxy(NULL);
+        }
         return iTrue;
     }
 #if defined (LAGRANGE_ENABLE_DOWNLOAD_EDIT)

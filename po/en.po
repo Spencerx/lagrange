@@ -1715,7 +1715,7 @@ msgstr "Valid until:"
 msgid "hint.newident.date"
 msgstr "YYYY or YYYY-MM-DD"
 
-msgid "hint.newident.optional"
+msgid "hint.optional"
 msgstr "optional"
 
 msgid "dlg.newident.commonname"
@@ -1885,6 +1885,12 @@ msgstr "Colors"
 msgid "heading.prefs.fonts"
 msgstr "Fonts"
 
+msgid "heading.prefs.monodoc"
+msgstr "Monospace Appearance"
+
+msgid "heading.font.options"
+msgstr "Options"
+
 # tab button
 msgid "heading.prefs.general"
 msgstr "General"
@@ -1904,6 +1910,9 @@ msgstr "Theme"
 
 msgid "heading.prefs.sidebars"
 msgstr "Sidebars"
+
+msgid "heading.prefs.sidebars.tabs"
+msgstr "Sidebar Tabs"
 
 msgid "prefs.sidebar.left"
 msgstr "Left"
@@ -1928,6 +1937,12 @@ msgstr "Content"
 msgid "heading.prefs.network"
 msgstr "Network"
 
+msgid "heading.prefs.proxy"
+msgstr "Proxies"
+
+msgid "heading.prefs.socks"
+msgstr "SOCKS v5"
+
 msgid "heading.prefs.paragraph"
 msgstr "Paragraph"
 
@@ -1938,7 +1953,7 @@ msgid "heading.prefs.pagecontent"
 msgstr "Page Colors"
 
 msgid "heading.prefs.proxies"
-msgstr "Proxies"
+msgstr "Gemini Proxies"
 
 msgid "heading.prefs.scrolling"
 msgstr "Scrolling"
@@ -2231,12 +2246,13 @@ msgstr "Preformatted:"
 msgid "prefs.font"
 msgstr "Body font:"
 
-msgid "prefs.mono"
-msgstr "Monospace body:"
-
 # Font to use for headings and body when Monospace body is enabled.
 msgid "prefs.font.monodoc"
 msgstr "Monospace font:"
+
+# Which protocols should the monospace body font by applied with.
+msgid "prefs.mono"
+msgstr "Use with protocols:"
 
 msgid "prefs.mono.gemini"
 msgstr "Gemini"
@@ -2355,6 +2371,18 @@ msgstr "Gopher proxy:"
 
 msgid "prefs.proxy.http"
 msgstr "HTTP proxy:"
+
+msgid "prefs.socks.server"
+msgstr "Proxy server:"
+
+msgid "hint.socks.server"
+msgstr "hostname:1080"
+
+msgid "prefs.socks.user"
+msgstr "Username:"
+
+msgid "prefs.socks.password"
+msgstr "Password:"
 
 msgid "prefs.gamepad"
 msgstr "Gamepad enabled:"

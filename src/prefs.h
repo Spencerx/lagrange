@@ -47,7 +47,7 @@ enum iPrefsString {
     gopherProxy_PrefsString,
     httpProxy_PrefsString,
 
-    socksServer_PrefsStrings,
+    socksServer_PrefsString,
     socksUser_PrefsString,
     socksPassword_PrefsString,
 
