@@ -430,9 +430,9 @@ static iString *serializePrefs_App_(const iApp *d) {
     appendFormat_String(str, "proxy.gemini address:%s\n", cstr_String(&d->prefs.strings[geminiProxy_PrefsString]));
     appendFormat_String(str, "proxy.gopher address:%s\n", cstr_String(&d->prefs.strings[gopherProxy_PrefsString]));
     appendFormat_String(str, "proxy.http address:%s\n", cstr_String(&d->prefs.strings[httpProxy_PrefsString]));
+    appendFormat_String(str, "proxy.socks noupdate:1 user:%s\n", cstr_String(&d->prefs.strings[socksUser_PrefsString]));
+    appendFormat_String(str, "proxy.socks noupdate:1 password:%s\n", cstr_String(&d->prefs.strings[socksPassword_PrefsString]));
     appendFormat_String(str, "proxy.socks address:%s\n", cstr_String(&d->prefs.strings[socksServer_PrefsString]));
-    appendFormat_String(str, "proxy.socks user:%s\n", cstr_String(&d->prefs.strings[socksUser_PrefsString]));
-    appendFormat_String(str, "proxy.socks password:%s\n", cstr_String(&d->prefs.strings[socksPassword_PrefsString]));
 #if defined (LAGRANGE_ENABLE_DOWNLOAD_EDIT)
     appendFormat_String(str, "downloads path:%s\n", cstr_String(&d->prefs.strings[downloadDir_PrefsString]));
 #endif
@@ -3328,6 +3328,12 @@ static iBool handlePrefsCommands_(iWidget *d, const char *cmd) {
                          cstrText_InputWidget(findChild_Widget(d, "prefs.proxy.gopher")));
         postCommandf_App("proxy.http address:%s",
                          cstrText_InputWidget(findChild_Widget(d, "prefs.proxy.http")));
+        postCommandf_App("proxy.socks noupdate:1 user:%s",
+                         cstrText_InputWidget(findChild_Widget(d, "prefs.socks.user")));
+        postCommandf_App("proxy.socks noupdate:1 password:%s",
+                         cstrText_InputWidget(findChild_Widget(d, "prefs.socks.password")));
+        postCommandf_App("proxy.socks address:%s",
+                         cstrText_InputWidget(findChild_Widget(d, "prefs.socks.server")));
         const iWidget *tabs = findChild_Widget(d, "prefs.tabs");
         if (tabs) {
             postCommandf_App("prefs.dialogtab arg:%u",
@@ -3776,6 +3782,32 @@ static const iString *popClosedTabUrl_App_(iApp *d) {
         return NULL;
     }
     return collect_String(takeLast_StringList(d->recentlyClosedTabUrls));
+}
+
+static void updateNetworkProxy_App_(iApp *d) {
+    iNetworkProxy *proxy = NULL;
+    if (!isEmpty_String(&d->prefs.strings[socksServer_PrefsString])) {
+        iString *uri =
+            collect_String(copy_String(&d->prefs.strings[socksServer_PrefsString]));
+        if (indexOfCStr_String(uri, "://") == iInvalidPos) {
+            prependCStr_String(uri, "socks5://");
+        }
+        iUrl parts;
+        init_Url(&parts, uri);
+        if (isEmpty_Range(&parts.host)) {
+            use_NetworkProxy(NULL);
+            return;
+        }
+        const uint16_t port = port_Url(&parts);
+        proxy = new_NetworkProxy(collectNewRange_String(parts.host), port ? port : 1080);
+        setCredentials_NetworkProxy(proxy,
+                                    &d->prefs.strings[socksUser_PrefsString],
+                                    &d->prefs.strings[socksPassword_PrefsString]);
+        use_NetworkProxy(proxy);
+    }
+    else {
+        use_NetworkProxy(NULL);
+    }
 }
 
 static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
@@ -4419,28 +4451,8 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
             setCStr_String(&d->prefs.strings[socksPassword_PrefsString],
                            suffixPtr_Command(cmd, "password"));
         }
-        /* Update the network proxy accordingly. */
-        iNetworkProxy *proxy = NULL;
-        if (!isEmpty_String(&d->prefs.strings[socksServer_PrefsString])) {
-            iString *uri = collect_String(copy_String(&d->prefs.strings[socksServer_PrefsString]));
-            if (indexOfCStr_String(uri, "://") == iInvalidPos) {
-                prependCStr_String(uri, "socks5://");
-            }
-            iUrl parts;
-            init_Url(&parts, uri);
-            if (isEmpty_Range(&parts.host)) {
-                use_NetworkProxy(NULL);
-                return iTrue;
-            }
-            const uint16_t port = port_Url(&parts);
-            proxy = new_NetworkProxy(collectNewRange_String(parts.host), port ? port : 1080);
-            setCredentials_NetworkProxy(proxy,
-                                        &d->prefs.strings[socksUser_PrefsString],
-                                        &d->prefs.strings[socksPassword_PrefsString]);
-            use_NetworkProxy(proxy);
-        }
-        else {
-            use_NetworkProxy(NULL);
+        if (!argLabel_Command(cmd, "noupdate")) {
+            updateNetworkProxy_App_(d);
         }
         return iTrue;
     }
@@ -5368,6 +5380,9 @@ iBool handleCommand_App(const char *cmd) {
         setText_InputWidget(findChild_Widget(dlg, "prefs.proxy.gemini"), &d->prefs.strings[geminiProxy_PrefsString]);
         setText_InputWidget(findChild_Widget(dlg, "prefs.proxy.gopher"), &d->prefs.strings[gopherProxy_PrefsString]);
         setText_InputWidget(findChild_Widget(dlg, "prefs.proxy.http"), &d->prefs.strings[httpProxy_PrefsString]);
+        setText_InputWidget(findChild_Widget(dlg, "prefs.socks.server"), &d->prefs.strings[socksServer_PrefsString]);
+        setText_InputWidget(findChild_Widget(dlg, "prefs.socks.user"), &d->prefs.strings[socksUser_PrefsString]);
+        setText_InputWidget(findChild_Widget(dlg, "prefs.socks.password"), &d->prefs.strings[socksPassword_PrefsString]);
         iWidget *tabs = findChild_Widget(dlg, "prefs.tabs");
         if (tabs) {
             showTabPage_Widget(tabs, tabPage_Widget(tabs, d->prefs.dialogTab));
