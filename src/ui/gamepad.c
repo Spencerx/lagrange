@@ -298,7 +298,7 @@ iInt2 pointerCoord_Gamepad(const iGamepad *d) {
 }
 
 int modState_Gamepad(const iGamepad *d) {
-    return d->rightTrigger ? KMOD_SHIFT : 0;
+    return d && d->rightTrigger ? KMOD_SHIFT : 0;
 }
 
 const char *buttonName_Gamepad(const iGamepad *d, int sdlGameControllerButton) {
