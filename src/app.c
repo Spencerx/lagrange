@@ -64,6 +64,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <the_Foundation/networkproxy.h>
 #include <the_Foundation/path.h>
 #include <the_Foundation/process.h>
+#include <the_Foundation/socket.h>
 #include <the_Foundation/sortedarray.h>
 #include <the_Foundation/stringset.h>
 #include <the_Foundation/time.h>
@@ -394,6 +395,7 @@ static iString *serializePrefs_App_(const iApp *d) {
         { "prefs.gopher.gemstyle", &d->prefs.geminiStyledGopher },
         { "prefs.hidetabs", &d->prefs.hideTabBar },
         { "prefs.hoverlink", &d->prefs.hoverLink },
+        { "prefs.ipv6", &d->prefs.preferIPv6 },
         { "prefs.justify", &d->prefs.justifyParagraph },
         { "prefs.markdown.viewsource", &d->prefs.markdownAsSource },
         { "prefs.menubar", &d->prefs.menuBar },
@@ -4236,6 +4238,11 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
         d->prefs.allowSchemeChangingRedirect = arg_Command(cmd) != 0;
         return iTrue;
     }
+    else if (equal_Command(cmd, "prefs.ipv6.changed")) {
+        d->prefs.preferIPv6 = arg_Command(cmd) != 0;
+        setPreferIPv6_Socket(d->prefs.preferIPv6);
+        return iTrue;
+    }
     else if (equal_Command(cmd, "smoothscroll")) {
         d->prefs.smoothScrolling = arg_Command(cmd);
         return iTrue;
@@ -5373,6 +5380,7 @@ iBool handleCommand_App(const char *cmd) {
         setText_InputWidget(findChild_Widget(dlg, "prefs.urlsize"),
                             collectNewFormat_String("%d", d->prefs.maxUrlSize));
         setToggle_Widget(findChild_Widget(dlg, "prefs.warn.security"), d->prefs.warnTlsSecurity);
+        setToggle_Widget(findChild_Widget(dlg, "prefs.ipv6"), d->prefs.preferIPv6);
         setToggle_Widget(findChild_Widget(dlg, "prefs.decodeurls"), d->prefs.decodeUserVisibleURLs);
         setText_InputWidget(findChild_Widget(dlg, "prefs.searchurl"), &d->prefs.strings[searchUrl_PrefsString]);
         setText_InputWidget(findChild_Widget(dlg, "prefs.ca.file"), &d->prefs.strings[caFile_PrefsString]);

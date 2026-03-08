@@ -1941,7 +1941,7 @@ msgid "heading.prefs.proxy"
 msgstr "Proxies"
 
 msgid "heading.prefs.socks"
-msgstr "SOCKS v5"
+msgstr "SOCKS5"
 
 msgid "heading.prefs.paragraph"
 msgstr "Paragraph"
@@ -2344,6 +2344,9 @@ msgstr "TLS security warnings:"
 
 msgid "prefs.redirect.allowscheme"
 msgstr "Scheme-changing redirects:"
+
+msgid "prefs.ipv6"
+msgstr "Prefer IPv6:"
 
 msgid "prefs.decodeurls"
 msgstr "Decode URLs:"

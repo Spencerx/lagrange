@@ -127,6 +127,7 @@ void init_Prefs(iPrefs *d) {
     d->capsLockKeyModifier                    = iFalse;
     d->misfinSelfCopy                         = iTrue;
     d->allowSchemeChangingRedirect            = iFalse; /* must be manually followed */
+    d->preferIPv6                             = iFalse;
     d->decodeUserVisibleURLs                  = iTrue;
     d->warnTlsSecurity                        = iTrue;
     d->maxCacheSize                           = 10;

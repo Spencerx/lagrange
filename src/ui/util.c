@@ -3680,15 +3680,20 @@ iWidget *makePreferences_Widget(void) {
             { "input id:prefs.proxy.gopher noheading:1" },
             { "heading text:${prefs.proxy.http}" },
             { "input id:prefs.proxy.http noheading:1" },
+            { "heading id:heading.prefs.socks" },
+            { "input id:prefs.socks.server hint:hint.socks.server" },
+            { "input id:prefs.socks.user" },
+            { "input id:prefs.socks.password" },
             { "padding" },
             { "input id:prefs.cachesize maxlen:4 selectall:1 unit:mb" },
             { "input id:prefs.memorysize maxlen:4 selectall:1 unit:mb" },
             { "padding" },
-            { "toggle id:prefs.warn.security" },
             { "toggle id:prefs.decodeurls" },
             { "input id:prefs.urlsize maxlen:7 selectall:1" },
             { "padding" },
+            { "toggle id:prefs.ipv6" },
             { "toggle id:prefs.redirect.allowscheme" },
+            { "toggle id:prefs.warn.security" },
             { "padding" },
             { NULL }
         };
@@ -4239,8 +4244,9 @@ iWidget *makePreferences_Widget(void) {
                                                    &headings,
                                                    &values),
                      "prefs.page.network");
-        addDialogToggle_Widget(headings, values, "${prefs.warn.security}", "prefs.warn.security");
+        addDialogToggle_Widget(headings, values, "${prefs.ipv6}", "prefs.ipv6");
         addDialogToggle_Widget(headings, values, "${prefs.redirect.allowscheme}", "prefs.redirect.allowscheme");
+        addDialogToggle_Widget(headings, values, "${prefs.warn.security}", "prefs.warn.security");
         addDialogPadding_(headings, values);
         addDialogToggle_Widget(headings, values, "${prefs.decodeurls}", "prefs.decodeurls");
         addPrefsInputWithHeading_(headings, values, "prefs.urlsize", iClob(new_InputWidget(10)));
@@ -4393,7 +4399,7 @@ iWidget *makeBookmarkEditor_Widget(uint32_t folderId, iBool withDup) {
         };
         const iMenuItem items[] = {
             { "title id:bmed.heading text:${heading.bookmark.edit}" },
-            { "input id:bmed.title noheading:1 hint:dlg.bookmark.title" },
+            { "input id:bmed.title noheading:1 dlg.bookmark.title" },
             { "input id:bmed.url url:1 noheading:1 hint:dlg.bookmark.url" },
             { "padding" },
             { "dropdown id:bmed.folder text:"

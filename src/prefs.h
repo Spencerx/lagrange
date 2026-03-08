@@ -112,6 +112,7 @@ enum iPrefsBool {
     warnCertSecurity_PrefsBool,
     decodeUserVisibleURLs_PrefsBool,
     allowSchemeChangingRedirect_PrefsBool,
+    preferIPv6_PrefsBool,
 
     /* Style */
     monospaceGemini_PrefsBool,
@@ -200,6 +201,7 @@ struct Impl_Prefs {
             iBool warnTlsSecurity;
             iBool decodeUserVisibleURLs;
             iBool allowSchemeChangingRedirect;
+            iBool preferIPv6;
 
             /* Style */
             iBool monospaceGemini;
