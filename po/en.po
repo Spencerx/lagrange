@@ -1162,21 +1162,21 @@ msgstr "Security Issue"
 #, c-format
 msgid "dlg.certwarn.mayberenewed"
 msgid_plural "dlg.certwarn.mayberenewed.n"
-msgstr[0] "The received certificate may have been recently renewed — it is for the correct domain and has not expired. The currently trusted certificate will expire on %s, in one day."
-msgstr[1] "The received certificate may have been recently renewed — it is for the correct domain and has not expired. The currently trusted certificate will expire on %s, in %d days."
+msgstr[0] "The server certificate may have been recently renewed — it is for the correct domain and has not expired. The currently trusted certificate will expire on %s, in one day."
+msgstr[1] "The server certificate may have been recently renewed — it is for the correct domain and has not expired. The currently trusted certificate will expire on %s, in %d days."
 
 msgid "dlg.certwarn.different"
-msgstr "The received certificate is valid but different than the one we trust."
+msgstr "The server certificate is valid but different than the one we trust."
 
 #, c-format
 msgid "dlg.certwarn.expired"
-msgstr "The received certificate has expired on %s."
+msgstr "The server certificate has expired on %s."
 
 msgid "dlg.certwarn.domain"
 msgstr "The request was sent to \"%s\" but we received a certificate for a different domain (%s). This may be a server configuration problem."
 
 msgid "dlg.certwarn.domain.expired"
-msgstr "The received certificate is expired AND for the wrong domain."
+msgstr "The server certificate is expired AND for the wrong domain."
 
 msgid "heading.certimport"
 msgstr "Import Identity"
@@ -2596,7 +2596,7 @@ msgid "error.badheader"
 msgstr "Invalid Header"
 
 msgid "error.badheader.msg"
-msgstr "The received header does not conform to the protocol specification. Perhaps the server is malfunctioning or does not support this protocol."
+msgstr "The response header does not conform to the protocol specification. Perhaps the server is malfunctioning or does not support this protocol."
 
 msgid "error.incompleteheader"
 msgstr "Incomplete Header"
