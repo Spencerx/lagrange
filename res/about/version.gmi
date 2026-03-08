@@ -17,6 +17,7 @@ New features:
 * Return key behavior: Shift for newline, Command/Control for accept.
 
 Changes and enhancements:
+* Plain text lines are wrapped to the maximum available width when the expand-to-long-lines option is enabled.
 * Improved warning message when there is a problem with the proxy server certificate.
 * Revised order of input prompt Ellipsis menu items; added prompt position toggle.
 

@@ -103,6 +103,7 @@ iBool   scrollWideBlock_DocumentView    (iDocumentView *, iInt2 mousePos, int de
 void    resetWideRuns_DocumentView      (iDocumentView *);
 void    invalidateAndResetWideRunsWithNonzeroOffset_DocumentView(iDocumentView *);
 
+int     maxDocumentWidth_DocumentView   (const iDocumentView *);
 int     documentWidth_DocumentView      (const iDocumentView *);
 iRect   documentBounds_DocumentView     (const iDocumentView *);
 int     documentTopPad_DocumentView     (const iDocumentView *);

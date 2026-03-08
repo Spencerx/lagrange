@@ -1056,7 +1056,10 @@ static void showErrorPage_DocumentWidget_(iDocumentWidget *d, enum iGmStatusCode
     }
     /* Make a new document for the error page.*/
     iGmDocument *errorDoc = new_GmDocument();
-    setWidth_GmDocument(errorDoc, documentWidth_DocumentView(d->view), width_Widget(d));
+    setWidth_GmDocument(errorDoc,
+                        documentWidth_DocumentView(d->view),
+                        width_Widget(d),
+                        maxDocumentWidth_DocumentView(d->view));
     setUrl_GmDocument(errorDoc, d->mod.url);
     setFormat_GmDocument(errorDoc, gemini_SourceFormat);
     replaceDocument_DocumentWidget_(d, errorDoc);
@@ -1788,7 +1791,10 @@ static void addBannerWarnings_DocumentWidget_(iDocumentWidget *d) {
 }
 
 static void updateWidthAndRedoLayout_DocumentWidget_(iDocumentWidget *d) {
-    setWidth_GmDocument(d->view->doc, documentWidth_DocumentView(d->view), width_Widget(d));
+    setWidth_GmDocument(d->view->doc,
+                        documentWidth_DocumentView(d->view),
+                        width_Widget(d),
+                        maxDocumentWidth_DocumentView(d->view));
     documentRunsInvalidated_DocumentWidget(d); /* GmRuns reallocated */
 }
 
@@ -5433,6 +5439,7 @@ void setSource_DocumentWidget(iDocumentWidget *d, const iString *source) {
                          source,
                          docWidth,
                          width_Widget(d),
+                         maxDocumentWidth_DocumentView(d->view),
                          isFinished_GmRequest(d->request) ? final_GmDocumentUpdate
                                                           : partial_GmDocumentUpdate);
     setWidth_Banner(d->banner, docWidth);
