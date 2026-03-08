@@ -62,6 +62,7 @@ struct Impl_DocumentView {
     const iGmRun *  hoverPre;        /* for clicking */
     const iGmRun *  hoverAltPre;     /* for drawing alt text */
     const iGmRun *  hoverLink;
+    const iGmRun *  hoverKeyLink;    /* hover set via keyboard */
     iArray          wideRunOffsets;
     iAnim           animWideRunOffset;
     uint16_t        animWideRunId;

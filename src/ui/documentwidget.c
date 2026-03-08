@@ -4004,7 +4004,7 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
     }
     else if (equal_Command(cmd, "contextkey") && document_App() == d) {
         if (!isTerminal_Platform()) {
-            d->view->hoverLink = NULL;
+            d->view->hoverLink = d->view->hoverKeyLink; /* mouse might be hovering over something */
         }
         emulateMouseClick_Widget(w, SDL_BUTTON_RIGHT);
         return iTrue;
@@ -4536,7 +4536,7 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                 if (run->flags & decoration_GmRunFlag &&
                     visibleLinkOrdinal_DocumentView(view, run->linkId) == ord) {
                     if (d->flags & setHoverViaKeys_DocumentWidgetFlag) {
-                        view->hoverLink = run;
+                        view->hoverLink = view->hoverKeyLink = run;
                         updateHoverLinkInfo_DocumentView(view);
                     }
                     else {
@@ -4693,8 +4693,9 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
             contains_DocumentWidget_(d, init_I2(ev->button.x, ev->button.y))) {
             const iInt2 mousePos = init_I2(ev->button.x, ev->button.y);
             if (!isVisible_Widget(d->menu)) {
-                d->contextLink = view->hoverLink;
-                d->contextPos = mousePos;
+                d->contextLink     = view->hoverLink;
+                d->contextPos      = mousePos;
+                view->hoverKeyLink = NULL; /* after this we'll need a new key-hover action */
                 if (d->menu) {
                     destroy_Widget(d->menu);
                     d->menu = NULL;

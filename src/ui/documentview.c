@@ -111,6 +111,7 @@ void init_DocumentView(iDocumentView *d) {
     d->hoverPre      = NULL;
     d->hoverAltPre   = NULL;
     d->hoverLink     = NULL;
+    d->hoverKeyLink  = NULL;
     d->animWideRunId = 0;
     init_Anim(&d->animWideRunOffset, 0);
     iZap(d->renderRuns);
@@ -391,6 +392,7 @@ static void unhover_DocumentView_(iDocumentView *d) {
         d->hoverLink = NULL;
         updateHoverLinkInfo_DocumentView(d);
     }
+    d->hoverKeyLink = NULL;
 }
 
 void updateHover_DocumentView(iDocumentView *d, iInt2 mouse) {
@@ -578,9 +580,10 @@ void invalidate_DocumentView(iDocumentView *d) {
 
 void documentRunsInvalidated_DocumentView(iDocumentView *d) {
     /* Note: Don't call this only, the owner widget keeps pointers, too. */
-    d->hoverPre    = NULL;
-    d->hoverAltPre = NULL;
-    d->hoverLink   = NULL;
+    d->hoverPre     = NULL;
+    d->hoverAltPre  = NULL;
+    d->hoverLink    = NULL;
+    d->hoverKeyLink = NULL;
     clear_PtrArray(&d->visibleMedia);
     iZap(d->visibleRuns);
     iZap(d->renderRuns);
