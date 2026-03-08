@@ -806,8 +806,6 @@ void init_AVFAudioPlayer(iAVFAudioPlayer *d) {
     d->player = NULL;
     d->volume = 1.0f;
     d->state = initialized_AVFAudioPlayerState;
-    /* Playback is imminent. */
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
 }
 
 void deinit_AVFAudioPlayer(iAVFAudioPlayer *d) {
@@ -815,6 +813,11 @@ void deinit_AVFAudioPlayer(iAVFAudioPlayer *d) {
     if (d->player) {
         CFBridgingRelease(d->player);
         d->player = nil;
+    }
+    if (d->state != initialized_AVFAudioPlayerState) {
+        [[AVAudioSession sharedInstance] setActive:NO
+                                       withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                                             error:nil];
     }
 }
 
@@ -869,6 +872,8 @@ iBool setInput_AVFAudioPlayer(iAVFAudioPlayer *d, const iString *mimeType, const
 
 void play_AVFAudioPlayer(iAVFAudioPlayer *d) {
     if (d->state != playing_AVFAudioPlayerState) {
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
+        [[AVAudioSession sharedInstance] setActive:YES error:nil];
         [REF_d_player play];
         d->state = playing_AVFAudioPlayerState;
     }
@@ -877,6 +882,9 @@ void play_AVFAudioPlayer(iAVFAudioPlayer *d) {
 void stop_AVFAudioPlayer(iAVFAudioPlayer *d) {
     [REF_d_player stop];
     d->state = initialized_AVFAudioPlayerState;
+    [[AVAudioSession sharedInstance] setActive:NO
+                                   withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                                         error:nil];
 }
 
 void setPaused_AVFAudioPlayer(iAVFAudioPlayer *d, iBool paused) {
@@ -885,6 +893,8 @@ void setPaused_AVFAudioPlayer(iAVFAudioPlayer *d, iBool paused) {
         d->state = paused_AVFAudioPlayerState;
     }
     else if (!paused && d->state != playing_AVFAudioPlayerState) {
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
+        [[AVAudioSession sharedInstance] setActive:YES error:nil];
         [REF_d_player play];
         d->state = playing_AVFAudioPlayerState;
     }

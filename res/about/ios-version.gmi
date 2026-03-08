@@ -8,6 +8,7 @@
 
 ## 1.20 (1)
 * Fixed an initial spurious letter appearing in text fields as a result of hardware keyboard events.
+* Fixed issue with volume not reaching 0% even if audio is not playing.
 
 ## 1.19 (10)
 * Fixed "Manage Identities" opening the wrong page in Settings when a gamepad is connected.
