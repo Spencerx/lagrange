@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.20 (1)
+* Fixed an initial spurious letter appearing in text fields as a result of hardware keyboard events.
+
 ## 1.19 (10)
 * Fixed "Manage Identities" opening the wrong page in Settings when a gamepad is connected.
 

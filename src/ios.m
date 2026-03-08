@@ -240,6 +240,7 @@ API_AVAILABLE(ios(13.0))
     iSystemTextInput *sysCtrl;
     float sysCtrlLineSpacing;
     NSMutableArray<PopupData *> *popupMenus;
+    BOOL suppressFirstTextChange;
 }
 @property (nonatomic, assign) BOOL isHapticsAvailable;
 @property (nonatomic, strong) NSObject *haptic;
@@ -257,6 +258,7 @@ static UIScrollView *statusBarTapper_; /* dummy scroll view just for getting not
     sysCtrl = NULL;
     sysCtrlLineSpacing = 0.0f;
     popupMenus = [[NSMutableArray<PopupData *> alloc] init];
+    suppressFirstTextChange = NO;
     return self;
 }
 
@@ -363,6 +365,16 @@ static void sendReturnKeyPress_(int kmods) {
 
 -(void)setSystemTextInput:(iSystemTextInput *)sys {
     sysCtrl = sys;
+    if (sys) {
+        /* Suppress the first text change to prevent a "spill over" key event from inserting
+           a spurious character when the text field appears due to a hardware key press. The
+           flag is cleared on the next run loop iteration, so only the in-flight key event
+           that triggered the text field creation is affected. */
+        suppressFirstTextChange = YES;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self->suppressFirstTextChange = NO;
+        });
+    }
 }
 
 -(void)setSystemTextLineSpacing:(float)height {
@@ -381,6 +393,10 @@ static void sendReturnKeyPress_(int kmods) {
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range
 replacementString:(NSString *)string {
+    if (suppressFirstTextChange) {
+        suppressFirstTextChange = NO;
+        return NO;
+    }
     iSystemTextInput *sysCtrl = [appState_ systemTextInput];
     notifyChange_SystemTextInput_(sysCtrl);
     return YES;
@@ -388,6 +404,10 @@ replacementString:(NSString *)string {
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range
  replacementText:(NSString *)text {
+    if (suppressFirstTextChange) {
+        suppressFirstTextChange = NO;
+        return NO;
+    }
     if ([text isEqualToString:@"\n"]) {
         const iBool isCommandKeyDown = (modState_Keys() & KMOD_PRIMARY) != 0;
         if (isCommandKeyDown ||
