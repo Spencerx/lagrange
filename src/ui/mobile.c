@@ -629,13 +629,16 @@ void makePanelItem_Mobile(iWidget *panel, const iMenuItem *item) {
     else if (equal_Command(spec, "radio") || equal_Command(spec, "buttons")) {
         const iBool isRadio      = equal_Command(spec, "radio");
         const iBool isHorizontal = argLabel_Command(spec, "horizontal");
+        const iBool noHeading    = argLabel_Command(spec, "noheading");
         const int   rowLen       = argLabel_Command(spec, "rowlen");
         removeBorderFromLastChild_(panel);
         addChild_Widget(panel, iClob(makePadding_Widget(lineHeight_Text(labelFont_()))));
-        iLabelWidget *head = makeHeading_Widget(label);
-        setAllCaps_LabelWidget(head, iTrue);
-        setRemoveTrailingColon_LabelWidget(head, iTrue);
-        addChild_Widget(panel, iClob(head));
+        if (!noHeading) {
+            iLabelWidget *head = makeHeading_Widget(label);
+            setAllCaps_LabelWidget(head, iTrue);
+            setRemoveTrailingColon_LabelWidget(head, iTrue);
+            addChild_Widget(panel, iClob(head));
+        }
         widget = new_Widget();
         iWidget *subDiv = widget;
         setBackgroundColor_Widget(widget, uiBackgroundSidebar_ColorId);
