@@ -314,7 +314,7 @@ static iBool topPanelHandler_(iWidget *topPanel, const char *cmd) {
             setFlags_Widget(child, hidden_WidgetFlag | disabled_WidgetFlag, child != panel);
             /* Animate the current panel in. */
             if (child == panel && isPortrait) {
-                setupSheetTransition_Mobile(panel, incoming_TransitionFlag | top_TransitionDir);
+                setupSheetTransition_Mobile(panel, incoming_TransitionFlag | right_TransitionDir);
                 panelIndex = (int) childIndex;
             }
             childIndex++;
@@ -344,7 +344,7 @@ static iBool topPanelHandler_(iWidget *topPanel, const char *cmd) {
                 iWidget *child = i.object;
                 if (!cmp_String(id_Widget(child), "panel") && isVisible_Widget(child)) {
     //                closeMenu_Widget(child);
-                    setupSheetTransition_Mobile(child, top_TransitionDir);
+                    setupSheetTransition_Mobile(child, right_TransitionDir);
                     setFlags_Widget(child, hidden_WidgetFlag | disabled_WidgetFlag, iTrue);
                     setFocus_Widget(NULL);
                     setTextCStr_LabelWidget(findWidget_App("panel.back"), "Back");

@@ -3828,7 +3828,7 @@ iWidget *makePreferences_Widget(void) {
             }
         }
 #endif /* LAGRANGE_USE_GAMEPAD */
-        setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | top_TransitionDir);
+        setupSheetTransition_Mobile(dlg, incoming_TransitionFlag | dialogTransitionDir_Widget(dlg));
         return dlg;
     }
     iWidget *dlg = makeSheet_Widget("prefs");

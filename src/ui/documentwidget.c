@@ -3442,7 +3442,8 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
             setResponseViewer_UploadWidget(upload, d);
             addChild_Widget(get_Root()->widget, iClob(upload));
             setupSheetTransition_Mobile(as_Widget(upload),
-                                        incoming_TransitionFlag | top_TransitionDir);
+                                        incoming_TransitionFlag |
+                                            dialogTransitionDir_Widget(as_Widget(upload)));
             if (argLabel_Command(cmd, "copy") && isUtf8_Rangecc(range_Block(&d->sourceContent))) {
                 iString text;
                 initBlock_String(&text, &d->sourceContent);

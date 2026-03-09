@@ -3282,7 +3282,7 @@ static void updateImageStyleButton_(iLabelWidget *button, int style) {
 static iBool handlePrefsCommands_(iWidget *d, const char *cmd) {
     if (equal_Command(cmd, "prefs.dismiss") || equal_Command(cmd, "preferences") ||
         equal_Command(cmd, "tabs.close")) {
-        setupSheetTransition_Mobile(d, top_TransitionDir);
+        setupSheetTransition_Mobile(d, dialogTransitionDir_Widget(d));
         enableToolbar_Root(get_Root(), iTrue);
         /* Apply the new UI scaling factor to all non-popup windows. */ {
             const float uiScale =
@@ -4761,7 +4761,8 @@ static iBool handleOpenCommand_App_(iApp *d, const char *cmd) {
             setResponseViewer_UploadWidget(upload, document_App());
             addChild_Widget(get_Root()->widget, iClob(upload));
             setupSheetTransition_Mobile(as_Widget(upload),
-                                        incoming_TransitionFlag | top_TransitionDir);
+                                        incoming_TransitionFlag |
+                                            dialogTransitionDir_Widget(as_Widget(upload)));
             /* User can resize the upload dialog. */
             setResizeId_Widget(as_Widget(upload), "upload");
             restoreWidth_Widget(as_Widget(upload));
