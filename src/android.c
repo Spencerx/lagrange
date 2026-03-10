@@ -401,6 +401,129 @@ iBool handleCommand_Android(const char *cmd) {
     return iFalse;
 }
 
+/*----------------------------------------------------------------------------------------------*/
+/* Android audio player */
+
+enum iAndroidAudioPlayerState {
+    initialized_AndroidAudioPlayerState,
+    playing_AndroidAudioPlayerState,
+    paused_AndroidAudioPlayerState,
+};
+
+struct Impl_AndroidAudioPlayer {
+    iString cacheFilePath;
+    float   volume;
+    enum iAndroidAudioPlayerState state;
+};
+
+iDefineTypeConstruction(AndroidAudioPlayer)
+
+static const char *audioCacheDir_(void) {
+    return concatPath_CStr(cachePath_(), "Audio");
+}
+
+static const char *audioFileExt_(const iString *mimeType) {
+    if (startsWithCase_String(mimeType, "audio/mpeg") ||
+        startsWithCase_String(mimeType, "audio/mp3")) {
+        return ".mp3";
+    }
+    if (startsWithCase_String(mimeType, "audio/mp4") ||
+        startsWithCase_String(mimeType, "audio/mpeg4") ||
+        startsWithCase_String(mimeType, "audio/m4a") ||
+        startsWithCase_String(mimeType, "audio/x-m4a")) {
+        return ".m4a";
+    }
+    if (startsWithCase_String(mimeType, "audio/aac") ||
+        startsWithCase_String(mimeType, "audio/x-aac")) {
+        return ".aac";
+    }
+    if (startsWithCase_String(mimeType, "audio/flac") ||
+        startsWithCase_String(mimeType, "audio/x-flac")) {
+        return ".flac";
+    }
+    if (startsWithCase_String(mimeType, "audio/3gpp")) return ".3gp";
+#if !defined (LAGRANGE_ENABLE_OPUS)
+    /* Opus in Ogg: opusfile is not compiled for Android, use MediaPlayer (API 21+). */
+    if (startsWithCase_String(mimeType, "audio/opus"))  return ".opus";
+#endif
+    return "";
+}
+
+void init_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
+    init_String(&d->cacheFilePath);
+    d->volume = 1.0f;
+    d->state  = initialized_AndroidAudioPlayerState;
+}
+
+void deinit_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
+    setInput_AndroidAudioPlayer(d, NULL, NULL);
+}
+
+iBool setInput_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mimeType,
+                                  const iBlock *audioFileData) {
+    if (!isEmpty_String(&d->cacheFilePath)) {
+        remove(cstr_String(&d->cacheFilePath));
+        clear_String(&d->cacheFilePath);
+    }
+    if (mimeType && audioFileData) {
+        const char *ext = audioFileExt_(mimeType);
+        if (!*ext) return iFalse;
+        const iString *dir = collectNewCStr_String(audioCacheDir_());
+        makeDirs_Path(dir);
+        iFile *f =
+            new_File(collectNewFormat_String("%s/%u%s", cstr_String(dir), SDL_GetTicks(), ext));
+        if (open_File(f, writeOnly_FileMode)) {
+            write_File(f, audioFileData);
+            set_String(&d->cacheFilePath, path_File(f));
+        }
+        iRelease(f);
+    }
+    return !isEmpty_String(&d->cacheFilePath);
+}
+
+void play_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
+    if (d->state != playing_AndroidAudioPlayerState && !isEmpty_String(&d->cacheFilePath)) {
+        javaCommand_Android("audio.play volume:%.4f path:%s",
+                            d->volume, cstr_String(&d->cacheFilePath));
+        d->state = playing_AndroidAudioPlayerState;
+    }
+}
+
+void stop_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
+    if (d->state != initialized_AndroidAudioPlayerState) {
+        javaCommand_Android("audio.stop");
+        d->state = initialized_AndroidAudioPlayerState;
+    }
+}
+
+void setPaused_AndroidAudioPlayer(iAndroidAudioPlayer *d, iBool paused) {
+    if (paused && d->state != paused_AndroidAudioPlayerState) {
+        javaCommand_Android("audio.pause");
+        d->state = paused_AndroidAudioPlayerState;
+    }
+    else if (!paused && d->state == paused_AndroidAudioPlayerState) {
+        javaCommand_Android("audio.resume");
+        d->state = playing_AndroidAudioPlayerState;
+    }
+}
+
+void setVolume_AndroidAudioPlayer(iAndroidAudioPlayer *d, float volume) {
+    d->volume = volume;
+    if (d->state != initialized_AndroidAudioPlayerState) {
+        javaCommand_Android("audio.volume volume:%.4f", volume);
+    }
+}
+
+iBool isStarted_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
+    return d->state != initialized_AndroidAudioPlayerState;
+}
+
+iBool isPaused_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
+    return d->state == paused_AndroidAudioPlayerState;
+}
+
+/*----------------------------------------------------------------------------------------------*/
+
 void safeAreaInsets_Mobile(float *left, float *top, float *right, float *bottom) {
     if (left) *left = leftInset_;
     if (top) *top = topInset_;

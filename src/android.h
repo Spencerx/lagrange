@@ -34,3 +34,18 @@ iRangei     lastInputSelectionRange_Android (void);
 
 void        javaCommand_Android     (const char *format, ...);
 iBool       handleCommand_Android   (const char *cmd);
+
+/*----------------------------------------------------------------------------------------------*/
+/* Android audio player using MediaPlayer via JNI. */
+
+iDeclareType(AndroidAudioPlayer)
+iDeclareTypeConstruction(AndroidAudioPlayer)
+
+iBool   setInput_AndroidAudioPlayer     (iAndroidAudioPlayer *, const iString *mediaType, const iBlock *audioFileData);
+void    play_AndroidAudioPlayer         (iAndroidAudioPlayer *);
+void    stop_AndroidAudioPlayer         (iAndroidAudioPlayer *);
+void    setPaused_AndroidAudioPlayer    (iAndroidAudioPlayer *, iBool paused);
+void    setVolume_AndroidAudioPlayer    (iAndroidAudioPlayer *, float volume);
+
+iBool   isStarted_AndroidAudioPlayer    (const iAndroidAudioPlayer *);
+iBool   isPaused_AndroidAudioPlayer     (const iAndroidAudioPlayer *);

@@ -44,10 +44,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #if defined (iPlatformAppleMobile)
 #   include "../ios.h"
 #endif
+#if defined (iPlatformAndroidMobile)
+#   include "../android.h"
+#endif
 
 /*----------------------------------------------------------------------------------------------*/
 
-iDeclareType(AVFAudioPlayer) /* iOS */
+iDeclareType(AVFAudioPlayer)     /* iOS */
+iDeclareType(AndroidAudioPlayer) /* Android */
 
 iDeclareType(ContentSpec)
 
@@ -585,8 +589,9 @@ struct Impl_Player {
     int               flags;
     iInputBuf *       data;
     uint32_t          lastInteraction;
-    iDecoder *        decoder;
-    iAVFAudioPlayer * avfPlayer; /* iOS */
+    iDecoder *            decoder;
+    iAVFAudioPlayer *     avfPlayer;     /* iOS */
+    iAndroidAudioPlayer * androidPlayer; /* Android */
 };
 
 static iPlayer *activePlayer_;
@@ -810,10 +815,11 @@ static void writeOutputSamples_Player_(void *plr, Uint8 *stream, int len) {
 void init_Player(iPlayer *d) {
     iZap(d->spec);
     init_String(&d->mime);
-    d->device    = 0;
-    d->decoder   = NULL;
-    d->avfPlayer = NULL;
-    d->data      = new_InputBuf();
+    d->device        = 0;
+    d->decoder       = NULL;
+    d->avfPlayer     = NULL;
+    d->androidPlayer = NULL;
+    d->data          = new_InputBuf();
     d->volume    = 1.0f;
     d->flags     = 0;
 }
@@ -830,6 +836,11 @@ void deinit_Player(iPlayer *d) {
         }
     }
 #endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        delete_AndroidAudioPlayer(d->androidPlayer);
+    }
+#endif
     if (activePlayer_ == d) {
         activePlayer_ = NULL;
     }
@@ -839,6 +850,11 @@ iBool isStarted_Player(const iPlayer *d) {
 #if defined (iPlatformAppleMobile)
     if (d->avfPlayer) {
         return isStarted_AVFAudioPlayer(d->avfPlayer);
+    }
+#endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        return isStarted_AndroidAudioPlayer(d->androidPlayer);
     }
 #endif
     return d->device != 0;
@@ -856,6 +872,11 @@ iBool isPaused_Player(const iPlayer *d) {
 #if defined (iPlatformAppleMobile)
     if (d->avfPlayer) {
         return isPaused_AVFAudioPlayer(d->avfPlayer);
+    }
+#endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        return isPaused_AndroidAudioPlayer(d->androidPlayer);
     }
 #endif
     if (!d->device) return iTrue;
@@ -902,6 +923,13 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
                     delete_AVFAudioPlayer(d->avfPlayer);
                     d->avfPlayer = NULL;
                 }
+#elif defined (iPlatformAndroidMobile)
+                iAssert(d->androidPlayer == NULL);
+                d->androidPlayer = new_AndroidAudioPlayer();
+                if (!setInput_AndroidAudioPlayer(d->androidPlayer, &d->mime, &input->data)) {
+                    delete_AndroidAudioPlayer(d->androidPlayer);
+                    d->androidPlayer = NULL;
+                }
 #endif
             }
             break;
@@ -945,6 +973,14 @@ iBool start_Player(iPlayer *d) {
         return iTrue;
     }
 #endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        play_AndroidAudioPlayer(d->androidPlayer);
+        setNotIdle_Player(d);
+        activePlayer_ = d;
+        return iTrue;
+    }
+#endif
     iContentSpec content = detectContentSpec_Player_(d);
     if (!content.output.freq) {
         return iFalse;
@@ -973,6 +1009,12 @@ void setPaused_Player(iPlayer *d, iBool isPaused) {
         return;
     }
 #endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        setPaused_AndroidAudioPlayer(d->androidPlayer, isPaused);
+        return;
+    }
+#endif
     if (isStarted_Player(d)) {
         SDL_PauseAudioDevice(d->device, isPaused ? SDL_TRUE : SDL_FALSE);
         setNotIdle_Player(d);
@@ -983,6 +1025,12 @@ void stop_Player(iPlayer *d) {
 #if defined (iPlatformAppleMobile)
     if (d->avfPlayer) {
         stop_AVFAudioPlayer(d->avfPlayer);
+        return;
+    }
+#endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        stop_AndroidAudioPlayer(d->androidPlayer);
         return;
     }
 #endif
@@ -1005,6 +1053,11 @@ void setVolume_Player(iPlayer *d, float volume) {
 #if defined (iPlatformAppleMobile)
     if (d->avfPlayer) {
         setVolume_AVFAudioPlayer(d->avfPlayer, volume);
+    }
+#endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        setVolume_AndroidAudioPlayer(d->androidPlayer, volume);
     }
 #endif
     setNotIdle_Player(d);
