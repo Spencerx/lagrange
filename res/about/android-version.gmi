@@ -6,6 +6,17 @@
 ```
 # Release notes
 
+## 1.20 (Beta 46)
+* Added SOCKS5 proxy support. When enabled, all connections and DNS resolution are tunneled through the proxy.
+* Added option to prefer IPv6 in DNS resolution.
+* Added context menu for error/warning messages. These messages are not selectable text so this way one can copy the message to the clipboard.
+* Added context menu for input dialog prompt text.
+* Plain text lines are wrapped to the maximum available width when the expand-to-long-lines option is enabled.
+* Improved warning message when there is a problem with the proxy server certificate.
+* Revised order of input prompt Ellipsis menu items; added prompt position toggle.
+* Gopher: Fixed misdetected menu styling particularly with non-ASCII characters.
+* Fixed opening a link context menu using the keyboard shortcut will remember which link as hovered using the keyboard.
+
 ## 1.19 (Beta 45)
 * Fixed the app metadata so HTTP(S) URIs can be opened in Lagrange from other apps.
 * Declare Lagrange as a "browser" in the app metadata so it can be chosen as the default system browser. This is useful when a HTTP proxy has been configured.
