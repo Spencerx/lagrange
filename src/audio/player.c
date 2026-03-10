@@ -630,7 +630,8 @@ static iContentSpec detectContentSpec_Player_(const iPlayer *d) {
         content.type = opus_DecoderType;
     }
 #endif
-    else if (equal_Rangecc(mediaType, "audio/vorbis") || equal_Rangecc(mediaType, "audio/ogg") ||
+    else if (equal_Rangecc(mediaType, "audio/vorbis") ||
+             (equal_Rangecc(mediaType, "audio/ogg") && !isAndroid_Platform()) ||
              equal_Rangecc(mediaType, "audio/x-vorbis+ogg")) {
         content.type = vorbis_DecoderType;
 #if defined (LAGRANGE_ENABLE_OPUS)

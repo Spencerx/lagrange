@@ -440,6 +440,9 @@ static const char *audioFileExt_(const iString *mimeType) {
         startsWithCase_String(mimeType, "audio/mp3")) {
         return ".mp3";
     }
+    if (startsWithCase_String(mimeType, "audio/ogg")) {
+        return ".ogg";
+    }
     if (startsWithCase_String(mimeType, "audio/mp4") ||
         startsWithCase_String(mimeType, "audio/mpeg4") ||
         startsWithCase_String(mimeType, "audio/m4a") ||
@@ -454,10 +457,14 @@ static const char *audioFileExt_(const iString *mimeType) {
         startsWithCase_String(mimeType, "audio/x-flac")) {
         return ".flac";
     }
-    if (startsWithCase_String(mimeType, "audio/3gpp")) return ".3gp";
+    if (startsWithCase_String(mimeType, "audio/3gpp")) {
+        return ".3gp";
+    }
 #if !defined (LAGRANGE_ENABLE_OPUS)
     /* Opus in Ogg: opusfile is not compiled for Android, use MediaPlayer (API 21+). */
-    if (startsWithCase_String(mimeType, "audio/opus"))  return ".opus";
+    if (startsWithCase_String(mimeType, "audio/opus")) {
+        return ".opus";
+    }
 #endif
     return "";
 }
