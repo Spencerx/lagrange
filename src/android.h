@@ -49,3 +49,5 @@ void    setVolume_AndroidAudioPlayer    (iAndroidAudioPlayer *, float volume);
 
 iBool   isStarted_AndroidAudioPlayer    (const iAndroidAudioPlayer *);
 iBool   isPaused_AndroidAudioPlayer     (const iAndroidAudioPlayer *);
+float   currentTime_AndroidAudioPlayer  (const iAndroidAudioPlayer *);
+float   duration_AndroidAudioPlayer     (const iAndroidAudioPlayer *);

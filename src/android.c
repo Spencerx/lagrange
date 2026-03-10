@@ -35,12 +35,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <the_Foundation/file.h>
 #include <the_Foundation/fileinfo.h>
 #include <the_Foundation/path.h>
+
 #include <jni.h>
 #include <SDL.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <android/log.h>
+
+iDeclareType(AndroidAudioPlayer);
+
+static iAndroidAudioPlayer *activeAndroidPlayer_;
+
+enum iAndroidAudioPlayerState {
+    initialized_AndroidAudioPlayerState,
+    playing_AndroidAudioPlayerState,
+    paused_AndroidAudioPlayerState,
+};
+
+struct Impl_AndroidAudioPlayer {
+    iString cacheFilePath;
+    float   volume;
+    float   currentTime; /* seconds */
+    float   duration; /* seconds */
+    enum iAndroidAudioPlayerState state;
+};
 
 JNIEXPORT void JNICALL Java_fi_skyjake_lagrange_LagrangeActivity_postAppCommand(
         JNIEnv* env, jclass jcls, jstring command)
@@ -391,6 +410,13 @@ iBool handleCommand_Android(const char *cmd) {
         delete_Block(decoded);
         return iTrue;
     }
+    else if (equal_Command(cmd, "android.audio.time")) {
+        if (activeAndroidPlayer_) {
+            activeAndroidPlayer_->currentTime = argLabel_Command(cmd, "pos") / 1000.0f;
+            activeAndroidPlayer_->duration    = argLabel_Command(cmd, "dur") / 1000.0f;
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "android.insets")) {
         topInset_    = (float) argLabel_Command(cmd, "top");
         bottomInset_ = (float) argLabel_Command(cmd, "bottom");
@@ -403,18 +429,6 @@ iBool handleCommand_Android(const char *cmd) {
 
 /*----------------------------------------------------------------------------------------------*/
 /* Android audio player */
-
-enum iAndroidAudioPlayerState {
-    initialized_AndroidAudioPlayerState,
-    playing_AndroidAudioPlayerState,
-    paused_AndroidAudioPlayerState,
-};
-
-struct Impl_AndroidAudioPlayer {
-    iString cacheFilePath;
-    float   volume;
-    enum iAndroidAudioPlayerState state;
-};
 
 iDefineTypeConstruction(AndroidAudioPlayer)
 
@@ -451,11 +465,16 @@ static const char *audioFileExt_(const iString *mimeType) {
 
 void init_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     init_String(&d->cacheFilePath);
-    d->volume = 1.0f;
-    d->state  = initialized_AndroidAudioPlayerState;
+    d->volume      = 1.0f;
+    d->currentTime = 0.0f;
+    d->duration    = 0.0f;
+    d->state       = initialized_AndroidAudioPlayerState;
 }
 
 void deinit_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
+    if (activeAndroidPlayer_ == d) {
+        activeAndroidPlayer_ = NULL;
+    }
     setInput_AndroidAudioPlayer(d, NULL, NULL);
 }
 
@@ -483,6 +502,7 @@ iBool setInput_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mimeTyp
 
 void play_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     if (d->state != playing_AndroidAudioPlayerState && !isEmpty_String(&d->cacheFilePath)) {
+        activeAndroidPlayer_ = d;
         javaCommand_Android("audio.play volume:%.4f path:%s",
                             d->volume, cstr_String(&d->cacheFilePath));
         d->state = playing_AndroidAudioPlayerState;
@@ -491,6 +511,9 @@ void play_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
 
 void stop_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     if (d->state != initialized_AndroidAudioPlayerState) {
+        if (activeAndroidPlayer_ == d) {
+            activeAndroidPlayer_ = NULL;
+        }
         javaCommand_Android("audio.stop");
         d->state = initialized_AndroidAudioPlayerState;
     }
@@ -520,6 +543,14 @@ iBool isStarted_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
 
 iBool isPaused_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
     return d->state == paused_AndroidAudioPlayerState;
+}
+
+float currentTime_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
+    return d->currentTime;
+}
+
+float duration_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
+    return d->duration;
 }
 
 /*----------------------------------------------------------------------------------------------*/

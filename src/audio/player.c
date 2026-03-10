@@ -1092,6 +1092,11 @@ float time_Player(const iPlayer *d) {
         return currentTime_AVFAudioPlayer(d->avfPlayer);
     }
 #endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        return currentTime_AndroidAudioPlayer(d->androidPlayer);
+    }
+#endif
     if (!d->decoder) return 0;
     return (float) ((double) d->decoder->currentSample / (double) d->spec.freq);
 }
@@ -1100,6 +1105,11 @@ float duration_Player(const iPlayer *d) {
 #if defined (iPlatformAppleMobile)
     if (d->avfPlayer) {
         return duration_AVFAudioPlayer(d->avfPlayer);
+    }
+#endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        return duration_AndroidAudioPlayer(d->androidPlayer);
     }
 #endif
     if (!d->decoder) return 0;
