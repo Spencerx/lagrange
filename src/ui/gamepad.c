@@ -242,6 +242,16 @@ static void hidePointer_Gamepad_(iGamepad *d, iBool completely) {
 
 /*-----------------------------------------------------------------------------------------------*/
 
+static void sdlInit_(void) {
+    if (!wasInited_) {
+        if (SDL_Init(SDL_INIT_GAMECONTROLLER)) {
+            fprintf(stderr, "[Gamepad] failed to initialize: %s\n", SDL_GetError());
+            return;
+        }
+        wasInited_ = iTrue;
+    }
+}
+
 void init_Gamepad(iGamepad *d) {
     d->ctl            = NULL;
     d->joyIndex       = -1;
@@ -260,13 +270,7 @@ void init_Gamepad(iGamepad *d) {
     setFlags_Anim(&d->pointerf[0], easeOut_AnimFlag, iTrue);
     setFlags_Anim(&d->pointerf[1], easeOut_AnimFlag, iTrue);
     d->buttons = 0;
-    if (!wasInited_) {
-        if (SDL_Init(SDL_INIT_GAMECONTROLLER)) {
-            fprintf(stderr, "[Gamepad] failed to initialize: %s\n", SDL_GetError());
-            return;
-        }
-        wasInited_ = iTrue;
-    }
+    sdlInit_();
     SDL_GameControllerEventState(SDL_ENABLE);
     d->pointerTexture = makeTextureFromImageData_Window(d->window, &imagePointer_Resources);
     /* Look for gamepads. */
@@ -283,6 +287,16 @@ void deinit_Gamepad(iGamepad *d) {
     SDL_GameControllerEventState(SDL_IGNORE);
     SDL_DestroyTexture(d->pointerTexture);
     delete_PtrSet(d->openMenus);
+}
+
+iBool isAvailable_Gamepad(void) {
+    sdlInit_();
+    for (int i = 0; i < SDL_NumJoysticks(); i++) {
+        if (SDL_IsGameController(i)) {
+            return iTrue;
+        }
+    }
+    return iFalse;
 }
 
 iBool isConnected_Gamepad(const iGamepad *d) {
@@ -678,6 +692,10 @@ void draw_Gamepad(const iGamepad *d) {
 struct Impl_Gamepad {};
 
 iDefineTypeConstruction(Gamepad);
+
+iBool isAvailable_Gamepad(void) {
+    return iFalse;
+}
 
 void init_Gamepad   (iGamepad *d) { iUnused(d); }
 void deinit_Gamepad (iGamepad *d) { iUnused(d); }

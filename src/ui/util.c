@@ -3783,9 +3783,10 @@ iWidget *makePreferences_Widget(void) {
             { NULL }
         }, 17);
 #if defined (LAGRANGE_USE_GAMEPAD)
-        const iBool haveGamepad = isConnected_Gamepad(gamepad_App());
-        if (haveGamepad) {
-            /* The gamepad settings only appears when the controller is connected. */
+        iBool haveGamepad = iFalse;
+        if (isAvailable_Gamepad()) {
+            /* The gamepad settings only appears when the controller is available (maybe not
+               initialized, though). */
             iArray *gamepadItems = collectNew_Array(sizeof(iMenuItem));
             pushBackN_Array(gamepadItems,
                             (iMenuItem[]) { { "title id:heading.prefs.gamepad" },
@@ -3793,28 +3794,33 @@ iWidget *makePreferences_Widget(void) {
                                             { "toggle id:prefs.gamepad" },
                                             { "padding" } },
                             4);
-            iConstForEach(Array, btInfo, gamepadButtonInfo_()) {
-                const iGamepadButtonInfo *info = btInfo.value;
-                pushBack_Array(
-                    gamepadItems,
-                    /* This ID is translated to "trig:%d button:%d", we can't include spaces in
-                       the ID in the panel item syntax. */
-                    &(iMenuItem) { format_CStr("dropdown id:prefs.gamepad.%d.%d text:%s%s",
-                                               info->button,
-                                               info->trigger,
-                                               info->trigger ? "${prefs.gamepad.triggermod}" : "",
-                                               buttonName_Gamepad(gamepad_App(), info->button)),
-                                   0,
-                                   0,
-                                   constData_Array(gamepadButtonItems_(info->cmd)) });
+            if (isConnected_Gamepad(gamepad_App())) {
+                haveGamepad = iTrue;
+                iConstForEach(Array, btInfo, gamepadButtonInfo_()) {
+                    const iGamepadButtonInfo *info = btInfo.value;
+                    pushBack_Array(
+                            gamepadItems,
+                            /* This ID is translated to "trig:%d button:%d", we can't include spaces in
+                               the ID in the panel item syntax. */
+                            &(iMenuItem) {format_CStr("dropdown id:prefs.gamepad.%d.%d text:%s%s",
+                                                      info->button,
+                                                      info->trigger,
+                                                      info->trigger ? "${prefs.gamepad.triggermod}"
+                                                                    : "",
+                                                      buttonName_Gamepad(gamepad_App(),
+                                                                         info->button)),
+                                          0,
+                                          0,
+                                          constData_Array(gamepadButtonItems_(info->cmd))});
+                }
+                pushBack_Array(gamepadItems, &(iMenuItem) {NULL});
+                insert_Array(mainItems,
+                             5 /* after UI */,
+                             &(iMenuItem) {"panel icon:0x1f3ae id:heading.prefs.gamepad",
+                                           0,
+                                           0,
+                                           constData_Array(gamepadItems)});
             }
-            pushBack_Array(gamepadItems, &(iMenuItem) { NULL });
-            insert_Array(mainItems,
-                         5 /* after UI */,
-                         &(iMenuItem) { "panel icon:0x1f3ae id:heading.prefs.gamepad",
-                                        0,
-                                        0,
-                                        constData_Array(gamepadItems) });
         }
 #endif /* LAGRANGE_USE_GAMEPAD */
         iWidget *dlg = makePanels_Mobile("prefs", constData_Array(mainItems), NULL, 0);

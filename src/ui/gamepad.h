@@ -58,6 +58,8 @@ int     findAction_Gamepad      (int button, iBool trigger);
 iDeclareType(Gamepad);
 iDeclareTypeConstruction(Gamepad);
 
+iBool   isAvailable_Gamepad     (void);
+
 iBool   isConnected_Gamepad     (const iGamepad *);
 iBool   isPointing_Gamepad      (const iGamepad *);
 iInt2   pointerCoord_Gamepad    (const iGamepad *);
