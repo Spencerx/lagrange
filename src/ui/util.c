@@ -935,7 +935,7 @@ iBool handleMenuCommand_Widget(iWidget *menu, const char *cmd) {
             (pointerLabel_Command(cmd, "menu") == menu || ~menu->flags & radio_WidgetFlag)) {
             return iFalse;
         }
-        if (equal_Command(cmd, "contextclick") && pointer_Command(cmd) == menu) {
+        if (equal_Command(cmd, "contextclick")) {
             return iFalse;
         }
         if (deviceType_App() == phone_AppDeviceType && equal_Command(cmd, "keyboard.changed") &&
