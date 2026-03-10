@@ -45,8 +45,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 iDeclareType(AndroidAudioPlayer);
 
-static iAndroidAudioPlayer *activeAndroidPlayer_;
-
 enum iAndroidAudioPlayerState {
     initialized_AndroidAudioPlayerState,
     playing_AndroidAudioPlayerState,
@@ -411,9 +409,10 @@ iBool handleCommand_Android(const char *cmd) {
         return iTrue;
     }
     else if (equal_Command(cmd, "android.audio.time")) {
-        if (activeAndroidPlayer_) {
-            activeAndroidPlayer_->currentTime = argLabel_Command(cmd, "pos") / 1000.0f;
-            activeAndroidPlayer_->duration    = argLabel_Command(cmd, "dur") / 1000.0f;
+        iAndroidAudioPlayer *plr = pointerLabel_Command(cmd, "player");
+        if (plr) {
+            plr->currentTime = argLabel_Command(cmd, "pos") / 1000.0f;
+            plr->duration    = argLabel_Command(cmd, "dur") / 1000.0f;
         }
         return iTrue;
     }
@@ -472,9 +471,7 @@ void init_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
 }
 
 void deinit_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
-    if (activeAndroidPlayer_ == d) {
-        activeAndroidPlayer_ = NULL;
-    }
+    javaCommand_Android("audio.deinit player:%p", d);
     setInput_AndroidAudioPlayer(d, NULL, NULL);
 }
 
@@ -502,30 +499,30 @@ iBool setInput_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mimeTyp
 
 void play_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     if (d->state != playing_AndroidAudioPlayerState && !isEmpty_String(&d->cacheFilePath)) {
-        activeAndroidPlayer_ = d;
-        javaCommand_Android("audio.play volume:%.4f path:%s",
-                            d->volume, cstr_String(&d->cacheFilePath));
+        d->currentTime = 0.0f; /* playing from the start */
+        javaCommand_Android("audio.play player:%p volume:%.4f path:%s",
+                            d, d->volume, cstr_String(&d->cacheFilePath));
         d->state = playing_AndroidAudioPlayerState;
     }
 }
 
 void stop_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     if (d->state != initialized_AndroidAudioPlayerState) {
-        if (activeAndroidPlayer_ == d) {
-            activeAndroidPlayer_ = NULL;
-        }
-        javaCommand_Android("audio.stop");
+        javaCommand_Android("audio.stop player:%p", d);
         d->state = initialized_AndroidAudioPlayerState;
     }
 }
 
 void setPaused_AndroidAudioPlayer(iAndroidAudioPlayer *d, iBool paused) {
+    if (d->state == initialized_AndroidAudioPlayerState) {
+        return; /* not started yet */
+    }
     if (paused && d->state != paused_AndroidAudioPlayerState) {
-        javaCommand_Android("audio.pause");
+        javaCommand_Android("audio.pause player:%p", d);
         d->state = paused_AndroidAudioPlayerState;
     }
     else if (!paused && d->state == paused_AndroidAudioPlayerState) {
-        javaCommand_Android("audio.resume");
+        javaCommand_Android("audio.resume player:%p", d);
         d->state = playing_AndroidAudioPlayerState;
     }
 }
@@ -533,7 +530,7 @@ void setPaused_AndroidAudioPlayer(iAndroidAudioPlayer *d, iBool paused) {
 void setVolume_AndroidAudioPlayer(iAndroidAudioPlayer *d, float volume) {
     d->volume = volume;
     if (d->state != initialized_AndroidAudioPlayerState) {
-        javaCommand_Android("audio.volume volume:%.4f", volume);
+        javaCommand_Android("audio.volume player:%p volume:%.4f", d, volume);
     }
 }
 

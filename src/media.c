@@ -248,7 +248,10 @@ void init_GmAudio(iGmAudio *d) {
 
 void deinit_GmAudio(iGmAudio *d) {
 #if defined (LAGRANGE_ENABLE_AUDIO)
-    delete_Player(d->player);
+    //delete_Player(d->player);
+    /* On Android, the Java side may have just sent us a notification about this
+       so give some time to react to the queued message. */
+    iCollectDel(d->player, delete_Player);
 #endif
     deinit_GmMediaProps_(&d->props);
 }
@@ -451,7 +454,9 @@ iBool setData_Media(iMedia *d, iGmLinkId linkId, const iString *mime, const iBlo
             }
             if (!isStarted_Player(audio->player)) {
                 /* Maybe the previous updates didn't have enough data. */
-                start_Player(audio->player);
+                if (start_Player(audio->player)) {
+                    postCommandf_App("media.player.started player:%p", audio->player);
+                }
             }
         }
 #endif
