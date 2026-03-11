@@ -36,12 +36,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <the_Foundation/fileinfo.h>
 #include <the_Foundation/path.h>
 
-#include <jni.h>
 #include <SDL.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <android/log.h>
+#include <jni.h>
 
 iDeclareType(AndroidAudioPlayer);
 
@@ -53,6 +53,7 @@ enum iAndroidAudioPlayerState {
 
 struct Impl_AndroidAudioPlayer {
     iString cacheFilePath;
+    iBool   isStreaming; /* using MediaDataSource path instead of a cache file */
     float   volume;
     float   currentTime; /* seconds */
     float   duration; /* seconds */
@@ -475,11 +476,49 @@ void init_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     d->currentTime = 0.0f;
     d->duration    = 0.0f;
     d->state       = initialized_AndroidAudioPlayerState;
+    d->isStreaming = iFalse;
 }
 
 void deinit_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     javaCommand_Android("audio.deinit player:%p", d);
     setInput_AndroidAudioPlayer(d, NULL, NULL);
+}
+
+void setupData_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mediaType) {
+    d->isStreaming = iTrue;
+    javaCommand_Android("audio.init player:%p volume:%.4f mime:%s",
+                        d, d->volume, cstr_String(mediaType));
+}
+
+void appendData_AndroidAudioPlayer(iAndroidAudioPlayer *d, const void *bytes, size_t size) {
+    JNIEnv    *env      = (JNIEnv *) SDL_AndroidGetJNIEnv();
+    jobject    activity = (jobject) SDL_AndroidGetActivity();
+    jclass     cls      = (*env)->GetObjectClass(env, activity);
+    jmethodID  mid    = (*env)->GetMethodID(env, cls, "appendAudioData", "(Ljava/lang/String;[B)V");
+    iString   *ptrStr = newFormat_String("%p", d);
+    jstring    ptrJStr = (*env)->NewStringUTF(env, cstr_String(ptrStr));
+    jbyteArray arr     = (*env)->NewByteArray(env, (jsize) size);
+    (*env)->SetByteArrayRegion(env, arr, 0, (jsize) size, (const jbyte *) bytes);
+    (*env)->CallVoidMethod(env, activity, mid, ptrJStr, arr);
+    (*env)->DeleteLocalRef(env, arr);
+    (*env)->DeleteLocalRef(env, ptrJStr);
+    (*env)->DeleteLocalRef(env, cls);
+    (*env)->DeleteLocalRef(env, activity);
+    delete_String(ptrStr);
+}
+
+void setComplete_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
+    JNIEnv   *env      = (JNIEnv *) SDL_AndroidGetJNIEnv();
+    jobject   activity = (jobject) SDL_AndroidGetActivity();
+    jclass    cls      = (*env)->GetObjectClass(env, activity);
+    jmethodID mid     = (*env)->GetMethodID(env, cls, "completeAudioData", "(Ljava/lang/String;)V");
+    iString  *ptrStr  = newFormat_String("%p", d);
+    jstring   ptrJStr = (*env)->NewStringUTF(env, cstr_String(ptrStr));
+    (*env)->CallVoidMethod(env, activity, mid, ptrJStr);
+    (*env)->DeleteLocalRef(env, ptrJStr);
+    (*env)->DeleteLocalRef(env, cls);
+    (*env)->DeleteLocalRef(env, activity);
+    delete_String(ptrStr);
 }
 
 iBool setInput_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mimeType,
@@ -493,8 +532,7 @@ iBool setInput_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mimeTyp
         if (!*ext) return iFalse;
         const iString *dir = collectNewCStr_String(audioCacheDir_());
         makeDirs_Path(dir);
-        iFile *f =
-            new_File(collectNewFormat_String("%s/%u%s", cstr_String(dir), SDL_GetTicks(), ext));
+        iFile *f = newCStr_File(format_CStr("%s/%u%s", cstr_String(dir), SDL_GetTicks(), ext));
         if (open_File(f, writeOnly_FileMode)) {
             write_File(f, audioFileData);
             set_String(&d->cacheFilePath, path_File(f));
@@ -505,8 +543,15 @@ iBool setInput_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mimeTyp
 }
 
 void play_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
-    if (d->state != playing_AndroidAudioPlayerState && !isEmpty_String(&d->cacheFilePath)) {
-        d->currentTime = 0.0f; /* playing from the start */
+    if (d->state == playing_AndroidAudioPlayerState) {
+        return;
+    }
+    d->currentTime = 0.0f; /* playing from the start */
+    if (d->isStreaming) {
+        javaCommand_Android("audio.play player:%p volume:%.4f", d, d->volume);
+        d->state = playing_AndroidAudioPlayerState;
+    }
+    else if (!isEmpty_String(&d->cacheFilePath)) {
         javaCommand_Android("audio.play player:%p volume:%.4f path:%s",
                             d, d->volume, cstr_String(&d->cacheFilePath));
         d->state = playing_AndroidAudioPlayerState;

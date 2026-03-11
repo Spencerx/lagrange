@@ -42,6 +42,9 @@ iDeclareType(AndroidAudioPlayer)
 iDeclareTypeConstruction(AndroidAudioPlayer)
 
 iBool   setInput_AndroidAudioPlayer     (iAndroidAudioPlayer *, const iString *mediaType, const iBlock *audioFileData);
+void    setupData_AndroidAudioPlayer    (iAndroidAudioPlayer *, const iString *mediaType);
+void    appendData_AndroidAudioPlayer   (iAndroidAudioPlayer *, const void *bytes, size_t size);
+void    setComplete_AndroidAudioPlayer  (iAndroidAudioPlayer *);
 void    play_AndroidAudioPlayer         (iAndroidAudioPlayer *);
 void    stop_AndroidAudioPlayer         (iAndroidAudioPlayer *);
 void    setPaused_AndroidAudioPlayer    (iAndroidAudioPlayer *, iBool paused);

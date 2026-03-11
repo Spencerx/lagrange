@@ -582,16 +582,16 @@ iDefineTypeConstructionArgs(Decoder, (iInputBuf *input, const iContentSpec *spec
 /*----------------------------------------------------------------------------------------------*/
 
 struct Impl_Player {
-    SDL_AudioSpec     spec;
-    SDL_AudioDeviceID device;
-    iString           mime;
-    float             volume;
-    int               flags;
-    iInputBuf *       data;
-    uint32_t          lastInteraction;
-    iDecoder *            decoder;
-    iAVFAudioPlayer *     avfPlayer;     /* iOS */
-    iAndroidAudioPlayer * androidPlayer; /* Android */
+    SDL_AudioSpec        spec;
+    SDL_AudioDeviceID    device;
+    iString              mime;
+    float                volume;
+    int                  flags;
+    iInputBuf           *data;
+    uint32_t             lastInteraction;
+    iDecoder            *decoder;
+    iAVFAudioPlayer     *avfPlayer;     /* iOS */
+    iAndroidAudioPlayer *androidPlayer; /* Android */
 };
 
 static iPlayer *activePlayer_;
@@ -890,7 +890,6 @@ float volume_Player(const iPlayer *d) {
 
 void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *data,
                              enum iPlayerUpdate update) {
-    /* TODO: Add MIME as argument */
     iInputBuf *input = d->data;
     lock_Mutex(&input->mtx);
     if (mimeType) {
@@ -900,6 +899,14 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
         case replace_PlayerUpdate:
             set_Block(&input->data, data);
             input->isComplete = iFalse;
+#if defined (iPlatformAndroidMobile)
+            if (!d->androidPlayer) {
+                d->androidPlayer = new_AndroidAudioPlayer();
+                setupData_AndroidAudioPlayer(d->androidPlayer, &d->mime);
+            }
+            appendData_AndroidAudioPlayer(d->androidPlayer,
+                                          constData_Block(data), size_Block(data));
+#endif
             break;
         case append_PlayerUpdate: {
             const size_t oldSize = size_Block(&input->data);
@@ -912,6 +919,14 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
             /* NOTE: The decoder will hold a reference to the data block, which means
                appending here will cause a copy-on-write detach to occur. */
             appendData_Block(&input->data, constBegin_Block(data) + oldSize, newSize - oldSize);
+#if defined (iPlatformAndroidMobile)
+            if (d->androidPlayer && newSize > oldSize) {
+                /* New chunk of data is passed to Java. */
+                appendData_AndroidAudioPlayer(d->androidPlayer,
+                                              constBegin_Block(data) + oldSize,
+                                              newSize - oldSize);
+            }
+#endif
             break;
         }
         case complete_PlayerUpdate:
@@ -925,11 +940,17 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
                     d->avfPlayer = NULL;
                 }
 #elif defined (iPlatformAndroidMobile)
-                iAssert(d->androidPlayer == NULL);
-                d->androidPlayer = new_AndroidAudioPlayer();
-                if (!setInput_AndroidAudioPlayer(d->androidPlayer, &d->mime, &input->data)) {
-                    delete_AndroidAudioPlayer(d->androidPlayer);
-                    d->androidPlayer = NULL;
+                if (d->androidPlayer) {
+                    /* Streaming path: player was created in replace_PlayerUpdate. */
+                    setComplete_AndroidAudioPlayer(d->androidPlayer);
+                }
+                else {
+                    /* Fallback: data arrived without replace_PlayerUpdate (shouldn't happen). */
+                    d->androidPlayer = new_AndroidAudioPlayer();
+                    if (!setInput_AndroidAudioPlayer(d->androidPlayer, &d->mime, &input->data)) {
+                        delete_AndroidAudioPlayer(d->androidPlayer);
+                        d->androidPlayer = NULL;
+                    }
                 }
 #endif
             }
