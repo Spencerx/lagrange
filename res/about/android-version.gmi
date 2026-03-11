@@ -7,7 +7,7 @@
 # Release notes
 
 ## 1.20 (Beta 46)
-* Added support for native audio playback. You can play MP3, Vorbis, Opus, and other audio formats using Android's native decoders. However, streaming audio is NOT supported in any of these formats.
+* Added support for native audio playback. You can play MP3, Vorbis, Opus, and other audio formats using Android's native decoders. However, streaming audio is not supported in any of these formats.
 * Added SOCKS5 proxy support. When enabled, all connections and DNS resolution are tunneled through the proxy.
 * Added option to prefer IPv6 in DNS resolution.
 * Added context menu for error/warning messages. These messages are not selectable text so this way one can copy the message to the clipboard.
