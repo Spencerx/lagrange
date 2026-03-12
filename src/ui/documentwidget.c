@@ -2105,6 +2105,9 @@ static const iArray *updateInputPromptMenuItems_(iWidget *menu) {
     const char     *precedingLine = suffixPtr_Command(context, "preceding");
     /* Compose new menu items. */
     iArray *items = collectNew_Array(sizeof(iMenuItem));
+    iMenuItem pasteItem;
+    makePastePrecedingLineMenuItem_(&pasteItem, buttons, precedingLine);
+    pushBack_Array(items, &pasteItem);
     pushBack_Array(items,
                    &(iMenuItem) { "${menu.input.pasteprompt}",
                                   0,
@@ -2112,9 +2115,6 @@ static const iArray *updateInputPromptMenuItems_(iWidget *menu) {
                                   format_CStr("!valueinput.set ptr:%p text:%s",
                                               buttons,
                                               cstr_String(text_LabelWidget(prompt))) });
-    iMenuItem pasteItem;
-    makePastePrecedingLineMenuItem_(&pasteItem, buttons, precedingLine);
-    pushBack_Array(items, &pasteItem);
     pushBack_Array(items, &(iMenuItem){ "${menu.paste.snippet}", 0, 0, "submenu id:snippetmenu" });
     if (isDesktop_Platform()) {
         /* Location of the prompt. */
