@@ -4323,14 +4323,19 @@ static iBool isScrollableWithWheel_DocumentWidget_(const iDocumentWidget *d) {
         /* Hovering over the scroll widget, for example. */
         return iTrue;
     }
-    if (!hover) {
-        /* We need the actual mouse coordinates, `mouseCoord_Window()` does not return
-           valid coordinates if the mouse is deemed to be outside. */
+    /* What _is_ the mouse cursor actually on? We need the actual coordinates,
+       `mouseCoord_Window()` does not return valid coordinates if the mouse is
+       deemed to be outside. */
+    iInt2 pos;
+    if (isInteracting_Touch()) {
+        pos = latestPosition_Touch();
+    }
+    else {
         int x, y;
         SDL_GetMouseState(&x, &y);
-        return hitChild_Window(win, coord_Window(win, x, y)) == d;
+        pos = coord_Window(win, x, y);
     }
-    return iFalse;
+    return hitChild_Window(win, pos) == d; /* over the document, so we can scroll */
 }
 
 static iWidget *makeLinkContextMenuWithParameters_DocumentWidget_(iDocumentWidget *d,

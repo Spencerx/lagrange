@@ -1759,7 +1759,7 @@ iBool processEvent_Widget(iWidget *d, const SDL_Event *ev) {
                            ev->button.y);
         return isMobile_Platform(); /* on mobile, consume missed taps to prevent accidental input */
     }
-    if (d->flags & mouseModal_WidgetFlag && isMouseEvent_(ev) &&
+    if (d->flags & mouseModal_WidgetFlag && isMouseEvent_(ev) && ev->type != SDL_MOUSEWHEEL &&
         contains_Rect(rect_Root(d->root), mouseCoord_SDLEvent(ev))) {
         if ((ev->type == SDL_MOUSEBUTTONDOWN || ev->type == SDL_MOUSEBUTTONUP) &&
             d->flags & commandOnClick_WidgetFlag) {

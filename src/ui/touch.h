@@ -47,3 +47,4 @@ iInt2   latestPosition_Touch    (void); /* valid during processing of current ev
 iInt2   latestTapPosition_Touch (void);
 iBool   isHovering_Touch        (void); /* stationary touch or a long-press drag ongoing */
 size_t  numFingers_Touch        (void);
+iBool   isInteracting_Touch     (void); /* ongoing finger or momentum gestures */

@@ -1056,6 +1056,10 @@ size_t numFingers_Touch(void) {
     return size_Array(touchState_()->touches);
 }
 
+iBool isInteracting_Touch(void) {
+    return numFingers_Touch() || !isEmpty_Array(touchState_()->moms);
+}
+
 #else /* iPlatformTerminal */
 
 /* Terminal just needs stubs for the functions called from elsewhere. */
@@ -1106,6 +1110,10 @@ iBool isHovering_Touch(void) {
 
 size_t numFingers_Touch(void) {
     return 0;
+}
+
+iBool isInteracting_Touch(void) {
+    return iFalse;
 }
 
 #endif
