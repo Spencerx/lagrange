@@ -767,9 +767,6 @@ msgstr "Valid til:"
 msgid "hint.newident.date"
 msgstr "AAAA o AAAA-MM-DD"
 
-msgid "hint.newident.optional"
-msgstr "facultativ"
-
 msgid "dlg.newident.commonname"
 msgstr "Comun nómine:"
 
