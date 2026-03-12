@@ -612,6 +612,13 @@ static iRangecc mediaType_(const iString *str) {
     return part;
 }
 
+static iBool isVorbisMime_(const iString *mime) {
+    const iRangecc mt = mediaType_(mime);
+    return equal_Rangecc(mt, "audio/ogg") ||
+           equal_Rangecc(mt, "audio/vorbis") ||
+           equal_Rangecc(mt, "audio/x-vorbis+ogg");
+}
+
 static iContentSpec detectContentSpec_Player_(const iPlayer *d) {
     iContentSpec content;
     iZap(content);
@@ -630,9 +637,7 @@ static iContentSpec detectContentSpec_Player_(const iPlayer *d) {
         content.type = opus_DecoderType;
     }
 #endif
-    else if (equal_Rangecc(mediaType, "audio/vorbis") ||
-             (equal_Rangecc(mediaType, "audio/ogg") && !isAndroid_Platform()) ||
-             equal_Rangecc(mediaType, "audio/x-vorbis+ogg")) {
+    else if (isVorbisMime_(&d->mime)) {
         content.type = vorbis_DecoderType;
 #if defined (LAGRANGE_ENABLE_OPUS)
         // Some servers will reply with audio/ogg for Opus, so we need to check the content.
@@ -900,12 +905,16 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
             set_Block(&input->data, data);
             input->isComplete = iFalse;
 #if defined (iPlatformAndroidMobile)
-            if (!d->androidPlayer) {
+            if (!d->androidPlayer && !isVorbisMime_(&d->mime)) {
+                /* Vorbis types are attempted via stb_vorbis/SDL first; androidPlayer
+                   is created lazily as a fallback if needed in start_Player. */
                 d->androidPlayer = new_AndroidAudioPlayer();
                 setupData_AndroidAudioPlayer(d->androidPlayer, &d->mime);
             }
-            appendData_AndroidAudioPlayer(d->androidPlayer,
-                                          constData_Block(data), size_Block(data));
+            if (d->androidPlayer) {
+                appendData_AndroidAudioPlayer(d->androidPlayer,
+                                              constData_Block(data), size_Block(data));
+            }
 #endif
             break;
         case append_PlayerUpdate: {
@@ -944,14 +953,16 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
                     /* Streaming path: player was created in replace_PlayerUpdate. */
                     setComplete_AndroidAudioPlayer(d->androidPlayer);
                 }
-                else {
-                    /* Fallback: data arrived without replace_PlayerUpdate (shouldn't happen). */
+                else if (!isVorbisMime_(&d->mime)) {
+                    /* Fallback for non-vorbis: data arrived without replace_PlayerUpdate
+                       (shouldn't happen in normal use). */
                     d->androidPlayer = new_AndroidAudioPlayer();
                     if (!setInput_AndroidAudioPlayer(d->androidPlayer, &d->mime, &input->data)) {
                         delete_AndroidAudioPlayer(d->androidPlayer);
                         d->androidPlayer = NULL;
                     }
                 }
+                /* Vorbis: start_Player handles setup via stb_vorbis or androidPlayer fallback. */
 #endif
             }
             break;
@@ -1002,8 +1013,39 @@ iBool start_Player(iPlayer *d) {
         activePlayer_ = d;
         return iTrue;
     }
+    if (!isVorbisMime_(&d->mime)) {
+        return iFalse; /* Non-vorbis audio always needs an androidPlayer set up first. */
+    }
+    /* Vorbis: fall through to attempt stb_vorbis decoding via SDL. */
 #endif
     iContentSpec content = detectContentSpec_Player_(d);
+#if defined (iPlatformAndroidMobile)
+    if (!content.output.freq && isVorbisMime_(&d->mime)) {
+        if (content.type == none_DecoderType) {
+            /* stb_vorbis hard-failed (not a data-starvation issue). Fall back to Android
+               MediaPlayer once we have enough data to be confident about the failure. */
+            const iBool complete = isComplete_Player(d);
+            const size_t dataSize = sourceDataSize_Player(d);
+            if (complete || dataSize >= 64 * 1024) {
+                d->androidPlayer = new_AndroidAudioPlayer();
+                setupData_AndroidAudioPlayer(d->androidPlayer, &d->mime);
+                lock_Mutex(&d->data->mtx);
+                appendData_AndroidAudioPlayer(d->androidPlayer,
+                                              constData_Block(&d->data->data),
+                                              size_Block(&d->data->data));
+                unlock_Mutex(&d->data->mtx);
+                if (complete) {
+                    setComplete_AndroidAudioPlayer(d->androidPlayer);
+                }
+                play_AndroidAudioPlayer(d->androidPlayer);
+                setNotIdle_Player(d);
+                activePlayer_ = d;
+                return iTrue;
+            }
+        }
+        return iFalse; /* Need more data for stb_vorbis to parse the stream headers. */
+    }
+#endif
     if (!content.output.freq) {
         return iFalse;
     }
