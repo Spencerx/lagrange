@@ -529,6 +529,23 @@ static void setLinkNumberMode_DocumentWidget_(iDocumentWidget *d, iBool set) {
 static void requestUpdated_DocumentWidget_(iAnyObject *obj) {
     iDocumentWidget *d = obj;
     uint32_t now = SDL_GetTicks();
+    iBool didLockUnlock = iFalse;
+#if defined (iPlatformAndroidMobile)
+    /* On Android, the SDL main thread may be suspended when the app is backgrounded,
+       causing the document.request.updated command queue to stall. Streaming audio data
+       must be forwarded directly on the network thread to keep the audio buffer filled.
+       updateSourceData_Player (called via updateStreamData_Media) tracks buffer size and
+       only passes new bytes — safe to call repeatedly and from multiple threads. */
+    if (d->state != ready_RequestState) {
+        iGmResponse *resp = lockResponse_GmRequest(d->request);
+        if (startsWith_String(&resp->meta, "audio/")) {
+            const iGmLinkId imgLinkId = 1; /* navigation audio always uses link ID 1 */
+            updateStreamData_Media(media_GmDocument(d->view->doc), imgLinkId, &resp->body);
+        }
+        unlockResponse_GmRequest(d->request);
+        didLockUnlock = iTrue;
+    }
+#endif
     if (now - d->lastRequestUpdateAt > 100) {
         d->lastRequestUpdateAt = now;
         postCommand_Widget(obj,
@@ -537,7 +554,7 @@ static void requestUpdated_DocumentWidget_(iAnyObject *obj) {
                            id_GmRequest(d->request),
                            d->request);
     }
-    else {
+    else if (!didLockUnlock) {
         /* This will tell GmRequest to notify us again when new data comes in. */
         lockResponse_GmRequest(d->request);
         unlockResponse_GmRequest(d->request);

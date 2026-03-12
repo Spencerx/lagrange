@@ -43,6 +43,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <android/log.h>
 #include <jni.h>
 
+static JavaVM *javaVm_        = NULL; /* cached at startup; used for thread-agnostic JNI access */
+static jobject cachedActivity_ = NULL; /* JNI global ref to activity; valid from any thread */
+
 iDeclareType(AndroidAudioPlayer);
 
 enum iAndroidAudioPlayerState {
@@ -121,6 +124,14 @@ static int startLogOutputThread_(void) {
 }
 
 void setupApplication_Android(void) {
+    /* Cache the JavaVM pointer and activity global ref for use from non-SDL threads. */
+    if (!javaVm_) {
+        JNIEnv *env = (JNIEnv *) SDL_AndroidGetJNIEnv();
+        (*env)->GetJavaVM(env, &javaVm_);
+        jobject localActivity = (jobject) SDL_AndroidGetActivity();
+        cachedActivity_ = (*env)->NewGlobalRef(env, localActivity);
+        (*env)->DeleteLocalRef(env, localActivity);
+    }
 #if !defined (NDEBUG)
     startLogOutputThread_();
 #endif
@@ -154,6 +165,22 @@ void exportDownloadedFile_Android(const iString *localPath, const iString *mime)
 
 float displayDensity_Android(void) {
     return toFloat_String(at_CommandLine(commandLine_App(), 1));
+}
+
+/**
+ * Get a JNI environment for the current thread, attaching it to the JVM if needed.
+ * Sets *needDetach to iTrue if DetachCurrentThread must be called afterwards.
+ * Works on both SDL-managed threads and native POSIX threads (e.g., network I/O threads).
+ */
+static JNIEnv *currentJNIEnv_(jboolean *needDetach) {
+    JNIEnv *env = NULL;
+    *needDetach = JNI_FALSE;
+    if (!javaVm_) return NULL;
+    if ((*javaVm_)->GetEnv(javaVm_, (void **) &env, JNI_VERSION_1_6) == JNI_EDETACHED) {
+        (*javaVm_)->AttachCurrentThread(javaVm_, &env, NULL);
+        *needDetach = JNI_TRUE;
+    }
+    return env;
 }
 
 void javaCommand_Android(const char *format, ...) {
@@ -491,34 +518,36 @@ void setupData_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mediaTy
 }
 
 void appendData_AndroidAudioPlayer(iAndroidAudioPlayer *d, const void *bytes, size_t size) {
-    JNIEnv    *env      = (JNIEnv *) SDL_AndroidGetJNIEnv();
-    jobject    activity = (jobject) SDL_AndroidGetActivity();
+    jboolean   needDetach;
+    JNIEnv    *env     = currentJNIEnv_(&needDetach);
+    jobject    activity = cachedActivity_; /* global ref — valid from any thread */
     jclass     cls      = (*env)->GetObjectClass(env, activity);
-    jmethodID  mid    = (*env)->GetMethodID(env, cls, "appendAudioData", "(Ljava/lang/String;[B)V");
-    iString   *ptrStr = newFormat_String("%p", d);
-    jstring    ptrJStr = (*env)->NewStringUTF(env, cstr_String(ptrStr));
-    jbyteArray arr     = (*env)->NewByteArray(env, (jsize) size);
+    jmethodID  mid      = (*env)->GetMethodID(env, cls, "appendAudioData", "(Ljava/lang/String;[B)V");
+    iString   *ptrStr   = newFormat_String("%p", d);
+    jstring    ptrJStr  = (*env)->NewStringUTF(env, cstr_String(ptrStr));
+    jbyteArray arr      = (*env)->NewByteArray(env, (jsize) size);
     (*env)->SetByteArrayRegion(env, arr, 0, (jsize) size, (const jbyte *) bytes);
     (*env)->CallVoidMethod(env, activity, mid, ptrJStr, arr);
     (*env)->DeleteLocalRef(env, arr);
     (*env)->DeleteLocalRef(env, ptrJStr);
     (*env)->DeleteLocalRef(env, cls);
-    (*env)->DeleteLocalRef(env, activity);
     delete_String(ptrStr);
+    if (needDetach) (*javaVm_)->DetachCurrentThread(javaVm_);
 }
 
 void setComplete_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
-    JNIEnv   *env      = (JNIEnv *) SDL_AndroidGetJNIEnv();
-    jobject   activity = (jobject) SDL_AndroidGetActivity();
+    jboolean  needDetach;
+    JNIEnv   *env      = currentJNIEnv_(&needDetach);
+    jobject   activity = cachedActivity_; /* global ref — valid from any thread */
     jclass    cls      = (*env)->GetObjectClass(env, activity);
-    jmethodID mid     = (*env)->GetMethodID(env, cls, "completeAudioData", "(Ljava/lang/String;)V");
-    iString  *ptrStr  = newFormat_String("%p", d);
-    jstring   ptrJStr = (*env)->NewStringUTF(env, cstr_String(ptrStr));
+    jmethodID mid      = (*env)->GetMethodID(env, cls, "completeAudioData", "(Ljava/lang/String;)V");
+    iString  *ptrStr   = newFormat_String("%p", d);
+    jstring   ptrJStr  = (*env)->NewStringUTF(env, cstr_String(ptrStr));
     (*env)->CallVoidMethod(env, activity, mid, ptrJStr);
     (*env)->DeleteLocalRef(env, ptrJStr);
     (*env)->DeleteLocalRef(env, cls);
-    (*env)->DeleteLocalRef(env, activity);
     delete_String(ptrStr);
+    if (needDetach) (*javaVm_)->DetachCurrentThread(javaVm_);
 }
 
 iBool setInput_AndroidAudioPlayer(iAndroidAudioPlayer *d, const iString *mimeType,

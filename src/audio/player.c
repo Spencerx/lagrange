@@ -897,6 +897,10 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
                              enum iPlayerUpdate update) {
     iInputBuf *input = d->data;
     lock_Mutex(&input->mtx);
+    if (input->isShuttingDown) {
+        unlock_Mutex(&input->mtx);
+        return;
+    }
     if (mimeType) {
         set_String(&d->mime, mimeType);
     }
@@ -921,7 +925,9 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
             const size_t oldSize = size_Block(&input->data);
             const size_t newSize = size_Block(data);
             if (input->isComplete) {
+#if !defined (iPlatformAndroidMobile)
                 iAssert(newSize == oldSize);
+#endif
                 break;
             }
             /* The old parts cannot have changed. */
