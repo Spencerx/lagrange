@@ -1449,13 +1449,9 @@ static void updateDocument_DocumentWidget_(iDocumentWidget *d,
                             appendCStr_String(&str, "\n");
                             appendCStr_String(&str, cstr_Lang("fontpack.help"));
                             appendCStr_String(&str, "\n");
-//                            footerItems = actions_FontPack(fp, iTrue);
-//                            const iArray *actions =;
                             iConstForEach(Array, a, actions_FontPack(fp, iTrue)) {
                                 pushBack_Array(footerItems, a.value);
                             }
-//                            makeFooterButtons_DocumentWidget_(d, constData_Array(actions),
-//                                                              size_Array(actions));
                             delete_FontPack(fp);
                         }
                     }
