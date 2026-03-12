@@ -2454,6 +2454,7 @@ static iBool requestMedia_DocumentWidget_(iDocumentWidget *d, iGmLinkId linkId, 
         pushBack_ObjectList(
             d->media,
             iClob(new_MediaRequest(d,
+                                   media_GmDocument(d->view->doc),
                                    linkId,
                                    mediaUrl,
                                    enableFilters,

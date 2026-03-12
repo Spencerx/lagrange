@@ -120,15 +120,19 @@ iDeclareClass(MediaRequest)
 struct Impl_MediaRequest {
     iObject          object;
     iDocumentWidget *doc;
+    iMedia *         media; /* non-owning ref; NULL for reused requests */
     unsigned int     linkId;
     iGmRequest *     req;
 };
 
-iDeclareObjectConstructionArgs(MediaRequest, iDocumentWidget *doc, unsigned int linkId,
-                               const iString *url, iBool enableFilters,
+iDeclareObjectConstructionArgs(MediaRequest, iDocumentWidget *doc, iMedia *media,
+                               unsigned int linkId, const iString *url, iBool enableFilters,
                                const iGmIdentity *overrideDefaultIdentity)
 
 void    resubmitWithUrl_MediaRequest    (iMediaRequest *, const iString *url);
+
+/* Direct streaming delivery from network thread (bypasses SDL queue). fullData == NULL marks complete. */
+void    updateStreamData_Media          (iMedia *, uint16_t linkId, const iBlock *fullData);
 
 iMediaRequest * newReused_MediaRequest  (iDocumentWidget *doc, unsigned int linkId,
                                          iGmRequest *request);

@@ -656,6 +656,19 @@ size_t numActivePlayers_Media(const iMedia *d) {
     return n;
 }
 
+void updateStreamData_Media(iMedia *d, iGmLinkId linkId, const iBlock *fullData) {
+#if defined (LAGRANGE_ENABLE_AUDIO)
+    const iMediaId mid = findLinkAudio_Media(d, linkId);
+    if (mid.type == audio_MediaType) {
+        iPlayer *player = audioPlayer_Media(d, mid);
+        if (player) {
+            updateSourceData_Player(player, NULL, fullData,
+                                    fullData ? append_PlayerUpdate : complete_PlayerUpdate);
+        }
+    }
+#endif
+}
+
 void downloadStats_Media(const iMedia *d, iMediaId downloadId, const iString **path_out,
                          float *bytesPerSecond_out, iBool *isFinished_out) {
     iAssert(downloadId.type == download_MediaType);
@@ -677,18 +690,30 @@ void downloadStats_Media(const iMedia *d, iMediaId downloadId, const iString **p
 
 static void updated_MediaRequest_(iAnyObject *obj) {
     iMediaRequest *d = obj;
+    if (d->media) {
+        iGmResponse *resp = lockResponse_GmRequest(d->req);
+        updateStreamData_Media(d->media, d->linkId, &resp->body);
+        unlockResponse_GmRequest(d->req);
+    }
     postCommandf_App("media.updated link:%u request:%p", d->linkId, d);
 }
 
 static void finished_MediaRequest_(iAnyObject *obj) {
     iMediaRequest *d = obj;
+    if (d->media) {
+        iGmResponse *resp = lockResponse_GmRequest(d->req);
+        updateStreamData_Media(d->media, d->linkId, &resp->body);
+        unlockResponse_GmRequest(d->req);
+        updateStreamData_Media(d->media, d->linkId, NULL); /* mark complete */
+    }
     postCommandf_App("media.finished link:%u request:%p", d->linkId, d);
 }
 
-void init_MediaRequest(iMediaRequest *d, iDocumentWidget *doc, unsigned int linkId,
-                       const iString *url, iBool enableFilters,
+void init_MediaRequest(iMediaRequest *d, iDocumentWidget *doc, iMedia *media,
+                       unsigned int linkId, const iString *url, iBool enableFilters,
                        const iGmIdentity *overrideDefaultIdentity) {
     d->doc    = doc;
+    d->media  = media;
     d->linkId = linkId;
     d->req    = new_GmRequest(certs_App());
     setUrl_GmRequest(d->req, url);
@@ -724,6 +749,7 @@ iMediaRequest *newReused_MediaRequest(iDocumentWidget *doc, unsigned int linkId,
                                       iGmRequest *request) {
     iMediaRequest *d = new_Object(&Class_MediaRequest);
     d->doc = doc;
+    d->media = NULL; /* reused requests are image/redirect only, never audio */
     d->linkId = linkId;
     d->req = request; /* takes ownership */
     iConnect(GmRequest, d->req, updated, d, updated_MediaRequest_);
@@ -732,7 +758,8 @@ iMediaRequest *newReused_MediaRequest(iDocumentWidget *doc, unsigned int linkId,
 }
 
 iDefineObjectConstructionArgs(MediaRequest,
-                              (iDocumentWidget *doc, unsigned int linkId, const iString *url,
-                               iBool enableFilters, const iGmIdentity *overrideDefaultIdentity),
-                              doc, linkId, url, enableFilters, overrideDefaultIdentity)
+                              (iDocumentWidget *doc, iMedia *media, unsigned int linkId,
+                               const iString *url, iBool enableFilters,
+                               const iGmIdentity *overrideDefaultIdentity),
+                              doc, media, linkId, url, enableFilters, overrideDefaultIdentity)
 iDefineClass(MediaRequest)
