@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: jaakko.keranen@iki.fi\n"
 "POT-Creation-Date: 2023-02-28 02:15+0000\n"
-"PO-Revision-Date: 2026-02-28 14:35+0000\n"
+"PO-Revision-Date: 2026-03-14 00:26+0000\n"
 "Last-Translator: Wally Hackenslacker <mastor89@protonmail.com>\n"
 "Language-Team: Spanish <http://weblate.skyjake.fi/projects/lagrange/ui/es/>\n"
 "Language: es\n"
@@ -32,7 +32,7 @@ msgid "prefs.uiscale"
 msgstr "Factor de escalamiento de la Interfaz:"
 
 msgid "prefs.mono"
-msgstr "Fuente Mono-espaciada para el Cuerpo:"
+msgstr "Usar con protocolos:"
 
 msgid "prefs.biglede"
 msgstr "Primer párrafo más grande:"
@@ -56,8 +56,8 @@ msgstr "El protocolo solicitado no está soportado por esta aplicación."
 
 msgid "error.badheader.msg"
 msgstr ""
-"La cabecera recibida no sigue la especificación del protocolo. Tal vez el "
-"servidor esté fallando o no tiene soporte para este protocolo."
+"La cabecera de la respuesta no sigue la especificación del protocolo. Tal "
+"vez el servidor esté fallando o no tiene soporte para este protocolo."
 
 msgid "error.schemeredirect.msg"
 msgstr ""
@@ -686,10 +686,11 @@ msgstr "Hindi"
 
 #, c-format
 msgid "dlg.certwarn.expired"
-msgstr "El certificado recibido expiró el %s."
+msgstr "El certificado del servidor expiró el %s."
 
 msgid "dlg.certwarn.domain.expired"
-msgstr "El certificado recibido ha expirado Y es para el dominio incorrecto."
+msgstr ""
+"El certificado del servidor ha expirado Y es para el dominio incorrecto."
 
 msgid "heading.certimport"
 msgstr "Importar Identidad"
@@ -780,13 +781,13 @@ msgstr "Pestaña siguiente"
 msgid "dlg.certwarn.mayberenewed"
 msgid_plural "dlg.certwarn.mayberenewed.n"
 msgstr[0] ""
-"El certificado recibido puede haber sido renovado recientemente — es para el "
-"dominio correcto y no ha expirado. El certificado confiable actual expirará "
-"el %s, en un día."
+"El certificado del servidor puede haber sido renovado recientemente — es "
+"para el dominio correcto y no ha expirado. El certificado confiable actual "
+"expirará el %s, en un día."
 msgstr[1] ""
-"El certificado recibido puede haber sido renovado recientemente — es para el "
-"dominio correcto y no ha expirado. El certificado confiable actual expirará "
-"el %s, en %d días."
+"El certificado del servidor puede haber sido renovado recientemente — es "
+"para el dominio correcto y no ha expirado. El certificado confiable actual "
+"expirará el %s, en %d días."
 
 msgid "menu.title.bookmarks"
 msgstr "Marcadores"
@@ -959,7 +960,7 @@ msgid "heading.prefs.pagecontent"
 msgstr "Colores de la Página"
 
 msgid "heading.prefs.proxies"
-msgstr "Proxys"
+msgstr "Proxys Gemini"
 
 msgid "heading.prefs.scrolling"
 msgstr "Desplazamiento"
@@ -1244,8 +1245,8 @@ msgstr ""
 
 msgid "dlg.certwarn.different"
 msgstr ""
-"El certificado recibido es válido pero diferente del certificado en el que "
-"se confía."
+"El certificado del servidor es válido pero diferente del certificado en el "
+"que se confía."
 
 msgid "prefs.accent"
 msgstr "Color de acento:"
@@ -3008,3 +3009,36 @@ msgstr "Copiar Sugerencia"
 
 msgid "menu.input.pasteprompt"
 msgstr "Pegar Sugerencia"
+
+msgid "prefs.ipv6"
+msgstr "Preferir IPv6:"
+
+msgid "prefs.socks.user"
+msgstr "Nombre de usuario:"
+
+msgid "hint.optional"
+msgstr "opcional"
+
+msgid "heading.prefs.monodoc"
+msgstr "Aspecto Mono-espaciado"
+
+msgid "heading.font.options"
+msgstr "Opciones"
+
+msgid "heading.prefs.sidebars.tabs"
+msgstr "Pestañas de la Barra Lateral"
+
+msgid "heading.prefs.socks"
+msgstr "SOCKS5"
+
+msgid "heading.prefs.proxy"
+msgstr "Proxys"
+
+msgid "prefs.socks.server"
+msgstr "Servidor proxy:"
+
+msgid "hint.socks.server"
+msgstr "hostname:1080"
+
+msgid "prefs.socks.password"
+msgstr "Contraseña:"
