@@ -56,10 +56,11 @@ enum iAndroidAudioPlayerState {
 
 struct Impl_AndroidAudioPlayer {
     iString cacheFilePath;
-    iBool   isStreaming; /* using MediaDataSource path instead of a cache file */
+    iBool   isStreaming;  /* using MediaDataSource path instead of a cache file */
+    iBool   isFinished;  /* set when Java MediaPlayer sends audio.finished */
     float   volume;
     float   currentTime; /* seconds */
-    float   duration; /* seconds */
+    float   duration;    /* seconds */
     enum iAndroidAudioPlayerState state;
 };
 
@@ -444,6 +445,14 @@ iBool handleCommand_Android(const char *cmd) {
         }
         return iTrue;
     }
+    else if (equal_Command(cmd, "android.audio.finished")) {
+        iAndroidAudioPlayer *plr = pointerLabel_Command(cmd, "player");
+        if (plr) {
+            plr->isFinished = iTrue;
+            postCommand_App("media.player.update");
+        }
+        return iTrue;
+    }
     else if (equal_Command(cmd, "android.insets")) {
         topInset_    = (float) argLabel_Command(cmd, "top");
         bottomInset_ = (float) argLabel_Command(cmd, "bottom");
@@ -504,6 +513,7 @@ void init_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
     d->duration    = 0.0f;
     d->state       = initialized_AndroidAudioPlayerState;
     d->isStreaming = iFalse;
+    d->isFinished  = iFalse;
 }
 
 void deinit_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
@@ -621,6 +631,10 @@ iBool isStarted_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
 
 iBool isPaused_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
     return d->state == paused_AndroidAudioPlayerState;
+}
+
+iBool isFinished_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {
+    return d->isFinished;
 }
 
 float currentTime_AndroidAudioPlayer(const iAndroidAudioPlayer *d) {

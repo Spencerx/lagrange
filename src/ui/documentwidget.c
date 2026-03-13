@@ -657,6 +657,12 @@ static uint32_t mediaUpdateInterval_DocumentWidget_(const iDocumentWidget *d) {
             interval = iMin(interval, 1000);
         }
     }
+    /* Keep the timer running for active off-screen players so end-of-playback
+       is detected even when the player widget is scrolled out of view. */
+    if (interval == invalidInterval_ &&
+        numActivePlayers_Media(media_GmDocument(d->view->doc)) > 0) {
+        interval = 1000;
+    }
     return interval != invalidInterval_ ? interval : 0;
 }
 
@@ -3489,6 +3495,7 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
     }
 #endif
     else if (equal_Command(cmd, "media.player.update")) {
+        stopFinishedPlayers_Media(media_GmDocument(d->view->doc));
         updateMedia_DocumentWidget_(d);
         return iFalse;
     }

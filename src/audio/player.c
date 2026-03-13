@@ -24,6 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "defs.h"
 #include "buf.h"
 #include "lang.h"
+#include "../app.h"
 
 #define STB_VORBIS_HEADER_ONLY
 #include "stb_vorbis.c"
@@ -89,6 +90,7 @@ struct Impl_Decoder {
     iArray            pendingOutput;
     uint64_t          currentSample;
     uint64_t          totalSamples; /* zero if unknown */
+    iBool             isDone; /* set when all input consumed; output may still be draining */
     iMutex            tagMutex;
     iString           tags[max_PlayerTag];
     stb_vorbis *      vorbis;
@@ -497,6 +499,12 @@ static iThreadResult run_Decoder_(iThread *thread) {
         }
         if (status == needMoreInput_DecoderStatus) {
             lock_Mutex(&d->input->mtx);
+            if (d->input->isComplete && size_InputBuf(d->input) == inputSize) {
+                /* All input consumed; output buffer will drain via the audio callback. */
+                d->isDone = iTrue;
+                unlock_Mutex(&d->input->mtx);
+                break;
+            }
             if (size_InputBuf(d->input) == inputSize) {
                 wait_Condition(&d->input->changed, &d->input->mtx);
             }
@@ -522,6 +530,7 @@ void init_Decoder(iDecoder *d, iInputBuf *input, const iContentSpec *spec) {
     d->outputFreq     = spec->output.freq;
     d->currentSample  = 0;
     d->totalSamples   = spec->totalSamples;
+    d->isDone         = iFalse;
     init_Array(&d->pendingOutput, spec->output.channels * SDL_AUDIO_BITSIZE(spec->output.format) / 8);
     init_SampleBuf(&d->output,
                    spec->output.format,
@@ -592,6 +601,9 @@ struct Impl_Player {
     iDecoder            *decoder;
     iAVFAudioPlayer     *avfPlayer;     /* iOS */
     iAndroidAudioPlayer *androidPlayer; /* Android */
+    float                cachedTime;     /* last known playback position, survives stop */
+    float                cachedDuration; /* total duration, survives stop */
+    iBool                isFinished;     /* set when SDL decoder output has fully drained */
 };
 
 static iPlayer *activePlayer_;
@@ -813,6 +825,10 @@ static void writeOutputSamples_Player_(void *plr, Uint8 *stream, int len) {
     }
     else {
         memset(stream, d->spec.silence, len);
+        if (d->decoder->isDone && size_SampleBuf(&d->decoder->output) == 0 && !d->isFinished) {
+            d->isFinished = iTrue; /* signal main thread to call stop_Player */
+            postCommand_App("media.player.update");
+        }
     }
     signal_Condition(&d->decoder->output.moreNeeded);
     unlock_Mutex(&d->decoder->outputMutex);
@@ -826,8 +842,11 @@ void init_Player(iPlayer *d) {
     d->avfPlayer     = NULL;
     d->androidPlayer = NULL;
     d->data          = new_InputBuf();
-    d->volume    = 1.0f;
-    d->flags     = 0;
+    d->volume         = 1.0f;
+    d->flags          = 0;
+    d->cachedTime     = 0.0f;
+    d->cachedDuration = 0.0f;
+    d->isFinished     = iFalse;
 }
 
 void deinit_Player(iPlayer *d) {
@@ -835,17 +854,10 @@ void deinit_Player(iPlayer *d) {
     delete_InputBuf(d->data);
     deinit_String(&d->mime);
 #if defined (iPlatformAppleMobile)
-    if (d->avfPlayer) {
-        delete_AVFAudioPlayer(d->avfPlayer);
-        if (activePlayer_ == d) {
-            clearNowPlayingInfo_iOS();
-        }
-    }
+    iAssert(d->avfPlayer == NULL);
 #endif
 #if defined (iPlatformAndroidMobile)
-    if (d->androidPlayer) {
-        delete_AndroidAudioPlayer(d->androidPlayer);
-    }
+    iAssert(d->androidPlayer == NULL);
 #endif
     if (activePlayer_ == d) {
         activePlayer_ = NULL;
@@ -1004,7 +1016,16 @@ iBool start_Player(iPlayer *d) {
     if (isStarted_Player(d)) {
         return iFalse;
     }
+    d->isFinished = iFalse;
 #if defined (iPlatformAppleMobile)
+    if (!d->avfPlayer && isComplete_Player(d)) {
+        /* Recreate from buffered data (e.g., restart after stop). */
+        d->avfPlayer = new_AVFAudioPlayer();
+        if (!setInput_AVFAudioPlayer(d->avfPlayer, &d->mime, &d->data->data)) {
+            delete_AVFAudioPlayer(d->avfPlayer);
+            d->avfPlayer = NULL;
+        }
+    }
     if (d->avfPlayer) {
         play_AVFAudioPlayer(d->avfPlayer);
         setNotIdle_Player(d);
@@ -1020,7 +1041,22 @@ iBool start_Player(iPlayer *d) {
         return iTrue;
     }
     if (!isVorbisMime_(&d->mime)) {
-        return iFalse; /* Non-vorbis audio always needs an androidPlayer set up first. */
+        if (!isComplete_Player(d)) {
+            return iFalse; /* Can't rebuild a streaming non-Vorbis player mid-stream. */
+        }
+        /* Recreate androidPlayer from complete buffered data (restart after stop). */
+        d->androidPlayer = new_AndroidAudioPlayer();
+        setupData_AndroidAudioPlayer(d->androidPlayer, &d->mime);
+        lock_Mutex(&d->data->mtx);
+        appendData_AndroidAudioPlayer(d->androidPlayer,
+                                      constData_Block(&d->data->data),
+                                      size_Block(&d->data->data));
+        unlock_Mutex(&d->data->mtx);
+        setComplete_AndroidAudioPlayer(d->androidPlayer);
+        play_AndroidAudioPlayer(d->androidPlayer);
+        setNotIdle_Player(d);
+        activePlayer_ = d;
+        return iTrue;
     }
     /* Vorbis: fall through to attempt stb_vorbis decoding via SDL. */
 #endif
@@ -1067,6 +1103,9 @@ iBool start_Player(iPlayer *d) {
     d->decoder = new_Decoder(d->data, &content);
     d->decoder->gain = d->volume;
     SDL_PauseAudioDevice(d->device, SDL_FALSE);
+#if defined (iPlatformAndroidMobile)
+    javaCommand_Android("audio.sdl_start player:%p", d);
+#endif
     setNotIdle_Player(d);
     activePlayer_ = d;
     return iTrue;
@@ -1092,20 +1131,32 @@ void setPaused_Player(iPlayer *d, iBool isPaused) {
 }
 
 void stop_Player(iPlayer *d) {
+    /* Snapshot time/duration before freeing any native resources. */
+    d->cachedTime     = time_Player(d);
+    d->cachedDuration = duration_Player(d);
+    d->isFinished     = iFalse;
 #if defined (iPlatformAppleMobile)
     if (d->avfPlayer) {
         stop_AVFAudioPlayer(d->avfPlayer);
+        delete_AVFAudioPlayer(d->avfPlayer);
+        d->avfPlayer = NULL;
+        if (activePlayer_ == d) {
+            clearNowPlayingInfo_iOS();
+        }
         return;
     }
 #endif
 #if defined (iPlatformAndroidMobile)
     if (d->androidPlayer) {
-        stop_AndroidAudioPlayer(d->androidPlayer);
+        delete_AndroidAudioPlayer(d->androidPlayer);
+        d->androidPlayer = NULL;
         return;
     }
 #endif
     if (isStarted_Player(d)) {
-        /* TODO: Stop the stream/decoder. */
+#if defined (iPlatformAndroidMobile)
+        javaCommand_Android("audio.sdl_stop player:%p", d);
+#endif
         SDL_PauseAudioDevice(d->device, SDL_TRUE);
         SDL_CloseAudioDevice(d->device);
         d->device = 0;
@@ -1167,8 +1218,10 @@ float time_Player(const iPlayer *d) {
         return currentTime_AndroidAudioPlayer(d->androidPlayer);
     }
 #endif
-    if (!d->decoder) return 0;
-    return (float) ((double) d->decoder->currentSample / (double) d->spec.freq);
+    if (d->decoder) {
+        return (float) ((double) d->decoder->currentSample / (double) d->spec.freq);
+    }
+    return d->cachedTime;
 }
 
 float duration_Player(const iPlayer *d) {
@@ -1182,8 +1235,24 @@ float duration_Player(const iPlayer *d) {
         return duration_AndroidAudioPlayer(d->androidPlayer);
     }
 #endif
-    if (!d->decoder) return 0;
-    return (float) ((double) d->decoder->totalSamples / (double) d->spec.freq);
+    if (d->decoder) {
+        return (float) ((double) d->decoder->totalSamples / (double) d->spec.freq);
+    }
+    return d->cachedDuration;
+}
+
+iBool isFinished_Player(const iPlayer *d) {
+#if defined (iPlatformAppleMobile)
+    if (d->avfPlayer) {
+        return isFinished_AVFAudioPlayer(d->avfPlayer);
+    }
+#endif
+#if defined (iPlatformAndroidMobile)
+    if (d->androidPlayer) {
+        return isFinished_AndroidAudioPlayer(d->androidPlayer);
+    }
+#endif
+    return d->isFinished;
 }
 
 float streamProgress_Player(const iPlayer *d) {

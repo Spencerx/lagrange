@@ -61,6 +61,7 @@ int         flags_Player            (const iPlayer *);
 const iString *tag_Player           (const iPlayer *, enum iPlayerTag tag);
 iBool       isStarted_Player        (const iPlayer *);
 iBool       isComplete_Player       (const iPlayer *); /* all data received */
+iBool       isFinished_Player       (const iPlayer *); /* playback reached end of audio */
 iBool       isPaused_Player         (const iPlayer *);
 float       volume_Player           (const iPlayer *);
 float       time_Player             (const iPlayer *);

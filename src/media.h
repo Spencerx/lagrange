@@ -103,8 +103,9 @@ iBool           imageFailed_Media       (const iMedia *, iMediaId imageId); /* r
 
 size_t          numAudio_Media          (const iMedia *);
 iPlayer *       audioPlayer_Media       (const iMedia *, iMediaId audioId);
-void            pauseAllPlayers_Media   (const iMedia *, iBool setPaused);
-size_t          numActivePlayers_Media  (const iMedia *);
+void            pauseAllPlayers_Media       (const iMedia *, iBool setPaused);
+void            stopFinishedPlayers_Media   (const iMedia *);
+size_t          numActivePlayers_Media      (const iMedia *);
 
 void            downloadStats_Media     (const iMedia *, iMediaId downloadId, const iString **path_out,
                                          float *bytesPerSecond_out, iBool *isFinished_out);

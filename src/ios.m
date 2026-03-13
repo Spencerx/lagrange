@@ -887,6 +887,16 @@ void stop_AVFAudioPlayer(iAVFAudioPlayer *d) {
                                          error:nil];
 }
 
+iBool isFinished_AVFAudioPlayer(const iAVFAudioPlayer *d) {
+    /* AVAudioPlayer has no completion callback, so we poll:
+       if the state is still 'playing' but the player is no longer playing,
+       it reached the end of the audio naturally. */
+    if (d->state == playing_AVFAudioPlayerState && d->player) {
+        return ![REF_d_player isPlaying];
+    }
+    return iFalse;
+}
+
 void setPaused_AVFAudioPlayer(iAVFAudioPlayer *d, iBool paused) {
     if (paused && d->state != paused_AVFAudioPlayerState) {
         [REF_d_player pause];
