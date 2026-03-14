@@ -957,7 +957,7 @@ static void releaseViewDocument_DocumentWidget_(iDocumentWidget *d) {
 }
 
 static void replaceDocument_DocumentWidget_(iDocumentWidget *d, iGmDocument *newDoc) {
-    pauseAllPlayers_Media(media_GmDocument(d->view->doc), iTrue);
+    releasePlayers_Media(media_GmDocument(d->view->doc));
     releaseViewDocument_DocumentWidget_(d);
     d->view->doc = ref_Object(newDoc);
     documentWasChanged_DocumentWidget_(d);
@@ -1836,7 +1836,7 @@ static void updateFromCachedResponse_DocumentWidget_(iDocumentWidget *d, float n
     clear_ObjectList(d->media);
     delete_Gempub(d->sourceGempub);
     d->sourceGempub = NULL;
-    pauseAllPlayers_Media(media_GmDocument(d->view->doc), iTrue);
+    releasePlayers_Media(media_GmDocument(d->view->doc));
     destroy_Widget(d->footerButtons);
     d->footerButtons = NULL;
     releaseViewDocument_DocumentWidget_(d);
@@ -2480,6 +2480,9 @@ static void removeMediaRequest_DocumentWidget_(iDocumentWidget *d, iGmLinkId lin
 }
 
 static iBool requestMedia_DocumentWidget_(iDocumentWidget *d, iGmLinkId linkId, iBool enableFilters) {
+    if (linkFlags_GmDocument(d->view->doc, linkId) & content_GmLinkFlag) {
+        return iFalse; /* We have the content, no need to request anything. */
+    }
     if (!findMediaRequest_DocumentWidget(d, linkId)) {
         const iString *mediaUrl = absoluteUrl_String(d->mod.url, linkUrl_GmDocument(d->view->doc, linkId));
         pushBack_ObjectList(
@@ -4121,7 +4124,12 @@ static iBool processMediaEvents_DocumentWidget_(iDocumentWidget *d, const SDL_Ev
                 return iTrue;
             }
             if (contains_Rect(ui.playPauseRect, mouse)) {
-                setPaused_Player(plr, !isPaused_Player(plr));
+                if (isStarted_Player(plr)) {
+                    setPaused_Player(plr, !isPaused_Player(plr));
+                }
+                else {
+                    start_Player(plr);
+                }
                 animateMedia_DocumentWidget_(d);
                 return iTrue;
             }
@@ -5017,7 +5025,7 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                                               allowHide_MediaFlag);
                                 /* Cancel a partially received request. */ {
                                     iMediaRequest *req = findMediaRequest_DocumentWidget(d, linkId);
-                                    if (!isFinished_GmRequest(req->req)) {
+                                    if (req && !isFinished_GmRequest(req->req)) {
                                         cancel_GmRequest(req->req);
                                         removeMediaRequest_DocumentWidget_(d, linkId);
                                         /* Note: Some of the audio IDs have changed now, layout must
@@ -5445,7 +5453,7 @@ void cancelAllRequests_DocumentWidget(iDocumentWidget *d) {
 
 void deinit_DocumentWidget(iDocumentWidget *d) {
     cancelAllRequests_DocumentWidget(d);
-    pauseAllPlayers_Media(media_GmDocument(d->view->doc), iTrue);
+    releasePlayers_Media(media_GmDocument(d->view->doc));
     removeTicker_App(animate_DocumentWidget, d);
     removeTicker_App(prerender_DocumentView, d->view);
     removeTicker_App(refreshWhileScrolling_DocumentWidget, d);

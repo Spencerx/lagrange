@@ -632,12 +632,25 @@ iPlayer *audioPlayer_Media(const iMedia *d, iMediaId audioId) {
     return NULL;
 }
 
+#if 0
 void pauseAllPlayers_Media(const iMedia *d, iBool setPaused) {
 #if defined (LAGRANGE_ENABLE_AUDIO)
     for (size_t i = 0; i < size_PtrArray(&d->items[audio_MediaType]); ++i) {
         const iGmAudio *audio = constAt_PtrArray(&d->items[audio_MediaType], i);
         if (audio->player) {
             setPaused_Player(audio->player, setPaused);
+        }
+    }
+#endif
+}
+#endif
+
+void releasePlayers_Media(const iMedia *d) {
+#if defined (LAGRANGE_ENABLE_AUDIO)
+    for (size_t i = 0; i < size_PtrArray(&d->items[audio_MediaType]); ++i) {
+        const iGmAudio *audio = constAt_PtrArray(&d->items[audio_MediaType], i);
+        if (audio->player) {
+            stop_Player(audio->player);
         }
     }
 #endif

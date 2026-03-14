@@ -587,8 +587,7 @@ void deinit_Decoder(iDecoder *d) {
 #endif
 }
 
-iDefineTypeConstructionArgs(Decoder, (iInputBuf *input, const iContentSpec *spec),
-                            input, spec)
+iDefineTypeConstructionArgs(Decoder, (iInputBuf * input, const iContentSpec *spec), input, spec)
 
 /*----------------------------------------------------------------------------------------------*/
 
@@ -603,9 +602,9 @@ struct Impl_Player {
     iDecoder            *decoder;
     iAVFAudioPlayer     *avfPlayer;     /* iOS */
     iAndroidAudioPlayer *androidPlayer; /* Android */
-    float                cachedTime;     /* last known playback position, survives stop */
-    float                cachedDuration; /* total duration, survives stop */
-    iBool                isFinished;     /* set when SDL decoder output has fully drained */
+    float                lastTime;      /* last known playback position, survives stop */
+    float                lastDuration;  /* total duration, survives stop */
+    iBool                isFinished;    /* set when SDL decoder output has fully drained */
 };
 
 static iPlayer *  activePlayer_;
@@ -844,16 +843,16 @@ int numActiveSDLAudio_Player(void) {
 void init_Player(iPlayer *d) {
     iZap(d->spec);
     init_String(&d->mime);
-    d->device         = 0;
-    d->decoder        = NULL;
-    d->avfPlayer      = NULL;
-    d->androidPlayer  = NULL;
-    d->data           = new_InputBuf();
-    d->volume         = 1.0f;
-    d->flags          = 0;
-    d->cachedTime     = 0.0f;
-    d->cachedDuration = 0.0f;
-    d->isFinished     = iFalse;
+    d->device        = 0;
+    d->decoder       = NULL;
+    d->avfPlayer     = NULL;
+    d->androidPlayer = NULL;
+    d->data          = new_InputBuf();
+    d->volume        = 1.0f;
+    d->flags         = 0;
+    d->lastTime      = 0.0f;
+    d->lastDuration  = 0.0f;
+    d->isFinished    = iFalse;
 }
 
 void deinit_Player(iPlayer *d) {
@@ -1163,10 +1162,10 @@ void setPaused_Player(iPlayer *d, iBool isPaused) {
 }
 
 void stop_Player(iPlayer *d) {
-    /* Snapshot time/duration before freeing any native resources. */
-    d->cachedTime     = time_Player(d);
-    d->cachedDuration = duration_Player(d);
-    d->isFinished     = iFalse;
+    /* Remember current play position and duration. */
+    d->lastTime     = time_Player(d);
+    d->lastDuration = duration_Player(d);
+    d->isFinished   = iFalse;
 #if defined (iPlatformAppleMobile)
     if (d->avfPlayer) {
         stop_AVFAudioPlayer(d->avfPlayer);
@@ -1191,7 +1190,9 @@ void stop_Player(iPlayer *d) {
         d->device = 0;
         delete_Decoder(d->decoder);
         d->decoder = NULL;
-        setupSDLAudio_(iFalse);
+        if (numActiveSDLAudio_Player() == 0) {
+            setupSDLAudio_(iFalse); /* nothing playing, so quit the entire audio subsystem */
+        }
     }
 }
 
@@ -1250,7 +1251,7 @@ float time_Player(const iPlayer *d) {
     if (d->decoder) {
         return (float) ((double) d->decoder->currentSample / (double) d->spec.freq);
     }
-    return d->cachedTime;
+    return d->lastTime;
 }
 
 float duration_Player(const iPlayer *d) {
@@ -1267,7 +1268,7 @@ float duration_Player(const iPlayer *d) {
     if (d->decoder) {
         return (float) ((double) d->decoder->totalSamples / (double) d->spec.freq);
     }
-    return d->cachedDuration;
+    return d->lastDuration;
 }
 
 iBool isFinished_Player(const iPlayer *d) {
