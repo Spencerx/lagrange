@@ -1428,6 +1428,7 @@ static void init_App_(iApp *d, int argc, char **argv) {
     d->lastTickerTime         = SDL_GetTicks();
     d->elapsedSinceLastTicker = 0;
     d->commandEcho            = contains_CommandLine(&d->args, "echo;E");
+    d->commandEcho = isAndroid_Platform(); // XXX: testing!
     d->forceSoftwareRender    = contains_CommandLine(&d->args, "sw");
 #if defined (iPlatformMsys) || defined (iPlatformWindows)
     if (d->commandEcho) {
@@ -2035,6 +2036,9 @@ static iBool                pendingMotionPosted_;
 static SDL_MouseMotionEvent pendingMotion_;
 
 static iBool nextEvent_App_(iApp *d, enum iAppEventMode eventMode, SDL_Event *event) {
+#if defined (iPlatformAndroidMobile)
+    blockIfNeeded_Android(); /* block here when background with no SDL audio playing */
+#endif
 #if !defined (iPlatformApple)
     /* If there is accumulated mouse motion, don't spend too long processing events.
         We want to refresh the UI ASAP, if necessary. */
@@ -2144,6 +2148,7 @@ void processEvents_App(enum iAppEventMode eventMode) {
                 if (d->isTextInputActive) {
                     SDL_StartTextInput();
                 }
+                postCommand_App("media.player.update"); /* in case there are any */
                 break;
             case SDL_APP_WILLENTERBACKGROUND: {
 #if defined (iPlatformAppleMobile)
@@ -2712,6 +2717,13 @@ void refresh_App(void) {
 iBool isRefreshPending_App(void) {
     const iApp *d = &app_;
     return !isEmpty_SortedArray(&d->tickers) || value_Atomic(&app_.pendingRefresh);
+}
+
+iBool isSuspended_App(void) {
+#if defined (iPlatformAndroidMobile)
+    if (isAppInBackground_Android()) return iTrue;
+#endif
+    return app_.isSuspended;
 }
 
 iBool isFinishedLaunching_App(void) {

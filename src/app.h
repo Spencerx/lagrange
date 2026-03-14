@@ -113,6 +113,7 @@ iBool               isFinishedLaunching_App     (void);
 iBool               isRunningUnderWindowSystem_App(void);
 iBool               isRunningUnderWayland_App   (void);
 iBool               isRefreshPending_App        (void);
+iBool               isSuspended_App             (void); /* one should not be doing anything when suspended */
 iBool               isLandscape_App             (void);
 iLocalDef iBool     isPortrait_App              (void) { return !isLandscape_App(); }
 iLocalDef iBool     isPortraitPhone_App         (void) { return isPortrait_App() && deviceType_App() == phone_AppDeviceType; }

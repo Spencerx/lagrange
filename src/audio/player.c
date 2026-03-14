@@ -26,6 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "lang.h"
 #include "../app.h"
 
+#include <the_Foundation/atomic.h>
+
 #define STB_VORBIS_HEADER_ONLY
 #include "stb_vorbis.c"
 
@@ -606,7 +608,8 @@ struct Impl_Player {
     iBool                isFinished;     /* set when SDL decoder output has fully drained */
 };
 
-static iPlayer *activePlayer_;
+static iPlayer *  activePlayer_;
+static iAtomicInt numActivePlayers_; /* playing, not paused */
 
 iDefineTypeConstruction(Player)
 
@@ -834,14 +837,18 @@ static void writeOutputSamples_Player_(void *plr, Uint8 *stream, int len) {
     unlock_Mutex(&d->decoder->outputMutex);
 }
 
+int numActiveSDLAudio_Player(void) {
+    return value_Atomic(&numActivePlayers_);
+}
+
 void init_Player(iPlayer *d) {
     iZap(d->spec);
     init_String(&d->mime);
-    d->device        = 0;
-    d->decoder       = NULL;
-    d->avfPlayer     = NULL;
-    d->androidPlayer = NULL;
-    d->data          = new_InputBuf();
+    d->device         = 0;
+    d->decoder        = NULL;
+    d->avfPlayer      = NULL;
+    d->androidPlayer  = NULL;
+    d->data           = new_InputBuf();
     d->volume         = 1.0f;
     d->flags          = 0;
     d->cachedTime     = 0.0f;
@@ -1013,6 +1020,31 @@ static iBool setupSDLAudio_(iBool init) {
     return isAudioInited_;
 }
 
+static void resumeDevice_Player_(iPlayer *d) {
+    SDL_PauseAudioDevice(d->device, SDL_FALSE);
+#if defined (iPlatformAndroidMobile)
+    javaCommand_Android("audio.sdl_start player:%p", d);
+    notifySdlAudioStarted_Android();
+#endif
+    setNotIdle_Player(d);
+    activePlayer_ = d;
+    add_Atomic(&numActivePlayers_, 1);
+}
+
+static iBool pauseDevice_Player_(iPlayer *d) {
+    if (d->device && SDL_GetAudioDeviceStatus(d->device) == SDL_AUDIO_PLAYING) {
+        add_Atomic(&numActivePlayers_, -1);
+        iAssert(value_Atomic(&numActivePlayers_) >= 0);
+        SDL_PauseAudioDevice(d->device, SDL_TRUE);
+#if defined(iPlatformAndroidMobile)
+        javaCommand_Android("audio.sdl_stop player:%p", d);
+        notifySdlAudioStopped_Android();
+#endif
+        return iTrue;
+    }
+    return iFalse;
+}
+
 iBool start_Player(iPlayer *d) {
     if (isStarted_Player(d)) {
         return iFalse;
@@ -1103,11 +1135,7 @@ iBool start_Player(iPlayer *d) {
     }
     d->decoder = new_Decoder(d->data, &content);
     d->decoder->gain = d->volume;
-    SDL_PauseAudioDevice(d->device, SDL_FALSE);
-#if defined (iPlatformAndroidMobile)
-    javaCommand_Android("audio.sdl_start player:%p", d);
-#endif
-    setNotIdle_Player(d);
+    resumeDevice_Player_(d);
     activePlayer_ = d;
     return iTrue;
 }
@@ -1126,8 +1154,12 @@ void setPaused_Player(iPlayer *d, iBool isPaused) {
     }
 #endif
     if (isStarted_Player(d)) {
-        SDL_PauseAudioDevice(d->device, isPaused ? SDL_TRUE : SDL_FALSE);
-        setNotIdle_Player(d);
+        if (isPaused && SDL_GetAudioDeviceStatus(d->device) == SDL_AUDIO_PLAYING) {
+            pauseDevice_Player_(d);
+        }
+        else if (!isPaused && SDL_GetAudioDeviceStatus(d->device) == SDL_AUDIO_PAUSED) {
+            resumeDevice_Player_(d);
+        }
     }
 }
 
@@ -1155,10 +1187,7 @@ void stop_Player(iPlayer *d) {
     }
 #endif
     if (isStarted_Player(d)) {
-#if defined (iPlatformAndroidMobile)
-        javaCommand_Android("audio.sdl_stop player:%p", d);
-#endif
-        SDL_PauseAudioDevice(d->device, SDL_TRUE);
+        pauseDevice_Player_(d);
         SDL_CloseAudioDevice(d->device);
         d->device = 0;
         delete_Decoder(d->decoder);

@@ -673,7 +673,9 @@ static uint32_t mediaUpdateInterval_DocumentWidget_(const iDocumentWidget *d) {
 static uint32_t postMediaUpdate_DocumentWidget_(uint32_t interval, void *context) {
     /* Called in timer thread; don't access the widget. */
     iUnused(context);
-    postCommand_App("media.player.update");
+    if (!isSuspended_App()) {
+        postCommand_App("media.player.update");
+    }
     return interval;
 }
 

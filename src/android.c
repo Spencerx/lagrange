@@ -24,16 +24,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "app.h"
 #include "export.h"
 #include "resources.h"
+#include "audio/player.h"
 #include "ui/command.h"
 #include "ui/metrics.h"
 #include "ui/mobile.h"
 #include "ui/window.h"
 
 #include <the_Foundation/archive.h>
+#include <the_Foundation/atomic.h>
 #include <the_Foundation/buffer.h>
 #include <the_Foundation/commandline.h>
 #include <the_Foundation/file.h>
 #include <the_Foundation/fileinfo.h>
+#include <the_Foundation/mutex.h>
 #include <the_Foundation/path.h>
 
 #include <SDL.h>
@@ -45,6 +48,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 static JavaVM *javaVm_        = NULL; /* cached at startup; used for thread-agnostic JNI access */
 static jobject cachedActivity_ = NULL; /* JNI global ref to activity; valid from any thread */
+
+/* Background blocking: when the app is in the background with no SDL audio playing, the event
+   loop blocks on a condition variable to avoid spinning. The mutex protects all access to the
+   condition variable, ensuring correct memory visibility across CPU cores. */
+static iAtomicInt  isAppInBackground_;
+static iCondition  blockCond_;
+static iMutex      blockMutex_;
 
 iDeclareType(AndroidAudioPlayer);
 
@@ -63,6 +73,10 @@ struct Impl_AndroidAudioPlayer {
     float   duration;    /* seconds */
     enum iAndroidAudioPlayerState state;
 };
+
+iBool isAppInBackground_Android(void) {
+    return value_Atomic(&isAppInBackground_);
+}
 
 JNIEXPORT void JNICALL Java_fi_skyjake_lagrange_LagrangeActivity_postAppCommand(
         JNIEnv* env, jclass jcls, jstring command)
@@ -125,6 +139,8 @@ static int startLogOutputThread_(void) {
 }
 
 void setupApplication_Android(void) {
+    init_Condition(&blockCond_);
+    init_Mutex(&blockMutex_);
     /* Cache the JavaVM pointer and activity global ref for use from non-SDL threads. */
     if (!javaVm_) {
         JNIEnv *env = (JNIEnv *) SDL_AndroidGetJNIEnv();
@@ -461,6 +477,53 @@ iBool handleCommand_Android(const char *cmd) {
         postCommand_App("window.resized"); /* force a layout update */
     }
     return iFalse;
+}
+
+/*----------------------------------------------------------------------------------------------*/
+/* Background event loop blocking for SDL audio.
+   Uses iMutex+iCondition so that writes from the Java UI thread (onPause/onResume) are
+   always visible to the SDL main thread when it wakes from wait_Condition. */
+
+void notifySdlAudioStarted_Android(void) {
+    iGuardMutex(&blockMutex_, {
+        signal_Condition(&blockCond_);
+    });
+}
+
+void notifySdlAudioStopped_Android(void) {
+    // TODO: this is a no-op, remove the function
+    iGuardMutex(&blockMutex_, {
+
+    });
+}
+
+void blockIfNeeded_Android(void) {
+    /* Quick unprotected check for the common case (foreground or audio playing). */
+    if (!isAppInBackground_Android() || numActiveSDLAudio_Player() > 0) return;
+    iGuardMutex(&blockMutex_,
+        while (isAppInBackground_Android() && numActiveSDLAudio_Player() == 0) {
+            iTime timeout;
+            initSeconds_Time(&timeout, 1.0);
+            waitTimeout_Condition(&blockCond_, &blockMutex_, &timeout);
+        }
+    );
+}
+
+JNIEXPORT void JNICALL Java_fi_skyjake_lagrange_LagrangeActivity_notifyAppPaused(
+        JNIEnv *env, jclass jcls)
+{
+    iUnused(env, jcls);
+    iGuardMutex(&blockMutex_, set_Atomic(&isAppInBackground_, 1))
+}
+
+JNIEXPORT void JNICALL Java_fi_skyjake_lagrange_LagrangeActivity_notifyAppResumed(
+        JNIEnv *env, jclass jcls)
+{
+    iUnused(env, jcls);
+    iGuardMutex(&blockMutex_, {
+        set_Atomic(&isAppInBackground_, 0);
+        signal_Condition(&blockCond_);
+    })
 }
 
 /*----------------------------------------------------------------------------------------------*/

@@ -72,3 +72,4 @@ uint32_t    idleTimeMs_Player       (const iPlayer *);
 iString *   metadataLabel_Player    (const iPlayer *);
 
 iPlayer *   active_Player           (void);
+int         numActiveSDLAudio_Player(void);
