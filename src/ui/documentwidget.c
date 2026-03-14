@@ -957,6 +957,7 @@ static void releaseViewDocument_DocumentWidget_(iDocumentWidget *d) {
 }
 
 static void replaceDocument_DocumentWidget_(iDocumentWidget *d, iGmDocument *newDoc) {
+    clear_ObjectList(d->media);
     releasePlayers_Media(media_GmDocument(d->view->doc));
     releaseViewDocument_DocumentWidget_(d);
     d->view->doc = ref_Object(newDoc);
@@ -1661,6 +1662,7 @@ static iBool fetch_DocumentWidget_(iDocumentWidget *d) {
     if (isTitanUrl_String(d->mod.url)) {
         return iFalse; /* don't fetch Titan URLs from here, only through UploadWidget */
     }
+    releasePlayers_Media(media_GmDocument(d->view->doc));
     postCommandf_Root(as_Widget(d)->root,
                       "document.request.started doc:%p url:%s",
                       d,

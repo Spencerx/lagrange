@@ -941,6 +941,8 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
 #endif
             break;
         case append_PlayerUpdate: {
+            /* The assumption is that the new data and the old data share the same beginning
+               portion; the new data has some additional data available at the end. */
             const size_t oldSize = size_Block(&input->data);
             const size_t newSize = size_Block(data);
             if (input->isComplete) {
@@ -979,7 +981,7 @@ void updateSourceData_Player(iPlayer *d, const iString *mimeType, const iBlock *
                     setComplete_AndroidAudioPlayer(d->androidPlayer);
                 }
                 else if (!isVorbisMime_(&d->mime)) {
-                    /* Fallback for non-vorbis: data arrived without replace_PlayerUpdate
+                    /* Fallback for non-Vorbis: data arrived without replace_PlayerUpdate
                        (shouldn't happen in normal use). */
                     d->androidPlayer = new_AndroidAudioPlayer();
                     if (!setInput_AndroidAudioPlayer(d->androidPlayer, &d->mime, &input->data)) {
@@ -1072,10 +1074,7 @@ iBool start_Player(iPlayer *d) {
         return iTrue;
     }
     if (!isVorbisMime_(&d->mime)) {
-        if (!isComplete_Player(d)) {
-            return iFalse; /* Can't rebuild a streaming non-Vorbis player mid-stream. */
-        }
-        /* Recreate androidPlayer from complete buffered data (restart after stop). */
+        /* Recreate androidPlayer from buffered data (restart after stop). */
         d->androidPlayer = new_AndroidAudioPlayer();
         setupData_AndroidAudioPlayer(d->androidPlayer, &d->mime);
         lock_Mutex(&d->data->mtx);
@@ -1083,7 +1082,9 @@ iBool start_Player(iPlayer *d) {
                                       constData_Block(&d->data->data),
                                       size_Block(&d->data->data));
         unlock_Mutex(&d->data->mtx);
-        setComplete_AndroidAudioPlayer(d->androidPlayer);
+        if (isComplete_Player(d)) {
+            setComplete_AndroidAudioPlayer(d->androidPlayer);
+        }
         play_AndroidAudioPlayer(d->androidPlayer);
         setNotIdle_Player(d);
         activePlayer_ = d;
@@ -1097,9 +1098,9 @@ iBool start_Player(iPlayer *d) {
         if (content.type == none_DecoderType) {
             /* stb_vorbis hard-failed (not a data-starvation issue). Fall back to Android
                MediaPlayer once we have enough data to be confident about the failure. */
-            const iBool complete = isComplete_Player(d);
+            const iBool isComplete = isComplete_Player(d);
             const size_t dataSize = sourceDataSize_Player(d);
-            if (complete || dataSize >= 64 * 1024) {
+            if (isComplete || dataSize >= 64 * 1024) {
                 d->androidPlayer = new_AndroidAudioPlayer();
                 setupData_AndroidAudioPlayer(d->androidPlayer, &d->mime);
                 lock_Mutex(&d->data->mtx);
@@ -1107,7 +1108,7 @@ iBool start_Player(iPlayer *d) {
                                               constData_Block(&d->data->data),
                                               size_Block(&d->data->data));
                 unlock_Mutex(&d->data->mtx);
-                if (complete) {
+                if (isComplete) {
                     setComplete_AndroidAudioPlayer(d->androidPlayer);
                 }
                 play_AndroidAudioPlayer(d->androidPlayer);

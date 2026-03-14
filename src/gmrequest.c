@@ -296,13 +296,6 @@ static void readIncoming_GmRequest_(iGmRequest *d, iTlsRequest *req) {
         if (allowed) {
             iNotifyAudience(d, updated, GmRequestUpdated);
         }
-        else {
-            /* Notification was skipped because one is already in flight (e.g., app command
-               queue not processing while backgrounded). Reset the flag so the next incoming
-               chunk will fire a notification — otherwise data silently accumulates with no
-               further updates sent to listeners (e.g. streaming audio player). */
-            set_Atomic(&d->allowUpdate, iTrue);
-        }
     }
     if (notifyDone) {
         iNotifyAudience(d, finished, GmRequestFinished);
