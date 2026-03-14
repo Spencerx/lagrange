@@ -812,7 +812,7 @@ static iContentSpec detectContentSpec_Player_(const iPlayer *d) {
     iAssert(content.inputFormat == content.output.format ||
             (content.inputFormat == AUDIO_S24LSB && content.output.format == AUDIO_S16) ||
             (content.inputFormat == AUDIO_F64LSB && content.output.format == AUDIO_F32));
-    content.output.samples = isAndroid_Platform() ? content.output.freq / 2 : 8192;
+    content.output.samples = isAndroid_Platform() ? content.output.freq / 4 : 8192;
     return content;
 }
 
