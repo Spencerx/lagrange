@@ -2039,7 +2039,7 @@ static SDL_MouseMotionEvent pendingMotion_;
 
 static iBool nextEvent_App_(iApp *d, enum iAppEventMode eventMode, SDL_Event *event) {
 #if defined (iPlatformAndroidMobile)
-    blockIfNeeded_Android(); /* block here when background with no SDL audio playing */
+    blockWhileAppInBackground_Android(); /* unless audio playing/streaming */
 #endif
 #if !defined (iPlatformApple)
     /* If there is accumulated mouse motion, don't spend too long processing events.

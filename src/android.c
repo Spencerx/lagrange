@@ -480,27 +480,20 @@ iBool handleCommand_Android(const char *cmd) {
 }
 
 /*----------------------------------------------------------------------------------------------*/
-/* Background event loop blocking for SDL audio.
-   Uses iMutex+iCondition so that writes from the Java UI thread (onPause/onResume) are
-   always visible to the SDL main thread when it wakes from wait_Condition. */
 
-void notifySdlAudioStarted_Android(void) {
+void notifySDLAudioStarted_Android(void) {
     iGuardMutex(&blockMutex_, {
         signal_Condition(&blockCond_);
     });
 }
 
-void notifySdlAudioStopped_Android(void) {
-    // TODO: this is a no-op, remove the function
-    iGuardMutex(&blockMutex_, {
-
-    });
-}
-
-void blockIfNeeded_Android(void) {
-    /* Quick unprotected check for the common case (foreground or audio playing). */
+void blockWhileAppInBackground_Android(void) {
+    /* On Android, we control event loop blocking manually so we can play audio in the
+       background using the SDL audio thread. */
     if (!isAppInBackground_Android() || numActiveSDLAudio_Player() > 0) return;
     iGuardMutex(&blockMutex_,
+        /* We will block here until the app returns to the foreground, or
+           there is audio playing. */
         while (isAppInBackground_Android() && numActiveSDLAudio_Player() == 0) {
             iTime timeout;
             initSeconds_Time(&timeout, 1.0);
@@ -536,6 +529,7 @@ static const char *audioCacheDir_(void) {
 }
 
 static const char *audioFileExt_(const iString *mimeType) {
+    /* Note: There is a similar type-to-extension mapping on the Java audio side. */
     if (startsWithCase_String(mimeType, "audio/mpeg") ||
         startsWithCase_String(mimeType, "audio/mp3")) {
         return ".mp3";
@@ -609,6 +603,7 @@ void appendData_AndroidAudioPlayer(iAndroidAudioPlayer *d, const void *bytes, si
 }
 
 void setComplete_AndroidAudioPlayer(iAndroidAudioPlayer *d) {
+    /* TODO: replace this; we can use `appendData_AndroidAudioPlayer` with bytes==NULL */
     jboolean  needDetach;
     JNIEnv   *env      = currentJNIEnv_(&needDetach);
     jobject   activity = cachedActivity_; /* global ref — valid from any thread */

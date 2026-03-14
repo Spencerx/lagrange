@@ -1023,8 +1023,8 @@ static iBool setupSDLAudio_(iBool init) {
 static void resumeDevice_Player_(iPlayer *d) {
     SDL_PauseAudioDevice(d->device, SDL_FALSE);
 #if defined (iPlatformAndroidMobile)
-    javaCommand_Android("audio.sdl_start player:%p", d);
-    notifySdlAudioStarted_Android();
+    javaCommand_Android("audio.sdl.start player:%p", d);
+    notifySDLAudioStarted_Android(); /* we control event loop blocking */
 #endif
     setNotIdle_Player(d);
     activePlayer_ = d;
@@ -1037,8 +1037,7 @@ static iBool pauseDevice_Player_(iPlayer *d) {
         iAssert(value_Atomic(&numActivePlayers_) >= 0);
         SDL_PauseAudioDevice(d->device, SDL_TRUE);
 #if defined(iPlatformAndroidMobile)
-        javaCommand_Android("audio.sdl_stop player:%p", d);
-        notifySdlAudioStopped_Android();
+        javaCommand_Android("audio.sdl.stop player:%p", d);
 #endif
         return iTrue;
     }

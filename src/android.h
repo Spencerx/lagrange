@@ -35,12 +35,9 @@ iRangei     lastInputSelectionRange_Android (void);
 void        javaCommand_Android     (const char *format, ...);
 iBool       handleCommand_Android   (const char *cmd);
 
-/* Background event loop blocking: prevents the event loop from spinning when
-   the app is in the background with no SDL audio player active. */
-void        notifySdlAudioStarted_Android   (void);
-void        notifySdlAudioStopped_Android   (void);
-void        blockIfNeeded_Android           (void);
-iBool       isAppInBackground_Android       (void);
+void        notifySDLAudioStarted_Android       (void);
+void        blockWhileAppInBackground_Android   (void);
+iBool       isAppInBackground_Android           (void);
 
 /*----------------------------------------------------------------------------------------------*/
 /* Android audio player using MediaPlayer via JNI. */
