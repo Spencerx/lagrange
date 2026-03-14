@@ -286,6 +286,7 @@ struct Impl_DocumentWidget {
     iString *      certSubject;
     int            redirectCount;
     iObjectList *  media; /* inline media requests */
+    uint32_t       lastMediaInterval;
 
     /* Document: */
     iPersistentDocumentState mod;
@@ -648,8 +649,11 @@ static uint32_t mediaUpdateInterval_DocumentWidget_(const iDocumentWidget *d) {
 #if defined (LAGRANGE_ENABLE_AUDIO)
             iPlayer *plr = audioPlayer_Media(media_GmDocument(d->view->doc), mediaId_GmRun(run));
             if (flags_Player(plr) & adjustingVolume_PlayerFlag ||
-                (isStarted_Player(plr) && !isPaused_Player(plr))) {
-                interval = iMin(interval, 1000 / 15);
+                (isStarted_Player(plr) && !isComplete_Player(plr))) {
+                interval = iMin(interval, 1000 / 15); /* download status animation */
+            }
+            else if (isStarted_Player(plr) && !isPaused_Player(plr)) {
+                interval = iMin(interval, 1000); /* per-second position */
             }
 #endif
         }
@@ -703,7 +707,13 @@ static void animateMedia_DocumentWidget_(iDocumentWidget *d) {
         }
         return;
     }
-    uint32_t interval = mediaUpdateInterval_DocumentWidget_(d);
+    const uint32_t interval = mediaUpdateInterval_DocumentWidget_(d);
+    if (interval != d->lastMediaInterval && d->mediaTimer) {
+        /* We need to change the interval. */
+        SDL_RemoveTimer(d->mediaTimer);
+        d->mediaTimer = 0;
+    }
+    d->lastMediaInterval = interval;
     if (interval && !d->mediaTimer) {
         d->mediaTimer = SDL_AddTimer(interval, postMediaUpdate_DocumentWidget_, d);
     }
@@ -5374,6 +5384,7 @@ void init_DocumentWidget(iDocumentWidget *d) {
     d->request             = NULL;
     d->requestLinkId       = 0;
     d->media               = new_ObjectList();
+    d->lastMediaInterval   = 0;
     d->banner              = new_Banner();
     setOwner_Banner(d->banner, d);
     d->redirectCount    = 0;

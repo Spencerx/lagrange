@@ -853,6 +853,7 @@ void deinit_Player(iPlayer *d) {
     stop_Player(d);
     delete_InputBuf(d->data);
     deinit_String(&d->mime);
+    iAssert(d->decoder == NULL);
 #if defined (iPlatformAppleMobile)
     iAssert(d->avfPlayer == NULL);
 #endif
