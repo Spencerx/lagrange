@@ -961,7 +961,8 @@ static void drawRun_DrawContext_(void *context, const iGmRun *run) {
     const int          linkFlags = linkFlags_GmDocument(doc, run->linkId);
     /* Hover state of a link. */
     const iBool isPartOfHover = (run->linkId && d->view->hoverLink &&
-                                 run->linkId == d->view->hoverLink->linkId);
+                                 run->linkId == d->view->hoverLink->linkId &&
+                                 ~linkFlags & content_GmLinkFlag);
     iBool isHover = (isPartOfHover && ~run->flags & decoration_GmRunFlag);
     /* Visible (scrolled) position of the run. */
     const iInt2 visPos = addX_I2(add_I2(run->visBounds.pos, origin),

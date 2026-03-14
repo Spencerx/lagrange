@@ -1392,7 +1392,8 @@ static void doLayout_GmDocument_(iGmDocument *d) {
                 case audio_MediaType: {
                     run.bounds.pos    = pos;
                     run.bounds.size.x = d->size.x;
-                    run.bounds.size.y = lineHeight_Text(uiContent_FontId) + 3 * gap_UI;
+                    run.bounds.size.y = lineHeight_Text(uiContent_FontId) *
+                                            (isMobile_Platform() ? 1.5f : 1.0f) + 3 * gap_UI;
                     run.visBounds     = run.bounds;
                     pushBack_Array(&d->layout, &run);
                     break;
@@ -2940,6 +2941,11 @@ iBool isMediaLink_GmDocument(const iGmDocument *d, iGmLinkId linkId) {
     if (isTerminal_Platform()) {
         return iFalse; /* can't show/play media (TODO: image rendering?) */
     }
+    /* We may already have media for this link. */
+    if (findMediaForLink_Media(d->media, linkId, none_MediaType).type) {
+        return iTrue;
+    }
+    /* Check the URL if it appears like a potential media link. */
     const iString *dstUrl = absoluteUrl_String(&d->url, linkUrl_GmDocument(d, linkId));
     const iRangecc scheme = urlScheme_String(dstUrl);
     if (equalCase_Rangecc(scheme, "gemini") || equalCase_Rangecc(scheme, "gopher") ||

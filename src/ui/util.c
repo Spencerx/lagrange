@@ -796,6 +796,7 @@ static iBool isCommandIgnoredByMenus_(const char *cmd) {
            equal_Command(cmd, "document.openurls.changed") ||
            equal_Command(cmd, "android.keyboard.changed") ||
            equal_Command(cmd, "android.input.selrange") ||
+           equal_Command(cmd, "android.audio.time") ||
            equal_Command(cmd, "scrollbar.fade") ||
            equal_Command(cmd, "visited.changed") ||
            equal_Command(cmd, "visited.save") ||
