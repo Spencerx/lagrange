@@ -1428,7 +1428,9 @@ static void init_App_(iApp *d, int argc, char **argv) {
     d->lastTickerTime         = SDL_GetTicks();
     d->elapsedSinceLastTicker = 0;
     d->commandEcho            = contains_CommandLine(&d->args, "echo;E");
-    d->commandEcho = isAndroid_Platform(); // XXX: testing!
+#if defined (iPlatformAndroidMobile)
+    d->commandEcho = iTrue; /* XXX: testing! */
+#endif
     d->forceSoftwareRender    = contains_CommandLine(&d->args, "sw");
 #if defined (iPlatformMsys) || defined (iPlatformWindows)
     if (d->commandEcho) {
