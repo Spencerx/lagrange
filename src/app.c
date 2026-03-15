@@ -1500,6 +1500,9 @@ static void init_App_(iApp *d, int argc, char **argv) {
 #if defined (iPlatformAndroidMobile)
     setupApplication_Android();
 #endif
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
+    setupApplication_Win32();
+#endif
     init_Keys();
     init_Fonts(dataDir_App_());
     loadPalette_Color(dataDir_App_());

@@ -879,7 +879,7 @@ void init_MainWindow(iMainWindow *d, iRect rect) {
         d->appIcon = SDL_CreateTextureFromSurface(d->base.render, surf);
         free(surf->pixels);
         SDL_FreeSurface(surf);
-        /* We need to observe non-client-area events. */
+        /* We need to observe non-client-area events (custom frame). */
         SDL_EventState(SDL_SYSWMEVENT, SDL_TRUE);
     }
 #endif
@@ -1381,10 +1381,11 @@ iBool processEvent_Window(iWindow *d, const SDL_Event *ev) {
     switch (ev->type) {
 #if defined (LAGRANGE_ENABLE_CUSTOM_FRAME)
         case SDL_SYSWMEVENT: {
-            /* We observe native Win32 messages for better user interaction with the
-               window frame. Mouse clicks especially will not generate normal SDL
-               events if they happen on the custom hit-tested regions. These events
-               are processed only there; the UI widgets do not get involved. */
+            /* We observe native Win32 messages for dark mode detection and better
+               user interaction with the custom window frame. Mouse clicks especially
+               will not generate normal SDL events if they happen on the custom 
+               hit-tested regions. These events are processed only there; the UI 
+               widgets do not get involved. */
             processNativeEvent_Win32(ev->syswm.msg, d);
             break;
         }

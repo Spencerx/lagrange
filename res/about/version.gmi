@@ -20,6 +20,7 @@ Changes and enhancements:
 * Plain text lines are wrapped to the maximum available width when the expand-to-long-lines option is enabled.
 * Improved warning message when there is a problem with the proxy server certificate.
 * Revised order of input prompt Ellipsis menu items; added prompt position toggle.
+* Windows: Detect system dark mode and switch app color theme accordingly.
 
 Fixes:
 * Opening a link context menu using the keyboard shortcut will remember which link as hovered using the keyboard.

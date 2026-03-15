@@ -3939,7 +3939,7 @@ iWidget *makePreferences_Widget(void) {
             /* Display character set. */
             addDialogToggle_Widget(headings, values, "${prefs.tui.simple}", "prefs.tui.simple");
         }
-#if defined (iPlatformApple) && !defined (iPlatformTerminal)
+#if (defined (iPlatformApple) || defined (iPlatformMsys) || defined (iPlatformWindows)) && !defined (iPlatformTerminal)
         addDialogToggle_Widget(headings, values, "${prefs.ostheme}", "prefs.ostheme");
 #endif
         addChild_Widget(headings, iClob(makeHeading_Widget("${prefs.theme}")));
