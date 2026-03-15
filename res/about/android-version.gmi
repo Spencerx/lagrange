@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.20 (Beta 48)
+* Fixed: Save state when app is stopped (e.g., force-closing).
+
 ## 1.20 (Beta 47)
 * Audio: Playback and streaming are possible also in the background, using native Android media decoders. The new app permissions for Foreground Service (Media Playback), Notifications, and Wake Lock are needed for this.
 * Audio: Show an Android notification when audio is playing (required by OS for background audio). The first time audio is played, you will be prompted to enable notifications.

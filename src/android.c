@@ -519,8 +519,15 @@ JNIEXPORT void JNICALL Java_fi_skyjake_lagrange_LagrangeActivity_notifyAppResume
     })
 }
 
+JNIEXPORT void JNICALL Java_fi_skyjake_lagrange_LagrangeActivity_notifyAppStopping(
+        JNIEnv *env, jclass jcls) {
+    iUnused(env, jcls);
+    /* Called synchronously from Java onStop(); saves full state including cached tab
+       content before the process may be killed. */
+    saveState_App();
+}
+
 /*----------------------------------------------------------------------------------------------*/
-/* Android audio player */
 
 iDefineTypeConstruction(AndroidAudioPlayer)
 

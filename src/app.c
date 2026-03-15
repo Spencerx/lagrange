@@ -1950,6 +1950,11 @@ void saveStateQuickly_App(void) {
     saveState_App_(&app_, iFalse /* cached content is not saved */);
 }
 
+void saveState_App(void) {
+    saveState_App_(&app_, iTrue /* including cache */);
+    savePrefs_App_(&app_);
+}
+
 const iStringArray *recentlySubmittedInput_App(void) {
     return app_.recentlySubmittedInput;
 }
