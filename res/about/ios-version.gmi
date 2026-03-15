@@ -6,6 +6,15 @@
 ```
 # Release notes
 
+## 1.20 (4)
+* Improved UI of inline audio player for touch screens: taller area, removed volume button.
+* Fixed stability and behavior issues with audio players. For example, history navigation was not releasing audio player resources when leaving a page. (Previously, they were just paused.)
+* Fixed excessive audio player refresh interval.
+* Fixed auto-stopping an audio player when at end of content.
+* Fixed ability to scroll the page while an input prompt is open.
+* Moved "Paste Preceding Line" to top of context menu.
+* Updated UI translations.
+
 ## 1.20 (3)
 * Added SOCKS5 proxy support. When enabled, all connections and DNS resolution are tunneled through the proxy.
 * Added option to prefer IPv6 in DNS resolution.
