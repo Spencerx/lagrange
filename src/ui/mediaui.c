@@ -208,8 +208,11 @@ void draw_PlayerUI(iPlayerUI *d, iPaint *p) {
     const float normPos  = totalTime > 0 ? playTime / totalTime : 0.0f;
     const int   part     = (s2 - s1) * normPos;
     const int   scrubMax = (s2 - s1) * streamProgress_Player(d->player);
-    drawHLine_Paint(p, init_I2(s1, yMid), part, bright);
-    drawHLine_Paint(p, init_I2(s1 + part, yMid), scrubMax - part, dim);
+    const int   barThick = gap_UI / 2;
+    fillRect_Paint(p, (iRect){ init_I2(s1,   yMid - barThick / 2),
+                               init_I2(part, barThick) }, bright);
+    fillRect_Paint(p, (iRect){ init_I2(s1 + part,       yMid - barThick / 2),
+                               init_I2(scrubMax - part, barThick) }, dim);
     const char *dot = "\u23fa";
     const int dotWidth = measure_Text(uiLabel_FontId, dot).advance.x;
     draw_Text(uiLabel_FontId,
