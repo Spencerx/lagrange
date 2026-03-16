@@ -199,7 +199,11 @@ static iBool convertSource_Gopher_(iGopher *d) {
                     setPre_Gopher_(d, iFalse);
                     appendEscapedLineToOutput_Gopher_(d, text, size_Range(&text));
                     setPre_Gopher_(d, iTrue);
-                    appendEscapedLineToOutput_Gopher_(d, path, port.end - path.start);
+                    appendEscapedLineToOutput_Gopher_(d,
+                                                      path,
+                                                      !isEmpty_Range(&port) && port.end > path.start
+                                                          ? port.end - path.start
+                                                          : size_Range(&path));
                     break;
             }
             delete_String(buf);
