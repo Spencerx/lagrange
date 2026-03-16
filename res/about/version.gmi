@@ -12,6 +12,7 @@ New features:
 * SOCKS5 proxy support. When enabled, all connections and DNS resolution are tunneled through the proxy.
 * Option to prefer IPv6 in DNS resolution.
 * Option to show input prompts at bottom of window (Preferences > Appearance).
+* Scroll page by dragging with middle mouse button.
 * Context menu for error/warning messages. These messages are not selectable text so this way one can copy the message to the clipboard.
 * Context menu for input dialog prompt text.
 * Return key behavior: Shift for newline, Command/Control for accept.

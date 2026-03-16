@@ -584,7 +584,7 @@ void cancel_Click(iClick *d) {
 }
 
 iBool isMoved_Click(const iClick *d) {
-    return dist_I2(d->startPos, d->pos) > 2;
+    return dist_I2(d->startPos, d->pos) > d->minDrag;
 }
 
 iInt2 pos_Click(const iClick *d) {

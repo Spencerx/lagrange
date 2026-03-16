@@ -264,6 +264,9 @@ struct Impl_DocumentWidget {
     int            mediaTimer;
     const iGmRun * contextLink;
     iClick         click;
+    iClick         midClick;   /* dragging with middle button is a scroll gesture */
+    float          midScrollAccum;
+    uint32_t       midScrollTime;
     iInt2          contextPos; /* coordinates of latest right click */
     int            pinchZoomInitial;
     int            pinchZoomPosted;
@@ -405,6 +408,9 @@ iBool isHoverAllowed_DocumentWidget(const iDocumentWidget *d) {
     }
     if (d->flags & (noHoverWhileScrolling_DocumentWidgetFlag |
                     drawDownloadCounter_DocumentWidgetFlag)) {
+        return iFalse;
+    }
+    if (d->midClick.isActive && d->midClick.isDragging) {
         return iFalse;
     }
     if (d->flags & pinchZoom_DocumentWidgetFlag) {
@@ -4549,6 +4555,25 @@ static iBool contains_DocumentWidget_(const iDocumentWidget *d, iInt2 pos) {
     return iTrue;
 }
 
+static void scrollOnMiddleButtonDrag_DocumentWidget_(void *ticker) {
+    iDocumentWidget *d = ticker;
+    if (d->midClick.isActive && d->midClick.isDragging) {
+        const uint32_t now            = SDL_GetTicks();
+        const double   elapsedSeconds = (now - d->midScrollTime) / 1000.0;
+        const float    speed          = delta_Click(&d->midClick).y * 1.0f / gap_UI;
+        d->midScrollTime              = now;
+        d->midScrollAccum += iAbs(speed * speed * elapsedSeconds);
+        const int scroll = (int) d->midScrollAccum;
+        if (scroll) {
+            d->midScrollAccum -= scroll; /* fractional part remains */
+            stop_Anim(&d->view->scrollY.pos);
+            immediateScroll_DocumentView(d->view, iSign(speed) * scroll);
+            iChangeFlags(d->flags, noHoverWhileScrolling_DocumentWidgetFlag, iTrue);
+        }
+        addTicker_App(scrollOnMiddleButtonDrag_DocumentWidget_, d);
+    }
+}
+
 static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *ev) {
     iWidget       *w    = as_Widget(d);
     iDocumentView *view = d->view;
@@ -4702,6 +4727,9 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
         if (isVisible_Widget(d->menu)) {
             setCursor_Window(get_Window(), SDL_SYSTEM_CURSOR_ARROW);
         }
+        else if (d->midClick.isActive) {
+            setCursor_Window(get_Window(), SDL_SYSTEM_CURSOR_SIZENS);
+        }
 #if 0
         else if (contains_Rect(siteBannerRect_DocumentWidget_(d), mpos)) {
             setCursor_Window(get_Window(), SDL_SYSTEM_CURSOR_HAND);
@@ -4721,6 +4749,39 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
     if (processMediaEvents_DocumentWidget_(d, ev)) {
         return iTrue;
     }
+    /* The middle mouse button. */
+    switch (processEvent_Click(&d->midClick, ev)) {
+        case started_ClickResult:
+            d->midScrollTime = 0;
+            break;
+        case drag_ClickResult:
+            if (!d->midScrollTime) {
+                /* Scroll starts now. */
+                d->midScrollAccum = 0;
+                d->midScrollTime  = SDL_GetTicks();
+                addTicker_App(scrollOnMiddleButtonDrag_DocumentWidget_, d); /* continual */
+            }
+            break;
+        case finished_ClickResult:
+            setCursor_Window(get_Window(), SDL_SYSTEM_CURSOR_ARROW);
+            if (view->hoverLink && !d->midScrollTime) {
+                /* Scrolling will cancel hover so we shouldn't end up here if the middle
+                   button was used for scrolling. */
+                postOpenLinkCommand_DocumentWidget_(
+                    d,
+                    view->hoverLink->linkId,
+                    (isPinned_DocumentWidget_(d) ? otherRoot_OpenTabFlag : 0) |
+                        (modState_Keys() & KMOD_SHIFT ? new_OpenTabFlag
+                                                      : newBackground_OpenTabFlag));
+                return iTrue;
+            }
+            break;
+        case aborted_ClickResult:
+            setCursor_Window(get_Window(), SDL_SYSTEM_CURSOR_ARROW);
+            break;
+        default:
+            break;
+    }
     if (ev->type == SDL_MOUSEBUTTONDOWN) {
         if (ev->button.button == SDL_BUTTON_X1) {
             postCommand_Root(w->root, "navigate.back");
@@ -4728,14 +4789,6 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
         }
         if (ev->button.button == SDL_BUTTON_X2) {
             postCommand_Root(w->root, "navigate.forward");
-            return iTrue;
-        }
-        if (ev->button.button == SDL_BUTTON_MIDDLE && view->hoverLink) {
-            postOpenLinkCommand_DocumentWidget_(
-                d,
-                view->hoverLink->linkId,
-                (isPinned_DocumentWidget_(d) ? otherRoot_OpenTabFlag : 0) |
-                    (modState_Keys() & KMOD_SHIFT ? new_OpenTabFlag : newBackground_OpenTabFlag));
             return iTrue;
         }
         if (ev->button.button == SDL_BUTTON_RIGHT &&
@@ -4940,10 +4993,11 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                     stop_Anim(&d->view->scrollY.pos);
                 }
             }
-//            printf("mark %zu ... %zu {%s}\n", d->selectMark.start - cstr_String(source_GmDocument(d->view->doc)),
-//                   d->selectMark.end - cstr_String(source_GmDocument(d->view->doc)),
-//                   d->selectMark.end > d->selectMark.start ? cstr_Rangecc(d->selectMark) : "");
-//            fflush(stdout);
+            // printf("mark %zu ... %zu {%s}\n",
+                   // d->selectMark.start - cstr_String(source_GmDocument(d->view->doc)),
+                   // d->selectMark.end - cstr_String(source_GmDocument(d->view->doc)),
+                   // d->selectMark.end > d->selectMark.start ? cstr_Rangecc(d->selectMark) : "");
+            // fflush(stdout);
             refresh_Widget(w);
             return iTrue;
         }
@@ -5417,6 +5471,9 @@ void init_DocumentWidget(iDocumentWidget *d) {
     init_String(&d->pendingGotoHeading);
     init_String(&d->linePrecedingLink);
     init_Click(&d->click, d, SDL_BUTTON_LEFT);
+    init_Click(&d->midClick, d, SDL_BUTTON_MIDDLE);
+    d->midScrollTime  = 0;
+    d->midScrollAccum = 0;
     d->linkInfo = (deviceType_App() == desktop_AppDeviceType ? new_LinkInfo() : NULL);
     allocView_DocumentWidget_(d);
     d->swipeView   = NULL;
