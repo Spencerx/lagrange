@@ -114,6 +114,9 @@ struct Impl_Window {
     SDL_Texture * borderShadow;
     iText *       text;
     unsigned int  frameCount;
+    iClick        midDrag;      /* middle mouse button drag-to-scroll gesture */
+    uint32_t      midDragTime;  /* timestamp of last scroll drag event */
+    float         midDragAccum;
 };
 
 struct Impl_MainWindow {

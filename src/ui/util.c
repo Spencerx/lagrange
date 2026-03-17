@@ -517,6 +517,9 @@ void initButtons_Click(iClick *d, iAnyObject *widget, int buttonMask) {
 }
 
 iBool contains_Click(const iClick *d, iInt2 coord) {
+    if (!d->bounds) {
+        return iTrue;
+    }
     if (d->minHeight) {
         iRect rect = bounds_Widget(d->bounds);
         rect.size.y = iMax(d->minHeight, rect.size.y);
@@ -557,7 +560,9 @@ enum iClickResult processEvent_Click(iClick *d, const SDL_Event *event) {
                 d->isDragging = iFalse;
                 d->clickButton = mb->button;
                 d->startPos = d->pos = pos;
-                setMouseGrab_Widget(d->bounds);
+                if (d->bounds) {
+                    setMouseGrab_Widget(d->bounds);
+                }
                 return started_ClickResult;
             }
         }
@@ -569,7 +574,9 @@ enum iClickResult processEvent_Click(iClick *d, const SDL_Event *event) {
                                            : aborted_ClickResult;
             d->isActive = iFalse;
             d->pos = pos;
-            setMouseGrab_Widget(NULL);
+            if (d->bounds) {
+                setMouseGrab_Widget(NULL);
+            }
             return result;
         }
     }
@@ -579,7 +586,9 @@ enum iClickResult processEvent_Click(iClick *d, const SDL_Event *event) {
 void cancel_Click(iClick *d) {
     if (d->isActive) {
         d->isActive = iFalse;
-        setMouseGrab_Widget(NULL);
+        if (d->bounds) {
+            setMouseGrab_Widget(NULL);
+        }
     }
 }
 

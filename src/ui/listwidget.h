@@ -72,7 +72,8 @@ struct Impl_ListWidget {
     size_t         dragItem;
     iInt2          dragOrigin; /* offset from mouse to drag item's top-left corner */
     int            dragHandleWidth;
-    iClick         click;
+    iClick         click;    /* left button: item dragging */
+    iClick         midClick; /* middle button: open item in background tab */
     iIntSet        invalidItems;
     iVisBuf       *visBuf;
     enum iScrollMode scrollMode;

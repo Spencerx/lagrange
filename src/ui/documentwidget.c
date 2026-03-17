@@ -264,9 +264,7 @@ struct Impl_DocumentWidget {
     int            mediaTimer;
     const iGmRun * contextLink;
     iClick         click;
-    iClick         midClick;   /* dragging with middle button is a scroll gesture */
-    float          midScrollAccum;
-    uint32_t       midScrollTime;
+    iClick         midClick;   /* opens link */
     iInt2          contextPos; /* coordinates of latest right click */
     int            pinchZoomInitial;
     int            pinchZoomPosted;
@@ -4555,24 +4553,6 @@ static iBool contains_DocumentWidget_(const iDocumentWidget *d, iInt2 pos) {
     return iTrue;
 }
 
-static void scrollOnMiddleButtonDrag_DocumentWidget_(void *ticker) {
-    iDocumentWidget *d = ticker;
-    if (d->midClick.isActive && d->midClick.isDragging) {
-        const uint32_t now            = SDL_GetTicks();
-        const double   elapsedSeconds = (now - d->midScrollTime) / 1000.0;
-        const float    speed          = delta_Click(&d->midClick).y * 1.0f / gap_UI;
-        d->midScrollTime              = now;
-        d->midScrollAccum += iAbs(speed * speed * elapsedSeconds);
-        const int scroll = (int) d->midScrollAccum;
-        if (scroll) {
-            d->midScrollAccum -= scroll; /* fractional part remains */
-            stop_Anim(&d->view->scrollY.pos);
-            immediateScroll_DocumentView(d->view, iSign(speed) * scroll);
-            iChangeFlags(d->flags, noHoverWhileScrolling_DocumentWidgetFlag, iTrue);
-        }
-        addTicker_App(scrollOnMiddleButtonDrag_DocumentWidget_, d);
-    }
-}
 
 static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *ev) {
     iWidget       *w    = as_Widget(d);
@@ -4751,22 +4731,9 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
     }
     /* The middle mouse button. */
     switch (processEvent_Click(&d->midClick, ev)) {
-        case started_ClickResult:
-            d->midScrollTime = 0;
-            break;
-        case drag_ClickResult:
-            if (!d->midScrollTime) {
-                /* Scroll starts now. */
-                d->midScrollAccum = 0;
-                d->midScrollTime  = SDL_GetTicks();
-                addTicker_App(scrollOnMiddleButtonDrag_DocumentWidget_, d); /* continual */
-            }
-            break;
         case finished_ClickResult:
-            setCursor_Window(get_Window(), SDL_SYSTEM_CURSOR_ARROW);
-            if (view->hoverLink && !d->midScrollTime) {
-                /* Scrolling will cancel hover so we shouldn't end up here if the middle
-                   button was used for scrolling. */
+            if (view->hoverLink && !d->midClick.isDragging) {
+                /* Open the hovered link; dragging will have cancelled hover. */
                 postOpenLinkCommand_DocumentWidget_(
                     d,
                     view->hoverLink->linkId,
@@ -4775,9 +4742,6 @@ static iBool processEvent_DocumentWidget_(iDocumentWidget *d, const SDL_Event *e
                                                       : newBackground_OpenTabFlag));
                 return iTrue;
             }
-            break;
-        case aborted_ClickResult:
-            setCursor_Window(get_Window(), SDL_SYSTEM_CURSOR_ARROW);
             break;
         default:
             break;
@@ -5472,8 +5436,6 @@ void init_DocumentWidget(iDocumentWidget *d) {
     init_String(&d->linePrecedingLink);
     init_Click(&d->click, d, SDL_BUTTON_LEFT);
     init_Click(&d->midClick, d, SDL_BUTTON_MIDDLE);
-    d->midScrollTime  = 0;
-    d->midScrollAccum = 0;
     d->linkInfo = (deviceType_App() == desktop_AppDeviceType ? new_LinkInfo() : NULL);
     allocView_DocumentWidget_(d);
     d->swipeView   = NULL;

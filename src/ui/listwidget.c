@@ -99,7 +99,8 @@ void init_ListWidget(iListWidget *d) {
     d->dragItem = iInvalidPos;
     d->dragOrigin = zero_I2();
     d->dragHandleWidth = 0;
-    initButtons_Click(&d->click, d, SDL_BUTTON_LMASK | SDL_BUTTON_MMASK);
+    init_Click(&d->click, d, SDL_BUTTON_LEFT);
+    init_Click(&d->midClick, d, SDL_BUTTON_MIDDLE);
     init_IntSet(&d->invalidItems);
     d->visBuf = new_VisBuf();
     iForIndices(i, d->visBuf->buffers) {
@@ -660,6 +661,7 @@ static iBool processEvent_ListWidget_(iListWidget *d, const SDL_Event *ev) {
         postCommand_Widget(w, "listswipe.moved arg:%d coord:%d %d", ev->wheel.x, coord.x, coord.y);
         return iTrue;
     }
+    /* Left button: item selection, dragging. */
     switch (processEvent_Click(&d->click, ev)) {
         case started_ClickResult:
             d->noHoverWhileScrolling = iFalse;
@@ -670,9 +672,6 @@ static iBool processEvent_ListWidget_(iListWidget *d, const SDL_Event *ev) {
             abortDrag_ListWidget_(d);
             break;
         case drag_ClickResult:
-            if (d->click.clickButton != SDL_BUTTON_LEFT) {
-                return iFalse;
-            }
             if (d->dragItem == iInvalidPos && length_I2(delta_Click(&d->click)) > gap_UI) {
                 const size_t over = itemIndex_ListWidget(d, d->click.startPos);
                 if (over != iInvalidPos &&
@@ -699,6 +698,25 @@ static iBool processEvent_ListWidget_(iListWidget *d, const SDL_Event *ev) {
                                    constHoverItem_ListWidget(d),
                                    ev->button.which);
             }
+            return iTrue;
+        default:
+            break;
+    }
+    /* Middle button: secondary item action. */
+    switch (processEvent_Click(&d->midClick, ev)) {
+        case started_ClickResult:
+            updateHover_ListWidget_(d, mouseCoord_Window(get_Window(), ev->button.which));
+            return iTrue;
+        case finished_ClickResult:
+            if (!d->midClick.isDragging && d->hoverItem != iInvalidPos) {
+                postCommand_Widget(w, "list.clicked arg:%zu button:%d item:%p device:%u",
+                                   d->hoverItem,
+                                   SDL_BUTTON_MIDDLE,
+                                   constHoverItem_ListWidget(d),
+                                   ev->button.which);
+            }
+            return iTrue;
+        case aborted_ClickResult:
             return iTrue;
         default:
             break;

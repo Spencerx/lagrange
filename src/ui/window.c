@@ -686,6 +686,9 @@ void init_Window(iWindow *d, enum iWindowType type, iRect rect, uint32_t flags) 
     d->keyRoot       = NULL;
     d->borderShadow  = NULL;
     d->frameCount    = 0;
+    init_Click(&d->midDrag, NULL, SDL_BUTTON_MIDDLE);
+    d->midDragTime   = 0;
+    d->midDragAccum  = 0.0f;
     iZap(d->roots);
     iZap(d->cursors);
     create_Window_(d, rect, flags);
@@ -1375,6 +1378,30 @@ void updateHover_Window(iWindow *d) {
     d->hover = hitChild_Window(d, mouseCoord_Window(d, 0));
 }
 
+static void scrollOnMiddleDrag_Window_(void *context) {
+    iWindow *d = context;
+    if (d->midDrag.isActive && d->midDrag.isDragging) {
+        const uint32_t now            = SDL_GetTicks();
+        const double   elapsedSeconds = (now - d->midDragTime) / 1000.0;
+        const float    speed          = delta_Click(&d->midDrag).y * 1.0f / gap_UI;
+        d->midDragTime                = now;
+        d->midDragAccum += iAbs(speed * speed * elapsedSeconds);
+        const int scroll = (int) d->midDragAccum;
+        if (scroll) {
+            d->midDragAccum -= scroll; /* fractional part remains */
+            SDL_MouseWheelEvent ev = {
+                .type      = SDL_MOUSEWHEEL,
+                .timestamp = now,
+                .windowID  = id_Window(d),
+                .y         = -iSign(speed) * scroll
+            };
+            setPerPixel_MouseWheelEvent(&ev, iTrue);
+            SDL_PushEvent((SDL_Event *) &ev);
+        }
+        addTicker_App(scrollOnMiddleDrag_Window_, d);
+    }
+}
+
 iBool processEvent_Window(iWindow *d, const SDL_Event *ev) {
     iMainWindow *mw     = (type_Window(d) == main_WindowType ? as_MainWindow(d) : NULL);
     iWindow *    extraw = (type_Window(d) == extra_WindowType ? d : NULL);
@@ -1383,8 +1410,8 @@ iBool processEvent_Window(iWindow *d, const SDL_Event *ev) {
         case SDL_SYSWMEVENT: {
             /* We observe native Win32 messages for dark mode detection and better
                user interaction with the custom window frame. Mouse clicks especially
-               will not generate normal SDL events if they happen on the custom 
-               hit-tested regions. These events are processed only there; the UI 
+               will not generate normal SDL events if they happen on the custom
+               hit-tested regions. These events are processed only there; the UI
                widgets do not get involved. */
             processNativeEvent_Win32(ev->syswm.msg, d);
             break;
@@ -1464,6 +1491,29 @@ iBool processEvent_Window(iWindow *d, const SDL_Event *ev) {
                     setCurrent_Root(grabbed->root);
                     wasUsed = dispatchEvent_Widget(grabbed, &event);
                 }
+            }
+            /* Middle button drag-to-scroll: observe the gesture before widgets get the events. */
+            switch (processEvent_Click(&d->midDrag, &event)) {
+                case started_ClickResult:
+                    /* Let the event also reach widgets (e.g., link clicking). */
+                    break;
+                case drag_ClickResult:
+                    setCursor_Window(d, SDL_SYSTEM_CURSOR_SIZENS);
+                    if (!d->midDragTime) {
+                        d->midDragAccum = 0;
+                        d->midDragTime  = SDL_GetTicks();
+                        addTicker_App(scrollOnMiddleDrag_Window_, d);
+                    }
+                    wasUsed = iTrue;
+                    break;
+                case finished_ClickResult:
+                case aborted_ClickResult:
+                    setCursor_Window(d, SDL_SYSTEM_CURSOR_ARROW);
+                    d->midDragTime  = 0;
+                    d->midDragAccum = 0;
+                    break;
+                default:
+                    break;
             }
             /* If there is a priority handler for key events, offer the event to it first.
                This is similar to mouse grabbing, but the handler can refuse the event. */
