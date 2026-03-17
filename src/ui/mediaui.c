@@ -208,7 +208,7 @@ void draw_PlayerUI(iPlayerUI *d, iPaint *p) {
     const float normPos  = totalTime > 0 ? playTime / totalTime : 0.0f;
     const int   part     = (s2 - s1) * normPos;
     const int   scrubMax = (s2 - s1) * streamProgress_Player(d->player);
-    const int   barThick = gap_UI / 2;
+    const int   barThick = gap_UI / 4;
     fillRect_Paint(p, (iRect){ init_I2(s1,   yMid - barThick / 2),
                                init_I2(part, barThick) }, bright);
     fillRect_Paint(p, (iRect){ init_I2(s1 + part,       yMid - barThick / 2),
