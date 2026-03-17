@@ -139,7 +139,7 @@ You should use a version of the SDL 2 library that is compiled for native Window
     arch=x64
     libdir=${prefix}/lib/${arch}/
     incdir=${prefix}/include/
-
+    
     Name: sdl2
     Description: Simple DirectMedia Layer
     Version: 2.0.12-msvc
