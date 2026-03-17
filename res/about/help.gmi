@@ -53,7 +53,8 @@ Like Gemini, Lagrange has been designed with minimalism in mind. It depends on a
 * Read Gempub books and view ZIP archive contents
 * Built-in support for uploading and editing content using the Titan protocol
 * Built-in support for Gopher, Finger, Spartan, Nex, Misfin, and Guppy
-* Use proxy servers for Gemini, HTTP, and Gopher content
+* Use Gemini proxy servers for Gemini, HTTP, and Gopher content
+* Use SOCKS5 proxy for network access (includes DNS resolution)
 
 ## Why not just use a web browser
 
