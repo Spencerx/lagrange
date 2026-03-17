@@ -50,6 +50,7 @@ Like Gemini, Lagrange has been designed with minimalism in mind. It depends on a
 * Support for the classic protocols Gopher and Finger
 * Support for hobbyist protocols: Spartan, Nex, Misfin, and Guppy
 * Proxy servers for Gemini, HTTP, and Gopher content
+* Use SOCKS5 proxy for network access (includes DNS resolution)
 
 # 1 User interface
 
@@ -342,6 +343,7 @@ An input prompt dialog is shown when the server asks for input from the user. Ty
 The dialog has a context menu for additional functionality. Click on the Ellipsis (⋯) button to open it.
 
 * "Paste Preceding Line" inserts the contents of the Gemtext source line that immediately precedes the link that caused the input prompt to open. This is sometimes used for "Edit" actions in Gemini applications.
+* "Paste Prompt" inserts a copy of the input prompt text into the text field. The prompt text is provided by the server when it asks for input, and it may contain prefilled values or example content.
 * "Assume This URL Requires Input" modifies what happens when the prompt's URL is opened. Normally, it takes two requests to submit input: the first one causes the prompt to open, and the second one sends the user's input to the server. To make this more efficient, you can assume the URL requires input and Lagrange will prompt you automatically before sending anything to the server. (It is possible that some applications may expect the two requests to arrive in a sequence, however usually there are no problems submitting query strings directly.)
 * Restoring past entries: The rest of the items in the menu are for input that has been submitted previously. Selecting one will cause it be inserted into the input field.
 
@@ -505,9 +507,11 @@ The additional words following the "!w" bang snippet are appended as a query str
 
 ## 2.6 Proxies
 
-Gemini allows relaying requests via a proxy server. On the "Network" page of Settings, you can configure proxy servers for Gemini, Gopher, and HTTP/HTTPS requests.
+Gemini allows proxying requests via a third-party Gemini server. On the "Network" page of Settings, you can configure such proxy servers for Gemini, Gopher, and HTTP/HTTPS requests. Note that these proxies are all Gemini servers themselves: they listen for Gemini requests but are able to respond with content fetched from other domains or via other protocols.
 
 When an HTTP proxy server is configured, HTTP/HTTPS links will no longer open in the system's default web browser but will be loaded via the proxy, expecting it to serve a 'text/gemini' version of the link contents.
+
+The SOCKS5 proxy works differently. It is protocol-agnostic and affects all network requests that Lagrange makes. When the SOCKS5 proxy server address is configured, network requests and DNS resolution are handled via the proxy.
 
 ## 2.7 URL handling
 
