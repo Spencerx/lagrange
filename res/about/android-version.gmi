@@ -7,7 +7,9 @@
 # Release notes
 
 ## 1.20 (Beta 48)
-* Fixed: Save state when app is stopped (e.g., force-closing).
+* Save state when app is stopped (e.g., force-closing).
+* Ignore spurious Back button events.
+* Fixed potential hang when laying out text into a narrow space.
 
 ## 1.20 (Beta 47)
 * Audio: Playback and streaming are possible also in the background, using native Android media decoders. The new app permissions for Foreground Service (Media Playback), Notifications, and Wake Lock are needed for this.
