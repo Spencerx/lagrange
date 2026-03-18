@@ -33,6 +33,8 @@ Fixes:
 * Opening a link context menu using the keyboard shortcut will remember which link as hovered using the keyboard.
 * Gopher: Misdetected menu styling particularly with non-ASCII characters.
 * Crash in the simple text renderer (e.g., TUI) when encountering a Backspace character.
+* Potential hang when laying out text into a narrow space.
+* Invalid initial layout for resizable input fields, causing a flicker.
 * OpenSSL error messages are no longer printed to stderr.
 
 ## 1.19.4
