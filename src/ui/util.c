@@ -4366,6 +4366,9 @@ void restoreWidth_Widget(iWidget *d) {
         iAssert(parent_Widget(d));
         applyInteractiveResize_Widget(d, iMini(width_Widget(parent_Widget(d)), saved * gap_UI));
     }
+    else {
+        arrange_Widget(d);
+    }
 }
 
 void updateBookmarkEditorFieldWidths_Widget(iWidget *d) {
