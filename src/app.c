@@ -194,7 +194,7 @@ struct Impl_App {
     unsigned int idleSleepDelayMs;
 #endif
 #if defined (iPlatformAndroidMobile)
-    float        displayDensity;
+    uint32_t     lastBackButtonTime; /* detect and discard rapid Back button presses */
 #endif
 #if defined (iPlatformAppleDesktop) && defined (LAGRANGE_NATIVE_MENU)
     iRoot *      submenuRoot; /* offscreen, since the application menu is not tied to a window */
@@ -1429,7 +1429,10 @@ static void init_App_(iApp *d, int argc, char **argv) {
     d->elapsedSinceLastTicker = 0;
     d->commandEcho            = contains_CommandLine(&d->args, "echo;E");
 #if defined (iPlatformAndroidMobile)
-    d->commandEcho = iTrue; /* XXX: testing! */
+    d->lastBackButtonTime = 0;
+# ifndef NDEBUG
+    d->commandEcho = iTrue;
+# endif
 #endif
     d->forceSoftwareRender    = contains_CommandLine(&d->args, "sw");
 #if defined (iPlatformMsys) || defined (iPlatformWindows)
@@ -2270,6 +2273,14 @@ void processEvents_App(enum iAppEventMode eventMode) {
 #if defined (iPlatformAndroidMobile)
                 /* Use the system Back button to close panels, if they're open. */
                 if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_AC_BACK) {
+                    const uint32_t now = SDL_GetTicks();
+                    if (now - d->lastBackButtonTime < 100) {
+                        /* Suspiciously rapid, must be a double-posted event. The behavior of
+                           the back button/gesture has been changing over the years, so on some
+                           versions of Android it may get handled via multiple mechanisms. */
+                        continue;
+                    }
+                    d->lastBackButtonTime = now;
                     SDL_UserEvent panelBackCmd = { .type = SDL_USEREVENT,
                                                    .code = command_UserEventCode,
                                                    .data1 = iDupStr("panel.close"),
