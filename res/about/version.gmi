@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.20.2
+* Fixed potential crash during event handling when no gamepad is connected.
+
 ## 1.20.1
 * Windows: Fixed network connections with SOCKS5 enabled.
 * Preferences: Hide the SOCKS5 password in the input field (use "sensitive" mode).
