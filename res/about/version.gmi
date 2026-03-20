@@ -7,7 +7,8 @@
 # Release notes
 
 ## 1.20.2
-* Fixed potential crash during event handling when no gamepad is connected.
+* Fixed a crash during event handling when no gamepad is connected.
+* Fixed a crash when there are cached feed entries belonging to a subscription whose bookmark has been deleted.
 
 ## 1.20.1
 * Windows: Fixed network connections with SOCKS5 enabled.
