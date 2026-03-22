@@ -78,20 +78,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 //#define LAGRANGE_ENABLE_MOUSE_TOUCH_EMULATION 1
 
 #if defined (iPlatformAppleDesktop)
-#   include "macos.h"
+#   include "platform/macos.h"
 #endif
 #if defined (iPlatformAppleMobile)
-#   include "ios.h"
+#   include "platform/ios.h"
 #endif
 #if defined (iPlatformAndroidMobile)
-#   include "android.h"
+#   include "platform/android.h"
 #   include <SDL_log.h>
 #endif
 #if defined (iPlatformMsys) || defined (iPlatformWindows)
-#   include "win32.h"
+#   include "platform/win32.h"
 #endif
 #if defined (LAGRANGE_ENABLE_X11_XLIB)
-#   include "x11.h"
+#   include "platform/x11.h"
 #endif
 #if SDL_VERSION_ATLEAST(2, 0, 14)
 #   include <SDL_misc.h>
@@ -281,7 +281,7 @@ static iString *serializePrefs_App_(const iApp *d) {
             int deskOut = win->place.desktop;
             if (deskOut < 0) {
                 unsigned long dk;
-                if (getWindowDesktop_X11(win->base.win, &dk)) {
+                if (getDesktop_SDLWindow(win->base.win, &dk)) {
                     deskOut = (int) dk;
                 }
             }
@@ -741,7 +741,7 @@ static void savePrefs_App_(const iApp *d) {
             const iMainWindow *win = it.ptr;
             if (win && win->base.win) {
                 unsigned long dk;
-                if (getWindowDesktop_X11(win->base.win, &dk)) {
+                if (getDesktop_SDLWindow(win->base.win, &dk)) {
                     ((iMainWindow *) win)->place.desktop = (int) dk;
                 }
             }
@@ -4030,7 +4030,7 @@ static iBool handleNonWindowRelatedCommand_App_(iApp *d, const char *cmd) {
                 if (id_Window(as_Window(win)) == winId) {
                     win->place.desktop = desk;
                     /* Use the active desktop switching function. */
-                    setWindowDesktop_X11(win->base.win, (unsigned long) desk);
+                    setDesktop_SDLWindow(win->base.win, (unsigned long) desk);
                     break;
                 }
             }

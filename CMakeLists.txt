@@ -350,24 +350,24 @@ if (ENABLE_JXL AND JXL_FOUND)
 endif ()
 if (ENABLE_X11_XLIB AND XLIB_FOUND AND NOT APPLE AND NOT MSYS)
     list (APPEND SOURCES
-        src/x11.c
-        src/x11.h
+        src/platform/x11.c
+        src/platform/x11.h
     )
 endif ()
 if (ANDROID)
     set (MOBILE 1)
     add_definitions (-DiPlatformAndroidMobile=1)
     list (APPEND SOURCES
-        src/android.c
-        src/android.h
+        src/platform/android.c
+        src/platform/android.h
     )
 endif ()
 if (IOS)
     set (MOBILE 1)
     add_definitions (-DiPlatformAppleMobile=1)
     list (APPEND SOURCES
-        src/ios.m
-        src/ios.h
+        src/platform/ios.m
+        src/platform/ios.h
         app/Images.xcassets
         res/LaunchScreen.storyboard
         res/PrivacyInfo.xcprivacy
@@ -380,7 +380,10 @@ if (IOS)
         MACOSX_PACKAGE_LOCATION Resources
     )
 elseif (APPLE)
-    list (APPEND SOURCES src/macos.m src/macos.h)
+    list (APPEND SOURCES
+        src/platform/macos.m
+        src/platform/macos.h
+    )
     list (APPEND RESOURCES "res/Lagrange.icns")
     set_source_files_properties ("res/Lagrange.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif ()
@@ -388,8 +391,15 @@ if (MSYS OR MINGW)
     set (WINRC_FILE_VERSION ${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0)
     set (WINRC_PRODUCT_VERSION ${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},0,0)
     configure_file (res/lagrange.rc.in ${CMAKE_CURRENT_BINARY_DIR}/lagrange.rc NEWLINE_STYLE WIN32)
-    list (APPEND SOURCES src/win32.c src/win32.h ${CMAKE_CURRENT_BINARY_DIR}/lagrange.rc)
-    list (APPEND TUI_SOURCES src/win32.c src/win32.h)
+    list (APPEND SOURCES
+        src/platform/win32.c
+        src/platform/win32.h
+        ${CMAKE_CURRENT_BINARY_DIR}/lagrange.rc
+    )
+    list (APPEND TUI_SOURCES
+        src/platform/win32.c
+        src/platform/win32.h
+    )
 endif ()
 if (MSYS OR MINGW OR (UNIX AND NOT MOBILE AND NOT APPLE))
     add_definitions (-DiPlatformPcDesktop=1)
