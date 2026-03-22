@@ -236,6 +236,8 @@ set (SOURCES
     src/visited.c
     src/visited.h
     # User interface:
+    src/ui/attributedtext.c
+    src/ui/attributedtext.h
     src/ui/banner.c
     src/ui/banner.h
     src/ui/color.c
