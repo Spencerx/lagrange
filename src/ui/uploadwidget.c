@@ -25,7 +25,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "inputwidget.h"
 #include "documentwidget.h"
 #include "root.h"
-#include "color.h"
 #include "command.h"
 #include "gmrequest.h"
 #include "sitespec.h"

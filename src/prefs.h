@@ -25,8 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <the_Foundation/stringset.h>
 
 #include "gmdocument.h"
-#include "ui/color.h"
-#include "ui/text.h"
+#include "render/text.h"
 
 /* User preferences */
 

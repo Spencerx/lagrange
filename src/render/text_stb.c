@@ -46,10 +46,10 @@ Optimization notes:
 #include "app.h"
 #include "attributedtext.h"
 #include "color.h"
-#include "metrics.h"
 #include "paint.h"
 #include "resources.h"
-#include "window.h"
+#include "ui/metrics.h"
+#include "ui/window.h"
 
 #include <the_Foundation/array.h>
 #include <the_Foundation/file.h>

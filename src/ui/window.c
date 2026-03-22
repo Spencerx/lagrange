@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "labelwidget.h"
 #include "documentwidget.h"
 #include "sidebarwidget.h"
-#include "paint.h"
+#include "render/paint.h"
 #include "snippets.h"
 #include "root.h"
 #include "touch.h"

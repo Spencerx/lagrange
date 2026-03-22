@@ -184,6 +184,8 @@ set (SOURCES
     src/app.h
     src/bookmarks.c
     src/bookmarks.h
+    src/color.c
+    src/color.h
     src/defs.h
     src/export.c
     src/export.h
@@ -235,37 +237,36 @@ set (SOURCES
     src/updater.h
     src/visited.c
     src/visited.h
+    # Rendering:
+    src/render/attributedtext.c
+    src/render/attributedtext.h
+    src/render/font.c
+    src/render/font.h
+    src/render/paint.c
+    src/render/paint.h
+    src/render/text.c
+    src/render/text.h
     # User interface:
-    src/ui/attributedtext.c
-    src/ui/attributedtext.h
     src/ui/banner.c
     src/ui/banner.h
-    src/ui/color.c
-    src/ui/color.h
     src/ui/command.c
     src/ui/command.h
     src/ui/documentview.c
     src/ui/documentview.h
     src/ui/gamepad.c
     src/ui/gamepad.h
-    src/ui/font.c
-    src/ui/font.h
     src/ui/linkinfo.c
     src/ui/linkinfo.h
     src/ui/keys.c
     src/ui/keys.h
     src/ui/metrics.c
     src/ui/metrics.h
-    src/ui/paint.c
-    src/ui/paint.h
     src/ui/root.c
     src/ui/root.h
     src/ui/mediaui.c
     src/ui/mediaui.h
     src/ui/mobile.c
     src/ui/mobile.h
-    src/ui/text.c
-    src/ui/text.h
     src/ui/touch.c
     src/ui/touch.h
     src/ui/translation.c
@@ -328,13 +329,13 @@ endif ()
 
 set (TUI_SOURCES
     ${SOURCES}
-    src/ui/text_terminal.c
+    src/render/text_terminal.c
     src/updater.c
 )
 
 set (ENABLE_STB_TRUETYPE YES)
 list (APPEND SOURCES
-    src/ui/text_stb.c
+    src/render/text_stb.c
 )
 # Audio playback
 list (APPEND SOURCES
