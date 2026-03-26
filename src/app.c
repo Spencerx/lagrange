@@ -1521,6 +1521,9 @@ static void init_App_(iApp *d, int argc, char **argv) {
         set_Array(&d->initialWindowRects, 0, &winRect);
     }
     loadPrefs_App_(d);
+#if defined (iPlatformAppleDesktop)
+    localizeApplicationMenu_MacOS();
+#endif
     updateActive_Fonts();
     load_Keys(dataDir_App_());
     iRect *winRect0 = at_Array(&d->initialWindowRects, 0);

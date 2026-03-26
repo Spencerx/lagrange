@@ -254,6 +254,18 @@ msgstr "Find on Page"
 msgid "macos.menu.find"
 msgstr "Find"
 
+msgid "macos.menu.hide"
+msgstr "Hide Lagrange"
+
+msgid "macos.menu.hideothers"
+msgstr "Hide Others"
+
+msgid "macos.menu.showall"
+msgstr "Show All"
+
+msgid "macos.menu.services"
+msgstr "Services"
+
 msgid "menu.open.external"
 msgstr "Open in Another App"
 
