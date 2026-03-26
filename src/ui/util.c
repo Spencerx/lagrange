@@ -3688,6 +3688,7 @@ iWidget *makePreferences_Widget(void) {
             { "heading text:${prefs.proxy.http}" },
             { "input id:prefs.proxy.http noheading:1" },
             { "heading id:heading.prefs.socks" },
+            { "toggle id:prefs.socks" },
             { "input id:prefs.socks.server hint:hint.socks.server" },
             { "input id:prefs.socks.user" },
             { "input id:prefs.socks.password sensitive:1" },
@@ -4282,6 +4283,8 @@ iWidget *makePreferences_Widget(void) {
         addPrefsInputWithHeading_(headings, values, "prefs.proxy.http", iClob(new_InputWidget(0)));
         /* SOCKS configuration. */
         makeTwoColumnHeading_("${heading.prefs.socks}", headings, values);
+        addDialogToggle_Widget(headings, values, "${prefs.socks}", "prefs.socks");
+        addDialogPadding_(headings, values);
         iInputWidget *field = new_InputWidget(0);
         setHint_InputWidget(field, "${hint.socks.server}");
         addPrefsInputWithHeading_(headings, values, "prefs.socks.server", iClob(field));

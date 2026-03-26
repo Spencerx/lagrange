@@ -6,6 +6,10 @@
 ```
 # Release notes
 
+## 1.20.3
+* Added option for easily toggling SOCKS5 without losing the settings.
+* SOCKS5 proxy was not ignoring localhost addresses.
+
 ## 1.20.2
 * Fixed a crash during event handling when no gamepad is connected.
 * Fixed a crash when there are cached feed entries belonging to a subscription whose bookmark has been deleted.
