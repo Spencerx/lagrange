@@ -8,7 +8,8 @@
 
 ## 1.20.3
 * Added option for easily toggle SOCKS5 without losing the configuration.
-* Fixed: Localhost addresses were not being ignored by the SOCKS5 proxy.
+* Fixed localhost addresses not being ignored by the SOCKS5 proxy.
+* Fixed crash when hovering on an empty bookmark folder in the Bookmarks menu.
 * Updated stb library (bug fixes for image, image_resize2, truetype, vorbis).
 
 ## 1.20.2

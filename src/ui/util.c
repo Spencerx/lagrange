@@ -856,10 +856,11 @@ static void closeSubmenus_(iWidget *menu, iRoot *root) {
                 if (!submenu) {
                     submenu = findChild_Widget(root->widget, subId);
                 }
-                iAssert(submenu);
-                remove_Periodic(periodic_App(), submenu);
-                closeSubmenus_(submenu, root);
-                closeMenu_Widget(submenu);
+                if (submenu) {
+                    remove_Periodic(periodic_App(), submenu);
+                    closeSubmenus_(submenu, root);
+                    closeMenu_Widget(submenu);
+                }
             }
         }
     }
@@ -876,8 +877,7 @@ static void openSubmenu_(iWidget *d) {
     closeSubmenus_(menu, root);
     iWidget *submenu = findChild_Widget(
         root->widget, cstr_Command(cstr_String(command_LabelWidget((iLabelWidget *) d)), "id"));
-    iAssert(submenu);
-    if (!isVisible_Widget(submenu)) {
+    if (submenu && !isVisible_Widget(submenu)) {
         remove_Periodic(periodic_App(), menu);
 //        printf("openSubmenu_ %s isPopup:%d\n d's window type: %d",
 //               cstr_String(id_Widget(submenu)), isPopup, window_Widget(d)->type); fflush(stdout);
