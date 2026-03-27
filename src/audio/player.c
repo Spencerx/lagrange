@@ -45,7 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #   include <opusfile.h>
 #endif
 #if defined (iPlatformAppleMobile)
-#   include "../ios.h"
+#   include "platform/ios.h"
 #endif
 #if defined (iPlatformAndroidMobile)
 #   include "../android.h"

@@ -2752,12 +2752,14 @@ static iBool processEvent_InputWidget_(iInputWidget *d, const SDL_Event *ev) {
            processes the key. Consume unmodified and Option keys so the widget
            doesn't also act on them (e.g., Option+Enter for Hanja selection).
            Cmd/Ctrl combos are let through as app shortcuts. */
+#if !LAGRANGE_USE_SYSTEM_TEXT_INPUT
         if (!isEmpty_String(&d->preedit) &&
             !(ev->key.keysym.mod & (KMOD_GUI | KMOD_CTRL)) &&
             ev->key.keysym.sym != SDLK_ESCAPE &&
             ev->key.keysym.sym != SDLK_TAB) {
             return iTrue;
         }
+#endif
         const int key  = ev->key.keysym.sym;
         const int mods = keyMods_Sym(ev->key.keysym.mod);
 #if !LAGRANGE_USE_SYSTEM_TEXT_INPUT
