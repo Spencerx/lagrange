@@ -345,6 +345,11 @@ list (APPEND SOURCES
     src/audio/player.h
     src/audio/stb_vorbis.c
 )
+if (CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+    # Ignore a warning from stb_vorbis.
+    set_source_files_properties (src/audio/stb_vorbis.c PROPERTIES
+        COMPILE_OPTIONS "-Wno-tautological-compare")
+endif()
 if (ENABLE_JXL AND JXL_FOUND)
     list (APPEND SOURCES src/jpegxl.c src/jpegxl.h)
 endif ()
