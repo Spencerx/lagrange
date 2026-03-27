@@ -48,7 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #   include "platform/ios.h"
 #endif
 #if defined (iPlatformAndroidMobile)
-#   include "../android.h"
+#   include "platform/android.h"
 #endif
 
 /*----------------------------------------------------------------------------------------------*/

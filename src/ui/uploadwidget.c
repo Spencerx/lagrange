@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #endif
 
 #if defined (iPlatformAndroidMobile)
-#   include "android.h"
+#   include "platform/android.h"
 #   define pickFile_Mobile pickFile_Android
 #endif
 
