@@ -12,6 +12,7 @@
 * Upload dialog's text editor uses the modifier-key-only Return key behavior when that is the active one. This should help with composing CJK text.
 * Added option to easily toggle SOCKS5 without losing the configuration.
 * Fixed localhost addresses not being ignored by the SOCKS5 proxy.
+* Gopher: Improving handling of a TAB character in Gopher URIs (query string).
 * Updated stb library (bugfixes for image, image_resize2, truetype, vorbis).
 
 ## 1.20.2
