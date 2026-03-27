@@ -749,7 +749,10 @@ void init_UploadWidget(iUploadWidget *d, enum iUploadProtocol protocol) {
         setFocus_Widget(as_Widget(d->input));
     }
     setFont_InputWidget(d->input, font_UploadWidget_(d, regular_FontStyle));
-    setUseReturnKeyBehavior_InputWidget(d->input, iFalse); /* traditional text editor */
+    /* This works like a traditional text editor, unless we use the CJK IME-friendly mode. */
+    setUseReturnKeyBehavior_InputWidget(
+        d->input,
+        prefs_App()->returnKey == onlyWithMods_ReturnKeyBehavior);
     setLineLimits_InputWidget(d->input, 7, 20);
     setHint_InputWidget(d->input, "${hint.upload.text}");
     switch (d->protocol) {
@@ -1444,6 +1447,9 @@ static iBool processEvent_UploadWidget_(iUploadWidget *d, const SDL_Event *ev) {
         return iFalse;
     }
     if (isCommand_Widget(w, ev, "upload.accept")) {
+        if (isUsingPanelLayout_Mobile() && isSelfHidden_Widget(acceptButton_UploadWidget_(d))) {
+            return iTrue; /* prevent accidental uploads */
+        }
         if (d->editRequest) {
             return iTrue; /* ongoing edit request */
         }
