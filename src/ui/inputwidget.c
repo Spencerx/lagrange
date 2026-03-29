@@ -3251,42 +3251,73 @@ static void draw_InputWidget_(const iInputWidget *d) {
     /* Draw underline under IME composition (preedit) text. The text itself is
        already drawn by the draw_WrapText loop above (inserted into the line). */
     if (hasPreeditLine) {
-        /* Find where the preedit starts in the wrapped layout. */
         iWrapText wt = wrap_InputWidget_(d, d->cursor.y);
         wt.text = range_String(&preeditLine);
+        const int lh = lineHeight_Text(d->font);
+        const int mw = wt.maxWidth;
+        const iInt2 origin = addY_I2(topLeft_Rect(contentBounds),
+                                     visLineOffsetY + visWrapsAbove * lh);
+        /* Find where the preedit starts in the wrapped layout. */
         wt.hitChar = wt.text.start + d->cursor.x;
         measure_WrapText(&wt, d->font);
         const iInt2 compCoord = wt.hitAdvance_out;
-        const iInt2 compPos = add_I2(
-            addY_I2(topLeft_Rect(contentBounds),
-                    visLineOffsetY + visWrapsAbove * lineHeight_Text(d->font)),
-            compCoord);
-        const int lh = lineHeight_Text(d->font);
-        const int baseline = compPos.y + lh - 1;
+        /* Preedit end coord is the cursor position (already computed). */
+        const iInt2 endCoord = cursorCoord;
         if (d->preeditLength > 0 &&
             d->preeditCursor + d->preeditLength <= size_String(&d->preedit)) {
-            const iRangecc compText = range_String(&d->preedit);
-            const iRangecc before = { compText.start, compText.start + d->preeditCursor };
-            const iRangecc active = { compText.start + d->preeditCursor,
-                                      compText.start + d->preeditCursor + d->preeditLength };
-            const int xBefore = measureRange_Text(d->font, before).advance.x;
-            const int xActive = measureRange_Text(d->font, active).advance.x;
-            if (!isEmpty_Range(&before)) {
-                drawHLine_Paint(&p, init_I2(compPos.x, baseline),
-                                xBefore, uiInputCursor_ColorId);
+            /* The preedit has three regions: "before" (thin underline),
+               "active" (double underline for the clause being converted),
+               and "after" (thin underline). Compute interior boundary coords. */
+            wt.hitChar = wt.text.start + d->cursor.x + d->preeditCursor;
+            measure_WrapText(&wt, d->font);
+            const iInt2 actStart = wt.hitAdvance_out;
+            wt.hitChar = wt.text.start + d->cursor.x + d->preeditCursor + d->preeditLength;
+            measure_WrapText(&wt, d->font);
+            const iInt2 actEnd = wt.hitAdvance_out;
+            /* "Before" segment: thin underline. */
+            if (d->preeditCursor > 0) {
+                for (int ly = compCoord.y; ly <= actStart.y; ly += lh) {
+                    const int x0 = (ly == compCoord.y ? compCoord.x : 0);
+                    const int x1 = (ly == actStart.y ? actStart.x : mw);
+                    if (x1 > x0) {
+                        drawHLine_Paint(&p, add_I2(origin, init_I2(x0, ly + lh - 1)),
+                                        x1 - x0, uiInputCursor_ColorId);
+                    }
+                }
             }
-            drawHLine_Paint(&p, init_I2(compPos.x + xBefore, baseline),
-                            xActive, uiInputCursor_ColorId);
-            drawHLine_Paint(&p, init_I2(compPos.x + xBefore, baseline - 1),
-                            xActive, uiInputCursor_ColorId);
-            if (preeditWidth > xBefore + xActive) {
-                drawHLine_Paint(&p, init_I2(compPos.x + xBefore + xActive, baseline),
-                                preeditWidth - xBefore - xActive, uiInputCursor_ColorId);
+            /* "Active" segment: double underline. */
+            for (int ly = actStart.y; ly <= actEnd.y; ly += lh) {
+                const int x0 = (ly == actStart.y ? actStart.x : 0);
+                const int x1 = (ly == actEnd.y ? actEnd.x : mw);
+                if (x1 > x0) {
+                    drawHLine_Paint(&p, add_I2(origin, init_I2(x0, ly + lh - 1)),
+                                    x1 - x0, uiInputCursor_ColorId);
+                    drawHLine_Paint(&p, add_I2(origin, init_I2(x0, ly + lh - 2)),
+                                    x1 - x0, uiInputCursor_ColorId);
+                }
+            }
+            /* "After" segment: thin underline. */
+            if (d->preeditCursor + d->preeditLength < (int) size_String(&d->preedit)) {
+                for (int ly = actEnd.y; ly <= endCoord.y; ly += lh) {
+                    const int x0 = (ly == actEnd.y ? actEnd.x : 0);
+                    const int x1 = (ly == endCoord.y ? endCoord.x : mw);
+                    if (x1 > x0) {
+                        drawHLine_Paint(&p, add_I2(origin, init_I2(x0, ly + lh - 1)),
+                                        x1 - x0, uiInputCursor_ColorId);
+                    }
+                }
             }
         }
         else {
-            drawHLine_Paint(&p, init_I2(compPos.x, baseline), preeditWidth,
-                            uiInputCursor_ColorId);
+            /* Simple case: single thin underline for entire preedit. */
+            for (int ly = compCoord.y; ly <= endCoord.y; ly += lh) {
+                const int x0 = (ly == compCoord.y ? compCoord.x : 0);
+                const int x1 = (ly == endCoord.y ? endCoord.x : mw);
+                if (x1 > x0) {
+                    drawHLine_Paint(&p, add_I2(origin, init_I2(x0, ly + lh - 1)),
+                                    x1 - x0, uiInputCursor_ColorId);
+                }
+            }
         }
         deinit_String(&preeditLine);
     }
