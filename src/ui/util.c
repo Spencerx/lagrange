@@ -3408,10 +3408,12 @@ iWidget *makePreferences_Widget(void) {
                                     { u8"Suomi - fi", 0, 0, "uilang id:fi" },
                                     { u8"Toki pona - tok", 0, 0, "uilang id:tok" },
                                     { u8"Türkçe - tr", 0, 0, "uilang id:tr" },
+                                    { "---" },
                                     /* Cyrillic */
                                     { u8"Русский - ru", 0, 0, "uilang id:ru" },
                                     { u8"Српски - sr", 0, 0, "uilang id:sr" },
                                     { u8"Українська - uk", 0, 0, "uilang id:uk" },
+                                    { "---" },
                                     /* CJK */
                                     { u8"简体中文 - zh", 0, 0, "uilang id:zh_Hans" },
                                     { u8"繁體/正體中文 - zh", 0, 0, "uilang id:zh_Hant" },
