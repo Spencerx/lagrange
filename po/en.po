@@ -1119,6 +1119,9 @@ msgstr "Copy Link"
 msgid "link.copy.label"
 msgstr "Copy Link Label"
 
+msgid "link.copy.gemtext"
+msgstr "Copy Link as Gemtext"
+
 msgid "link.searchurl"
 msgstr "Use as Search URL"
 
