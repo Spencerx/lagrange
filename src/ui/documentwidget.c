@@ -3328,13 +3328,12 @@ static iBool handleCommand_DocumentWidget_(iDocumentWidget *d, const char *cmd) 
     else if (equal_Command(cmd, "document.copylink") && document_App() == d) {
         if (d->contextLink) {
             if (argLabel_Command(cmd, "gemtext")) {
-                const iString *url = canonicalUrl_String(absoluteUrl_String(
+                const iString *url   = canonicalUrl_String(absoluteUrl_String(
                     d->mod.url, linkUrl_GmDocument(d->view->doc, d->contextLink->linkId)));
-                iRangecc label = linkLabel_GmDocument(d->view->doc, d->contextLink->linkId);
-                iString *gemtext = new_String();
-                format_String(gemtext, "=> %s %s\n", cstr_String(url), cstr_Rangecc(label));
+                iRangecc       label = linkLabel_GmDocument(d->view->doc, d->contextLink->linkId);
+                const iString *gemtext =
+                    collectNewFormat_String("=> %s %s\n", cstr_String(url), cstr_Rangecc(label));
                 SDL_SetClipboardText(cstr_String(gemtext));
-                delete_String(gemtext);
             }
             else if (argLabel_Command(cmd, "label")) {
                 SDL_SetClipboardText(
