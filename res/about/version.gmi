@@ -6,6 +6,10 @@
 ```
 # Release notes
 
+## 1.20.4
+* Added a "Copy Link as Gemtext" context menu action. (Courtesy of Sidney Cammeresi.)
+* Fixed missing items in link context menu.
+
 ## 1.20.3
 * Fixed crash when hovering on an empty bookmark folder in the Bookmarks menu.
 * Improved CJK IME support in text fields. (Courtesy of Sidney Cammeresi.)
