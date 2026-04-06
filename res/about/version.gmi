@@ -8,6 +8,7 @@
 
 ## 1.20.4
 * Added a "Copy Link as Gemtext" context menu action. (Courtesy of Sidney Cammeresi.)
+* Fixed potential hang when stopping a network connection when a SOCKS proxy is active.
 * Fixed missing items in link context menu.
 
 ## 1.20.3
