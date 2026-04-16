@@ -7,10 +7,11 @@
 # Release notes
 
 ## 1.20.4
-* Added a "Copy Link as Gemtext" context menu action. (Courtesy of Sidney Cammeresi.)
-* Quit the app cleanly when receiving a SIGTERM signal.
 * Fixed potential hang when stopping a network connection when a SOCKS proxy is active.
-* Fixed missing items in link context menu.
+* Possible fix for Heading subscription entries returning to an unread state after a long time.
+* Quit the app cleanly when receiving a SIGTERM signal.
+* Improved CJK IME presentation. (Courtesy of Sidney Cammeresi.)
+* Added a "Copy Link as Gemtext" context menu action and fixed missing items. (Courtesy of Sidney Cammeresi.)
 * Updated UI translations.
 
 ## 1.20.3
