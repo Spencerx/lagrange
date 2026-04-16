@@ -8,8 +8,10 @@
 
 ## 1.20.4
 * Added a "Copy Link as Gemtext" context menu action. (Courtesy of Sidney Cammeresi.)
+* Quit the app cleanly when receiving a SIGTERM signal.
 * Fixed potential hang when stopping a network connection when a SOCKS proxy is active.
 * Fixed missing items in link context menu.
+* Updated UI translations.
 
 ## 1.20.3
 * Fixed crash when hovering on an empty bookmark folder in the Bookmarks menu.
