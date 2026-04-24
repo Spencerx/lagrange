@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.20.5
+* Fixed: Bookmark context menu closes prematurely when any page is loaded.
+
 ## 1.20.4
 * Fixed potential hang when stopping a network connection when a SOCKS proxy is active.
 * Possible fix for Heading subscription entries returning to an unread state after a long time.
