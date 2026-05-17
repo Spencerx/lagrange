@@ -77,6 +77,7 @@ enum iFontId {
     monospaceParagraph_FontId = FONT_ID(documentMonospace_FontId, regular_FontStyle,  contentRegular_FontSize),
     monospaceBold_FontId      = FONT_ID(documentMonospace_FontId, semiBold_FontStyle, contentRegular_FontSize),
     plainText_FontId          = FONT_ID(documentMonospace_FontId, regular_FontStyle,  contentRegular_FontSize),
+    plainTextSmall_FontId     = FONT_ID(documentMonospace_FontId, regular_FontStyle,  contentSmall_FontSize),
 };
 
 iLocalDef enum iFontStyle style_FontId(enum iFontId id) {
