@@ -127,18 +127,24 @@ static iBool convertSource_Gopher_(iGopher *d) {
         trimEnd_Rangecc(&line);
         iRegExpMatch m;
         init_RegExpMatch(&m);
+        if (equal_Rangecc(line, ".")) {
+            break; /* terminator */
+        }
         if (matchRange_RegExp(pattern, line, &m)) {
             const char     lineType = *capturedRange_RegExpMatch(&m, 1).start;
             const iRangecc text     = capturedRange_RegExpMatch(&m, 2);
-            const iRangecc path     = capturedRange_RegExpMatch(&m, 3);
+            const iRangecc selector = capturedRange_RegExpMatch(&m, 3);
             const iRangecc domain   = capturedRange_RegExpMatch(&m, 4);
             const iRangecc port     = capturedRange_RegExpMatch(&m, 5);
             iString *buf = new_String();
             switch (lineType) {
-                case 'i':
-                case '3': {
+                case 'i': {
                     setPre_Gopher_(d, isPreformatted_(text));
                     appendEscapedLineToOutput_Gopher_(d, text, size_Range(&text));
+                    break;
+                }
+                case '3': {
+
                     break;
                 }
                 case '0':
@@ -159,7 +165,7 @@ static iBool convertSource_Gopher_(iGopher *d) {
                                   isEmpty_Range(&port) ? "70" : cstr_Rangecc(port),
                                   lineType,
                                   cstrCollect_String(
-                                      urlEncodeExclude_String(collectNewRange_String(path), "/")),
+                                      urlEncodeExclude_String(collectNewRange_String(selector), "/")),
                                   cstr_Rangecc(text));
                     appendData_Block(d->output, constBegin_String(buf), size_String(buf));
                     iEndCollect();
@@ -172,8 +178,8 @@ static iBool convertSource_Gopher_(iGopher *d) {
                     format_String(buf,
                                   "=> %s://%s%s%s:%s %s\n",
                                   lineType == '8' ? "telnet" : "tn3270",
-                                  cstr_Rangecc(path),
-                                  !isEmpty_Range(&path) ? "@" : "",
+                                  cstr_Rangecc(selector),
+                                  !isEmpty_Range(&selector) ? "@" : "",
                                   cstr_Rangecc(domain),
                                   cstr_Rangecc(port),
                                   cstr_Rangecc(text));
@@ -184,11 +190,11 @@ static iBool convertSource_Gopher_(iGopher *d) {
                 case 'h': {
                     iBeginCollect();
                     setPre_Gopher_(d, iFalse);
-                    if (startsWith_Rangecc(path, "URL:")) {
+                    if (startsWith_Rangecc(selector, "URL:")) {
                         format_String(buf,
                                       "=> %s %s\n",
                                       cstr_String(withSpacesEncoded_String(collectNewRange_String(
-                                          (iRangecc){ path.start + 4, path.end }))),
+                                          (iRangecc){ selector.start + 4, selector.end }))),
                                       cstr_Rangecc(text));
                     }
                     appendData_Block(d->output, constBegin_String(buf), size_String(buf));
@@ -200,10 +206,11 @@ static iBool convertSource_Gopher_(iGopher *d) {
                     appendEscapedLineToOutput_Gopher_(d, text, size_Range(&text));
                     setPre_Gopher_(d, iTrue);
                     appendEscapedLineToOutput_Gopher_(d,
-                                                      path,
-                                                      !isEmpty_Range(&port) && port.end > path.start
-                                                          ? port.end - path.start
-                                                          : size_Range(&path));
+                                                      selector,
+                                                      !isEmpty_Range(&port) &&
+                                                              port.end > selector.start
+                                                          ? port.end - selector.start
+                                                          : size_Range(&selector));
                     break;
             }
             delete_String(buf);
@@ -264,18 +271,18 @@ void open_Gopher(iGopher *d, const iString *url) {
     /* MIME type determined by the item type. */
     switch (d->type) {
         case '0': {
-            const char *detected = mediaTypeFromFileExtension_String(reqPath);
+            /*const char *detected = mediaTypeFromFileExtension_String(reqPath);
             if (startsWith_CStr(detected, "text/")) {
                 setCStr_String(d->meta, detected);
             }
-            else {
-                setCStr_String(d->meta, "text/plain");
-            }
+            else {*/
+            setCStr_String(d->meta, "text/plain");
+            //}
             break;
         }
         case '1':
         case '7':
-            setCStr_String(d->meta, "text/gemini");
+            setCStr_String(d->meta, "text/gophermap");
             break;
         case '4':
             setCStr_String(d->meta, "application/mac-binhex");
@@ -336,6 +343,16 @@ iBool processResponse_Gopher(iGopher *d, const iBlock *data) {
         if (convertSource_Gopher_(d)) {
             changed = iTrue;
         }
+    }
+    else if (d->type == '0') {
+        append_Block(d->output, data);
+        /* Text content will be terminated by `.`. */
+        const char  *out = cstr_Block(d->output);
+        const size_t n   = size_Block(d->output);
+        if (n >= 3 && !memcmp(out + n - 3, ".\r\n", 3)) {
+            truncate_Block(d->output, n - 3);
+        }
+        changed = iTrue;
     }
     else {
         append_Block(d->output, data);

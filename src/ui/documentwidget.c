@@ -1381,6 +1381,7 @@ static void updateDocument_DocumentWidget_(iDocumentWidget *d,
                             endsWithCase_Rangecc(fileName, ".markdown")) {
                             param = range_CStr("text/markdown");
                         }
+#if 0
                         else if ((endsWithCase_Rangecc(fileName, ".gmi") ||
                                   endsWithCase_Rangecc(fileName, ".gemini")) &&
                                  isEmpty_Range(&parts.query)) {
@@ -1394,9 +1395,10 @@ static void updateDocument_DocumentWidget_(iDocumentWidget *d,
                                media type and force a Gemtext view mode on the document.
                                (https://github.com/skyjake/lagrange/issues/359) */
                         }
+#endif
                     }
                 }
-                if (equal_Rangecc(param, "text/gemini")) {
+                if (equal_Rangecc(param, "text/gemini") || equal_Rangecc(param, "text/gophermap")) {
                     docFormat = gemini_SourceFormat;
                     setRange_String(&d->sourceMime, param);
                 }
