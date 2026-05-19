@@ -109,10 +109,14 @@ static void appendEscapedLineToOutput_Gopher_(iGopher *d, iRangecc text, size_t 
     appendCStr_Block(d->output, "\n");
 }
 
+static iRegExp *makeMenuItemPattern_(void) {
+    return new_RegExp("(.)([^\t]*)\t([^\t]*)\t([^\t]*)\t([0-9]+)?", 0);
+}
+
 static iBool convertSource_Gopher_(iGopher *d) {
     iBool    converted = iFalse;
     iRangecc body      = range_Block(&d->source);
-    iRegExp *pattern   = new_RegExp("(.)([^\t]*)\t([^\t]*)\t([^\t]*)\t([0-9]+)?", 0);
+    iRegExp *pattern   = makeMenuItemPattern_();
     for (;;) {
         /* Find the end of the line. */
         iRangecc line = { body.start, body.start };
@@ -144,7 +148,9 @@ static iBool convertSource_Gopher_(iGopher *d) {
                     break;
                 }
                 case '3': {
-
+                    /* The server is reporting some kind of an error. */
+                    format_String(buf, warning_Icon " %s\n", cstr_Rangecc(text));
+                    append_Block(d->output, utf8_String(buf));
                     break;
                 }
                 case '0':
@@ -167,7 +173,7 @@ static iBool convertSource_Gopher_(iGopher *d) {
                                   cstrCollect_String(
                                       urlEncodeExclude_String(collectNewRange_String(selector), "/")),
                                   cstr_Rangecc(text));
-                    appendData_Block(d->output, constBegin_String(buf), size_String(buf));
+                    append_Block(d->output, utf8_String(buf));
                     iEndCollect();
                     break;
                 }
@@ -183,7 +189,7 @@ static iBool convertSource_Gopher_(iGopher *d) {
                                   cstr_Rangecc(domain),
                                   cstr_Rangecc(port),
                                   cstr_Rangecc(text));
-                    appendData_Block(d->output, constBegin_String(buf), size_String(buf));
+                    append_Block(d->output, utf8_String(buf));
                     iEndCollect();
                     break;
                 }
@@ -197,7 +203,7 @@ static iBool convertSource_Gopher_(iGopher *d) {
                                           (iRangecc){ selector.start + 4, selector.end }))),
                                       cstr_Rangecc(text));
                     }
-                    appendData_Block(d->output, constBegin_String(buf), size_String(buf));
+                    append_Block(d->output, utf8_String(buf));
                     iEndCollect();
                     break;
                 }
@@ -222,19 +228,20 @@ static iBool convertSource_Gopher_(iGopher *d) {
         }
     }
     iRelease(pattern);
-    /* Remove the part of the source that was successfully converted. */
+    /* Remove the part of the source that was successfully converted. This leaves any partially
+       received lines to the next conversion attempt. */
     remove_Block(&d->source, 0, body.start - constBegin_Block(&d->source));
     return converted;
 }
 
 void init_Gopher(iGopher *d) {
-    d->socket = NULL;
-    d->type = 0;
-    init_Block(&d->source, 0);
+    d->socket        = NULL;
+    d->type          = 0;
     d->needQueryArgs = iFalse;
-    d->isPre = iFalse;
-    d->meta = NULL;
-    d->output = NULL;
+    d->isPre         = iFalse;
+    d->meta          = NULL;
+    d->output        = NULL;
+    init_Block(&d->source, 0);
 }
 
 void deinit_Gopher(iGopher *d) {
@@ -336,29 +343,65 @@ void cancel_Gopher(iGopher *d) {
     }
 }
 
+static iBool isMenuSyntax_Gopher_(const iGopher *d) {
+    iRangecc line;
+    iRangecc buf = range_Block(d->output);
+    if (!isUtf8_Rangecc(buf)) {
+        return iFalse; /* could be binary, or another encoding... */
+    }
+    if (endsWith_Rangecc(buf, ".\r\n")) {
+        buf.end -= 3; /* this is fine, but doesn't match the menu pattern */
+    }
+    iBool    isMenu  = iTrue;
+    iRegExp *pattern = makeMenuItemPattern_();
+    while (nextSplit_Rangecc(buf, "\r\n", &line)) {
+        iRegExpMatch m;
+        init_RegExpMatch(&m);
+        if (!matchRange_RegExp(pattern, line, &m)) {
+            isMenu = iFalse;
+            break;
+        }
+    }
+    iRelease(pattern);
+    return isMenu;
+}
+
+iBool checkFormat_Gopher(iGopher *d) {
+    if (d->type != '1' && d->type != '7' && isMenuSyntax_Gopher_(d)) {
+        /* It looks like we actually received a gophermap! Let's convert it now. */
+        setCStr_String(d->meta, "text/gophermap");
+        set_Block(&d->source, d->output);
+        clear_Block(d->output);
+        convertSource_Gopher_(d);
+        return iTrue;
+    }
+    return iFalse;
+}
+
 iBool processResponse_Gopher(iGopher *d, const iBlock *data) {
-    iBool changed = iFalse;
     if (d->type == '1' || d->type == '7') {
+        /* We expect the response is a gophermap. Converting as we receive allows us to
+           present the page immediately. */
+        iBool changed = iFalse;
         append_Block(&d->source, data);
         if (convertSource_Gopher_(d)) {
             changed = iTrue;
         }
-    }
-    else if (d->type == '0') {
-        append_Block(d->output, data);
-        /* Text content will be terminated by `.`. */
-        const char  *out = cstr_Block(d->output);
-        const size_t n   = size_Block(d->output);
-        if (n >= 3 && !memcmp(out + n - 3, ".\r\n", 3)) {
-            truncate_Block(d->output, n - 3);
-        }
-        changed = iTrue;
+        return changed;
     }
     else {
+        const size_t oldSize = size_Block(d->output);
         append_Block(d->output, data);
-        changed = iTrue;
+        if (d->type == '0') {
+            /* Text content will be terminated by `.`. */
+            const char  *out = cstr_Block(d->output);
+            const size_t n   = size_Block(d->output);
+            if (n >= 3 && !memcmp(out + n - 3, ".\r\n", 3)) {
+                truncate_Block(d->output, n - 3);
+            }
+        }
+        return oldSize != size_Block(d->output);
     }
-    return changed;
 }
 
 void setUrlItemType_Gopher(iString *url, char itemType) {
