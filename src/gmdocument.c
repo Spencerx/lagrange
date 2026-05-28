@@ -189,6 +189,7 @@ struct Impl_GmDocument {
         iBool isPaletteValid : 1;
         iBool isGopherMenu : 1;
         iBool isConvertedMarkdown : 1;
+        iBool isCoverPage : 1;
     } flags;
 };
 
@@ -201,6 +202,9 @@ static iBool isForcedMonospace_GmDocument_(const iGmDocument *d) {
         return iTrue;
     }
     if (d->flags.isConvertedMarkdown) {
+        return iFalse;
+    }
+    if (d->flags.isCoverPage) {
         return iFalse;
     }
     const iRangecc scheme = urlScheme_String(&d->url);
@@ -767,7 +771,7 @@ static void determinePlainTextWrapWidth_GmDocument(iGmDocument *d) {
     const iPrefs *prefs = prefs_App();
     /* Only do this once (and whenever font size changes). */
     if (d->wrapWidth) return;
-    /* For plain text with word wrap and expand-to-long-lines, measure all lines first to
+    /* For plain text with word wrap and expand-to-long-lines, measure all lines øπfirst to
        find the widest one and potentially increase the layout width up to the full canvas
        width, so that long lines don't have to be wrapped unnecessarily. */
     if (isMonospace_GmDocument_(d) && prefs->plainTextWrap && prefs->expandToLongLines) {
@@ -1507,6 +1511,7 @@ void init_GmDocument(iGmDocument *d) {
     d->flags.isLayoutInvalidated = iFalse;
     d->flags.isPaletteValid = iFalse;
     d->flags.isConvertedMarkdown = iFalse;
+    d->flags.isCoverPage = iFalse;
 }
 
 void deinit_GmDocument(iGmDocument *d) {
@@ -2200,6 +2205,10 @@ void makePaletteGlobal_GmDocument(const iGmDocument *d) {
 
 void invalidatePalette_GmDocument(iGmDocument *d) {
     d->flags.isPaletteValid = iFalse;
+}
+
+void setMode_GmDocument(iGmDocument *d, enum iGmDocumentMode mode) {
+    d->flags.isCoverPage = (mode == coverPage_GmDocumentMode);
 }
 
 void setFormat_GmDocument(iGmDocument *d, enum iSourceFormat format) {
