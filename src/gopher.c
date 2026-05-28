@@ -278,13 +278,7 @@ void open_Gopher(iGopher *d, const iString *url) {
     /* MIME type determined by the item type. */
     switch (d->type) {
         case '0': {
-            /*const char *detected = mediaTypeFromFileExtension_String(reqPath);
-            if (startsWith_CStr(detected, "text/")) {
-                setCStr_String(d->meta, detected);
-            }
-            else {*/
             setCStr_String(d->meta, "text/plain");
-            //}
             break;
         }
         case '1':
@@ -343,17 +337,19 @@ void cancel_Gopher(iGopher *d) {
     }
 }
 
-static iBool isMenuSyntax_Gopher_(const iGopher *d) {
-    iRangecc line;
+static iBool isMenuSyntax_Gopher_(const iGopher *d, iBool *isValidUtf8_out) {
     iRangecc buf = range_Block(d->output);
     if (!isUtf8_Rangecc(buf)) {
+        if (isValidUtf8_out) *isValidUtf8_out = iFalse;
         return iFalse; /* could be binary, or another encoding... */
     }
+    if (isValidUtf8_out) *isValidUtf8_out = iTrue;
     if (endsWith_Rangecc(buf, ".\r\n")) {
         buf.end -= 3; /* this is fine, but doesn't match the menu pattern */
     }
-    iBool    isMenu  = iTrue;
     iRegExp *pattern = makeMenuItemPattern_();
+    iBool    isMenu  = iTrue;
+    iRangecc line    = iNullRange;
     while (nextSplit_Rangecc(buf, "\r\n", &line)) {
         iRegExpMatch m;
         init_RegExpMatch(&m);
@@ -367,12 +363,18 @@ static iBool isMenuSyntax_Gopher_(const iGopher *d) {
 }
 
 iBool checkFormat_Gopher(iGopher *d) {
-    if (d->type != '1' && d->type != '7' && isMenuSyntax_Gopher_(d)) {
+    iBool isValidUtf8 = iTrue;
+    if (d->type != '1' && d->type != '7' && isMenuSyntax_Gopher_(d, &isValidUtf8)) {
         /* It looks like we actually received a gophermap! Let's convert it now. */
         setCStr_String(d->meta, "text/gophermap");
         set_Block(&d->source, d->output);
         clear_Block(d->output);
         convertSource_Gopher_(d);
+        return iTrue;
+    }
+    else if (d->type == '0' && !isValidUtf8) {
+        /* We expected text, but this is something else. */
+        setCStr_String(d->meta, "application/octet-stream");
         return iTrue;
     }
     return iFalse;
