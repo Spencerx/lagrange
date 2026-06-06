@@ -164,6 +164,7 @@ struct Impl_WrapText {
     int         maxWidth;
     size_t      maxLines;     /* 0: unlimited */
     enum iWrapTextMode mode;
+    int         firstLineIndent; /* initial X offset, first line only */
     iBool       justify;
     iBool     (*wrapFunc)(iWrapText *, iRangecc wrappedText, iTextAttrib attrib, int origin,
                           int advance);

@@ -7,6 +7,7 @@
 # Release notes
 
 ## 1.20.6
+* Improve legibility of text after a wrapped paragraph by adding a small first-line indent if the next text line follows immediately.
 * Fixed: Prevent overlapping identity activations by removing any existing ones before activating a new identity on a given URL. (To conveniently switch between previously used identities, use the menu that appears when clicking the navbar Identity button. That preserves the current activation scope.)
 
 ## 1.20.5

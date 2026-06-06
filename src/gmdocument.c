@@ -864,6 +864,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
     enum iGmLineType prevType      = text_GmLineType;
     enum iGmLineType prevNonBlankType = undefined_GmLineType;
     iBool            followsBlank  = iFalse;
+    iBool            prevWrapParagraph = iFalse; /* previous line was a wrapped paragraph */
     iString          firstContentLine; /* may be used as a title if one isn't specified */
     init_String(&firstContentLine);
     if (isGopher && !prefs->geminiStyledGopher) {
@@ -925,10 +926,10 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             }
             indent = indents[type];
             if (type == preformatted_GmLineType) {
-                /* Begin a new preformatted block. */
                 isPreformat = iTrue;
+                /* Begin a new preformatted block. */
                 const size_t preIndex = preId++;
-                preFont = preformatted_FontId;
+                preFont               = preformatted_FontId;
                 /* Use a smaller font if the block contents are wide. */
                 iGmPreMeta meta = { .bounds = line };
                 meta.pixelRect.size = measurePreformattedBlock_GmDocument_(
@@ -950,6 +951,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
                     meta.flags |= folded_GmPreMetaFlag;
                 }
                 pushBack_Array(&d->preMeta, &meta);
+                prevWrapParagraph = iFalse;
                 continue;
             }
             else if (type == link_GmLineType) {
@@ -988,6 +990,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
         }
         /* Empty lines don't produce text runs. */
         if (isEmpty_Range(&line)) {
+            prevWrapParagraph = iFalse;
             if (type == preformatted_GmLineType) {
                 /* Empty lines in a preformatted blocks should functionally be part of the block. */
                 run.bounds = (iRect){ pos, init_I2(1, lineHeight_Text(run.font)) };
@@ -1227,16 +1230,6 @@ static void doLayout_GmDocument_(iGmDocument *d) {
                 rts.rightMargin = gap_Text * (isTextType ? 4 : 0);
             }
             if (!isMono) {
-#if 0
-                /* Upper-level headings are typeset a bit tighter. */
-                /* FIXME: Oops, text renderer clears glyph backgrounds so it clips the adjacent line. */
-                if (type == heading1_GmLineType) {
-                    rts.lineHeightReduction = 0.10f;
-                }
-                else if (type == heading2_GmLineType) {
-                    rts.lineHeightReduction = 0.06f;
-                }
-#endif
                 /* Visited links are never bold. */
                 if (run.linkId && !prefs->boldLinkVisited &&
                     linkFlags_GmDocument(d, run.linkId) & visited_GmLinkFlag) {
@@ -1246,6 +1239,20 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             if (!prefs->quoteIcon && type == quote_GmLineType) {
                 rts.run.flags |= ruler_GmRunFlag;
             }
+            /* Determine the maximum width of wrapped lines. */
+            const int wrapMaxWidth =
+                rts.isWordWrapped
+                    ? d->wrapWidth > 0
+                          ? d->wrapWidth
+                          : (d->size.x - run.bounds.pos.x - rts.indent - rts.rightMargin)
+                    : 0 /* unlimited */;
+            const iBool indentParagraphFirstLine = iTrue; /* could be a preference */
+            int firstLineIndent = 0;
+            if (indentParagraphFirstLine && type == text_GmLineType && prevWrapParagraph) {
+                /* Previous line was text, too, and it wrapped so add some first-line
+                   indentation to make the new line distinct from the wrapped preceding lines. */
+                firstLineIndent = lineHeight_Text(rts.run.font); /* about 1 em */
+            }
             for (;;) { /* need to retry if the font needs changing */
                 rts.run.flags |= startOfLine_GmRunFlag;
                 if (!isParagraphJustified) {
@@ -1253,17 +1260,14 @@ static void doLayout_GmDocument_(iGmDocument *d) {
                 }
                 rts.baseFont  = rts.run.font;
                 rts.baseColor = rts.run.color;
-                iWrapText wrapText = { .text     = line,
-                                       .maxWidth = rts.isWordWrapped
-                                                       ? d->wrapWidth > 0
-                                                             ? d->wrapWidth
-                                                             : (d->size.x - run.bounds.pos.x -
-                                                                rts.indent - rts.rightMargin)
-                                                       : 0 /* unlimited */,
-                                       .mode     = word_WrapTextMode,
-                                       .wrapFunc = typesetOneLine_RunTypesetter_,
-                                       .context  = &rts };
+                iWrapText wrapText = { .text            = line,
+                                       .maxWidth        = wrapMaxWidth,
+                                       .firstLineIndent = firstLineIndent,
+                                       .mode            = word_WrapTextMode,
+                                       .wrapFunc        = typesetOneLine_RunTypesetter_,
+                                       .context         = &rts };
                 measure_WrapText(&wrapText, rts.run.font);
+                prevWrapParagraph = (size_Array(&rts.layout) > 1 && type == text_GmLineType);
                 if (!rts.run.isLede || size_Array(&rts.layout) <= maxLedeLines_) {
                     if (wrapText.baseDir < 0) {
                         /* Right-aligned paragraphs need margins and decorations to be flipped. */
