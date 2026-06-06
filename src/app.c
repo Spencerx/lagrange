@@ -2108,13 +2108,17 @@ static iBool nextEvent_App_(iApp *d, enum iAppEventMode eventMode, SDL_Event *ev
         /* We may be allowed to block here until an event comes in. */
         if (isWaitingAllowed_App_(d)) {
 #if defined (iPlatformAppleMobile)
-            /* Block on the iOS run loop (mach-port sleep) instead of polling via
-               SDL_WaitEvent, which spins internally and uses ~2x more CPU.
-               returnAfterSourceHandled=false lets the loop process unrelated
+            if (SDL_PollEvent(event)) {
+                /* Events already queued, no need to wait. */
+                return iTrue;
+            }
+            /* Block on the iOS run loop instead of polling via SDL_WaitEvent,
+               which would spin internally and use ~4x more CPU.
+               `returnAfterSourceHandled=false` lets the loop process unrelated
                system sources (display sync, etc.) internally; we only break out
                when `wakeRunLoopOnEvent_App_` stops the loop in response to an
                actual SDL event being pushed. */
-            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.05, false);
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.250, false);
             SDL_PumpEvents();
             return SDL_PollEvent(event);
 #else
