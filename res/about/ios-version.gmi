@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.20 (9)
+* Reduced idle CPU usage. (SDL's event loop is not optimal for avoiding any app activity between events.)
+
 ## 1.20 (8)
 * Fixed potential hang when stopping a network connection when a SOCKS proxy is active.
 * Fixed the "now playing" audio indication appearing unnecessarily in Control Center. This should only happen when actually playing audio.
