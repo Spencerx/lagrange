@@ -243,7 +243,7 @@ static void initTheme_GmDocument_(iGmDocument *d) {
         isDark_ColorTheme(colorTheme_App()) ? prefs->docThemeDark : prefs->docThemeLight);
     const enum iFontId headingFont = isMono ? documentMonospace_FontId : documentHeading_FontId;
     const enum iFontId bodyFont    = isMono ? documentMonospace_FontId : documentBody_FontId;
-    const int          bodySize    = isMonoGopher ? contentSmall_FontSize : contentRegular_FontSize;
+    const int          bodySize    = isMono ? contentSmall_FontSize : contentRegular_FontSize;
     theme->fonts[text_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, bodySize);
     theme->fonts[bullet_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, bodySize);
     theme->fonts[preformatted_GmLineType] = preformatted_FontId;
@@ -763,7 +763,9 @@ static iBool isHRule_(iRangecc line) {
 }
 
 static iBool isMonospace_GmDocument_(const iGmDocument *d) {
-    if (d->format == plainText_SourceFormat) return iTrue;
+    if (equalCase_Rangecc(urlScheme_String(&d->url), "gemini")) {
+        return d->format == plainText_SourceFormat;
+    }
     return isForcedMonospace_GmDocument_(d);
 }
 
@@ -1249,9 +1251,14 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             const iBool indentParagraphFirstLine = iTrue; /* could be a preference */
             int firstLineIndent = 0;
             if (indentParagraphFirstLine && type == text_GmLineType && prevWrapParagraph) {
-                /* Previous line was text, too, and it wrapped so add some first-line
+                /* Previous line was text, too, and it wrapped so we may need some first-line
                    indentation to make the new line distinct from the wrapped preceding lines. */
-                firstLineIndent = lineHeight_Text(rts.run.font); /* about 1 em */
+                const char *endp;
+                tryAdvance_Text(rts.run.font, line, wrapMaxWidth, &endp);
+                if (endp < line.end) {
+                    /* This will wrap, too; make it distinct. */
+                    firstLineIndent = lineHeight_Text(rts.run.font); /* about 1 em */
+                }
             }
             for (;;) { /* need to retry if the font needs changing */
                 rts.run.flags |= startOfLine_GmRunFlag;
