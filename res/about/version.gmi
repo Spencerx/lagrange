@@ -8,6 +8,8 @@
 
 ## 1.20.7
 * Fixed: Text layout overflow when monospace body appearance is enabled with Gemini. (It was getting confused with normal plain text.)
+* Fixed: Link icons not matching the body font size.
+* Fixed: Link numbers/letters not matching the body font size.
 * Fixed: Content width expansion in Gopher menus was measuring the line width incorrectly.
 * Adjusted first-line indentation to only occur when both previous and current paragraphs are getting wrapped.
 

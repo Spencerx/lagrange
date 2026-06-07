@@ -1079,8 +1079,10 @@ static void drawRun_DrawContext_(void *context, const iGmRun *run) {
                     linkOrdinalChar_DocumentWidget(d->view->owner,
                                                    ord - ordinalBase_DocumentWidget(d->view->owner));
                 if (ordChar) {
-                    const char *circle = "\u25ef"; /* Large Circle */
-                    const int   circleFont = FONT_ID(default_FontId, regular_FontStyle, contentRegular_FontSize);
+                    const enum iFontSize fontSize =
+                        size_FontId(font_GmDocument(doc, link_GmLineType));
+                    const char *circle     = "\u25ef"; /* Large Circle */
+                    const int   circleFont = FONT_ID(default_FontId, regular_FontStyle, fontSize);
                     iRect nbArea = { init_I2(d->viewPos.x - gap_UI / 3, visPos.y),
                                      init_I2(3.95f * gap_Text, 1.0f * lineHeight_Text(circleFont)) };
                     if (isTerminal_Platform()) {
@@ -1090,7 +1092,11 @@ static void drawRun_DrawContext_(void *context, const iGmRun *run) {
                         circleFont, topLeft_Rect(nbArea), tmQuote_ColorId, range_CStr(circle));
                     iRect circleArea = visualBounds_Text(circleFont, range_CStr(circle));
                     addv_I2(&circleArea.pos, topLeft_Rect(nbArea));
-                    drawCentered_Text(FONT_ID(default_FontId, regular_FontStyle, contentSmall_FontSize),
+                    drawCentered_Text(FONT_ID(default_FontId,
+                                              regular_FontStyle,
+                                              fontSize == contentRegular_FontSize
+                                                  ? contentSmall_FontSize
+                                                  : contentTiny_FontSize),
                                       circleArea,
                                       iTrue,
                                       tmQuote_ColorId,

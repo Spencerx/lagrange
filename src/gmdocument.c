@@ -558,8 +558,8 @@ static iRangecc addLink_GmDocument_(iGmDocument *d, iRangecc line, iGmLinkId *li
                                 trimStart_Rangecc(&line);
                             }
                         }
-//                        printf("custom icon: %x (%s)\n", icon, cstr_Rangecc(link->labelIcon));
-//                        fflush(stdout);
+                        // printf("custom icon: %x (%s)\n", icon, cstr_Rangecc(link->labelIcon));
+                        // fflush(stdout);
                     }
                 }
             }
@@ -584,6 +584,10 @@ iBool isGopherMenu_GmDocument(const iGmDocument *d) {
         return iTrue;
     }
     return isGopher_GmDocument_(d) && d->format == gemini_SourceFormat;
+}
+
+enum iFontId font_GmDocument(const iGmDocument *d, enum iGmLineType lineType) {
+    return d->theme.fonts[lineType];
 }
 
 static void linkContentWasLaidOut_GmDocument_(iGmDocument *d, const iGmMediaInfo *mediaInfo,
@@ -1050,10 +1054,10 @@ static void doLayout_GmDocument_(iGmDocument *d) {
         }
         /* Check the margin vs. previous run. */
         if (!isPreformat || (prevType != preformatted_GmLineType)) {
-            int required =
-                iMax(topMargin[type], bottomMargin[prevType]) * lineHeight_Text(paragraph_FontId);
+            int required = iMax(topMargin[type], bottomMargin[prevType]) *
+                           lineHeight_Text(d->theme.fonts[text_GmLineType]);
             if (type == link_GmLineType && prevNonBlankType == link_GmLineType && followsBlank) {
-                required = 1.25f * lineHeight_Text(paragraph_FontId);
+                required = 1.25f * lineHeight_Text(d->theme.fonts[text_GmLineType]);
             }
             if (type == quote_GmLineType && prevType == quote_GmLineType) {
                 /* No margin between consecutive quote lines. */
@@ -1073,7 +1077,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             const iGmPreMeta *meta = constAt_Array(&d->preMeta, preId - 1);
             if (meta->flags & folded_GmPreMetaFlag) {
                 const iBool isBlank = isEmpty_Range(&meta->altText);
-                iGmRun      altText = { .font  = paragraph_FontId,
+                iGmRun      altText = { .font  = d->theme.fonts[text_GmLineType],
                                         .color = tmQuote_ColorId,
                                         .flags = (isBlank ? decoration_GmRunFlag : 0) | altText_GmRunFlag
                 };
@@ -1140,7 +1144,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             quoteRun.bounds = zero_Rect(); /* just visual */
             quoteRun.flags |= decoration_GmRunFlag;
             if (isTerminal_Platform()) {
-                quoteRun.font = paragraph_FontId;
+                quoteRun.font = d->theme.fonts[text_GmLineType];
             }
             pushBack_Array(&d->layout, &quoteRun);
         }
@@ -1170,6 +1174,10 @@ static void doLayout_GmDocument_(iGmDocument *d) {
                                              : link->flags & fontpackFileExtension_GmLinkFlag ? fontpack_Icon
                                              : scheme == file_GmLinkScheme     ? folder
                                                                                : arrow);
+            /* TODO: List bullets needs the same centering logic. */
+            /* Special exception for the tiny bullet operator. */
+            icon.font = equal_Rangecc(link->labelIcon, "\u2219") ? preformatted_FontId
+                                                                 : icon.font; //d->theme.fonts[text_GmLineType];
             /* Check actual height to align with the paragraph text. The icon glyph
                may come from a different font. */ {
                 const int glyphHeight = measureRange_Text(icon.font, icon.text).bounds.size.y;
@@ -1183,10 +1191,6 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             if (!isEmpty_Range(&link->labelIcon)) {
                 icon.text = link->labelIcon;
             }
-            /* TODO: List bullets needs the same centering logic. */
-            /* Special exception for the tiny bullet operator. */
-            icon.font = equal_Rangecc(link->labelIcon, "\u2219") ? preformatted_FontId
-                                                                 : paragraph_FontId;
             icon.flags |= decoration_GmRunFlag | startOfLine_GmRunFlag;
             if (!d->flags.isNex) {
                 alignDecoration_GmRun_(&icon, iFalse);
@@ -1196,8 +1200,6 @@ static void doLayout_GmDocument_(iGmDocument *d) {
                    the source text. */
                 icon.visBounds.size.x = indent * gap_Text; // measureRange_Text(icon.font, icon.text).bounds.size;
                 icon.bounds = icon.visBounds;
-                //icon.flags &= ~decoration_GmRunFlag;
-                //icon.linkId = run.linkId;
             }
             icon.color = linkColor_GmDocument(d, run.linkId, icon_GmLinkPart);
             pushBack_Array(&d->layout, &icon);
@@ -1254,7 +1256,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
                 /* Visited links are never bold. */
                 if (run.linkId && !prefs->boldLinkVisited &&
                     linkFlags_GmDocument(d, run.linkId) & visited_GmLinkFlag) {
-                    rts.run.font = paragraph_FontId;
+                    rts.run.font = d->theme.fonts[text_GmLineType];
                 }
             }
             if (!prefs->quoteIcon && type == quote_GmLineType) {
@@ -1372,7 +1374,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             run.text      = iNullRange;
             run.font      = uiLabel_FontId;
             run.color     = 0;
-            const int margin = lineHeight_Text(paragraph_FontId) / 2;
+            const int margin = lineHeight_Text(d->theme.fonts[text_GmLineType]) / 2;
             if (media.type) {
                 pos.y += margin;
                 run.bounds.size.y = 0;
@@ -2294,7 +2296,7 @@ static void markLinkRunsVisited_GmDocument_(iGmDocument *d, const iIntSet *linkI
         if (run->linkId && !run->mediaId && contains_IntSet(linkIds, run->linkId)) {
             /* TODO: Does this even work? The font IDs may be different. */
             if (run->font == bold_FontId) {
-                run->font = paragraph_FontId;
+                run->font = d->theme.fonts[text_GmLineType];
             }
             else if (run->flags & decoration_GmRunFlag) {
                 run->color = linkColor_GmDocument(d, run->linkId, icon_GmLinkPart);
