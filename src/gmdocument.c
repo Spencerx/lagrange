@@ -242,7 +242,7 @@ static void initTheme_GmDocument_(iGmDocument *d) {
         isDark_ColorTheme(colorTheme_App()) ? prefs->docThemeDark : prefs->docThemeLight);
     const enum iFontId headingFont = isMono ? documentMonospace_FontId : documentHeading_FontId;
     const enum iFontId bodyFont    = isMono ? documentMonospace_FontId : documentBody_FontId;
-    const int          bodySize    = isMono ? contentSmall_FontSize : contentRegular_FontSize;
+    const int          bodySize    = isMonoGopher ? contentSmall_FontSize : contentRegular_FontSize;
     theme->fonts[text_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, bodySize);
     theme->fonts[bullet_GmLineType] = FONT_ID(bodyFont, regular_FontStyle, bodySize);
     theme->fonts[preformatted_GmLineType] = preformatted_FontId;
