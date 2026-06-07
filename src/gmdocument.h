@@ -242,6 +242,7 @@ const iGmRun *  renderProgressive_GmDocument(const iGmDocument *d, const iGmRun 
                                              void *context);
 enum iSourceFormat format_GmDocument        (const iGmDocument *);
 iInt2           size_GmDocument             (const iGmDocument *);
+iBool           isGopherMenu_GmDocument     (const iGmDocument *);
 const iArray *  headings_GmDocument         (const iGmDocument *); /* array of GmHeadings */
 const iString * source_GmDocument           (const iGmDocument *);
 iGmRunRange     runRange_GmDocument         (const iGmDocument *);

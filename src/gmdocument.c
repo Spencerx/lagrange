@@ -83,7 +83,6 @@ struct Impl_GmTheme {
     int ansiEscapes;
     int colors[max_GmLineType];
     int fonts[max_GmLineType];
-    int plainTextFont;
 };
 
 static uint32_t themeHash_(const iBlock *data) {
@@ -259,7 +258,6 @@ static void initTheme_GmDocument_(iGmDocument *d) {
                     ? semiBold_FontStyle
                     : regular_FontStyle,
                 bodySize);
-    theme->plainTextFont = plainTextSmall_FontId;
 }
 
 static enum iGmLineType lineType_GmDocument_(const iGmDocument *d, const iRangecc line) {
@@ -580,7 +578,11 @@ static void clearLinks_GmDocument_(iGmDocument *d) {
     clear_PtrArray(&d->links);
 }
 
-static iBool isGopherMenu_GmDocument_(const iGmDocument *d) {
+iBool isGopherMenu_GmDocument(const iGmDocument *d) {
+    if (d->flags.isGopherMenu) {
+        /* We know from the URL that it's a menu. */
+        return iTrue;
+    }
     return isGopher_GmDocument_(d) && d->format == gemini_SourceFormat;
 }
 
@@ -762,21 +764,30 @@ static iBool isHRule_(iRangecc line) {
     return n >= 3;
 }
 
+/*
 static iBool isMonospace_GmDocument_(const iGmDocument *d) {
-    if (equalCase_Rangecc(urlScheme_String(&d->url), "gemini")) {
+    const iRangecc scheme = urlScheme_String(&d->url);
+    if (equalCase_Rangecc(scheme, "gemini")) {
         return d->format == plainText_SourceFormat;
     }
     return isForcedMonospace_GmDocument_(d);
+}
+*/
+
+static iBool isHardWrapped_GmDocument_(const iGmDocument *d) {
+    if (d->flags.isNex) return iTrue; /* never softwrapped */
+    return d->format == plainText_SourceFormat || isGopherMenu_GmDocument(d);
 }
 
 static void determinePlainTextWrapWidth_GmDocument(iGmDocument *d) {
     const iPrefs *prefs = prefs_App();
     /* Only do this once (and whenever font size changes). */
     if (d->wrapWidth) return;
-    /* For plain text with word wrap and expand-to-long-lines, measure all lines øπfirst to
+    /* For plain text with word wrap and expand-to-long-lines, measure all lines first to
        find the widest one and potentially increase the layout width up to the full canvas
        width, so that long lines don't have to be wrapped unnecessarily. */
-    if (isMonospace_GmDocument_(d) && prefs->plainTextWrap && prefs->expandToLongLines) {
+    if (isHardWrapped_GmDocument_(d) && prefs->plainTextWrap && prefs->expandToLongLines) {
+        iRegExp *linkPattern = d->format == gemini_SourceFormat ? newGemtextLink_RegExp() : NULL;
         int      maxLine = 0;
         iRangecc seg     = iNullRange;
         while (nextSplit_Rangecc(range_String(&d->source), "\n", &seg)) {
@@ -784,9 +795,18 @@ static void determinePlainTextWrapWidth_GmDocument(iGmDocument *d) {
             if (*line.end == '\r') {
                 line.end--; /* trim CR always */
             }
-            maxLine = iMaxi(maxLine, measureRange_Text(d->theme.plainTextFont, line).advance.x);
+            iRangecc visLine = line;
+            if (d->format == gemini_SourceFormat) {
+                iRegExpMatch m;
+                init_RegExpMatch(&m);
+                if (matchRange_RegExp(linkPattern, line, &m)) {
+                    visLine = capturedRange_RegExpMatch(&m, 2);
+                }
+            }
+            maxLine = iMaxi(maxLine, measureRange_Text(preformatted_FontId, visLine).advance.x);
         }
         d->wrapWidth = iMin(maxLine, d->maxContentWidth);
+        iRelease(linkPattern);
     }
 }
 
@@ -799,7 +819,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
     const iPrefs *prefs             = prefs_App();
     const iBool   isMono            = isForcedMonospace_GmDocument_(d);
     const iBool   isGopher          = isGopher_GmDocument_(d);
-    const iBool   isGopherMenu      = isGopherMenu_GmDocument_(d);
+    const iBool   isGopherMenu      = isGopherMenu_GmDocument(d);
     const iBool   isNarrow          = d->size.x < 90 * gap_Text * aspect_UI;
     const iBool   isVeryNarrow      = d->size.x <= 70 * gap_Text * aspect_UI;
     const iBool   isExtremelyNarrow = d->size.x <= 60 * gap_Text * aspect_UI;
@@ -987,7 +1007,7 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             }
             run.mediaType = max_MediaType; /* preformatted block */
             run.mediaId = preId;
-            run.font = (d->format == plainText_SourceFormat ? d->theme.plainTextFont : preFont);
+            run.font = preFont;
             indent = indents[type];
         }
         /* Empty lines don't produce text runs. */
@@ -1216,10 +1236,9 @@ static void doLayout_GmDocument_(iGmDocument *d) {
             init_RunTypesetter_(&rts);
             rts.run           = run;
             rts.pos           = pos;
-            rts.isWordWrapped = (d->flags.isNex ? iFalse
-                                 : (d->format == plainText_SourceFormat || d->flags.isGopherMenu)
-                                     ? prefs->plainTextWrap
-                                     : !isPreformat);
+            rts.isWordWrapped = (d->flags.isNex                 ? iFalse
+                                 : isHardWrapped_GmDocument_(d) ? prefs->plainTextWrap
+                                                                : !isPreformat);
             rts.isPreformat   = isPreformat;
             rts.layoutWidth   = d->size.x;
             rts.indent        = indent * gap_Text;
