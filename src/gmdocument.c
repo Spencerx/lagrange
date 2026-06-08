@@ -583,7 +583,7 @@ iBool isGopherMenu_GmDocument(const iGmDocument *d) {
         /* We know from the URL that it's a menu. */
         return iTrue;
     }
-    return isGopher_GmDocument_(d) && d->format == gemini_SourceFormat;
+    return isGopher_GmDocument_(d) && d->format == gemini_SourceFormat && !d->flags.isCoverPage;
 }
 
 enum iFontId font_GmDocument(const iGmDocument *d, enum iGmLineType lineType) {
