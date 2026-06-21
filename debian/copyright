@@ -12,3 +12,7 @@ Files: src/audio/stb_vorbic.c
        src/stb_truetype.h
 Copyright: 2007 Sean Barrett
 License: MIT
+
+Files: debian/*
+Copyright: 2026 Jaakko Keränen
+License: BSD-2-Clause

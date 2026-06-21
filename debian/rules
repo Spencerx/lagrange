@@ -1,26 +1,62 @@
 #!/usr/bin/make -f
 export DH_VERBOSE = 1
-export DEB_BUILD_MAINT_OPTIONS=hardening=-format
-export LAGRANGE_CMAKE_FLAGS= -DCMAKE_BUILD_TYPE=Release -DENABLE_WINDOWPOS_FIX=YES
+export DEB_BUILD_MAINT_OPTIONS = hardening=-format
 
-# SSE4.1 support (or lack thereof) is only a concern on x86_64/x86 machines
-ifeq ($(DEB_BUILD_ARCH), amd64)
-	LAGRANGE_CMAKE_FLAGS += -DTFDN_ENABLE_SSE41=NO
-else ifeq ($(DEB_BUILD_ARCH), i386)
-	LAGRANGE_CMAKE_FLAGS += -DTFDN_ENABLE_SSE41=NO
-endif
+BUILDDIR = build
 
-# on non x86_64/x86, specifically armhf, arm64, arm, OpenGL hw acceleration under X11 is a bit too slow.
-ifneq ($(DEB_BUILD_ARCH), amd64)
+LAGRANGE_CMAKE_FLAGS = -DCMAKE_BUILD_TYPE=Release -DENABLE_IDLE_SLEEP=YES \
+	-DENABLE_TUI=ON -DENABLE_HARFBUZZ_MINIMAL=OFF -DENABLE_FRIBIDI_BUILD=OFF \
+	-Dthe_Foundation_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/the_Foundation
+
+# SSE4.1 support (or lack thereof) is only a concern on x86_64/x86 machines.
+# Use DEB_HOST_ARCH (not DEB_BUILD_ARCH) so this is correct under cross builds,
+# where the build machine is always amd64 but the target (host) arch varies.
+ifeq ($(DEB_HOST_ARCH), amd64)
+	LAGRANGE_CMAKE_FLAGS += -DTFDN_ENABLE_SSE41=NO
+else ifeq ($(DEB_HOST_ARCH), i386)
+	LAGRANGE_CMAKE_FLAGS += -DTFDN_ENABLE_SSE41=NO
+else ifeq ($(DEB_HOST_ARCH), armhf)
+	# armhf targets older/weaker boards where OpenGL hw acceleration under X11
+	# is a bit too slow; arm64 boards are assumed capable enough to keep it.
 	LAGRANGE_CMAKE_FLAGS += -DENABLE_KERNING=NO -DENABLE_X11_SWRENDER=YES
 endif
 
+# libjxl-dev isn't packaged for buster or bullseye.
+DEBIAN_CODENAME := $(shell . /etc/os-release 2>/dev/null; echo $$VERSION_CODENAME)
+ifeq ($(filter $(DEBIAN_CODENAME),buster bullseye),$(DEBIAN_CODENAME))
+	LAGRANGE_CMAKE_FLAGS += -DENABLE_JXL=OFF
+endif
+
+# SDL2 gamepad-touchpad APIs require SDL2 >= 2.0.14; buster only has 2.0.9.
+ifeq ($(DEBIAN_CODENAME), buster)
+	LAGRANGE_CMAKE_FLAGS += -DENABLE_GAMEPAD=OFF
+endif
 
 %:
 	dh $@
 
 override_dh_auto_configure:
-	cmake . $(LAGRANGE_CMAKE_FLAGS) -DCMAKE_INSTALL_PREFIX=/usr/
+	dh_auto_configure --builddirectory=$(BUILDDIR) -- $(LAGRANGE_CMAKE_FLAGS)
 
-override_dh_auto_build:
-	cmake --build .
+# resources.lgr is architecture-independent (fonts/translations/icons packed
+# with zip, no compiled code).
+override_dh_auto_build-indep:
+	dh_auto_build --builddirectory=$(BUILDDIR) -- resources
+
+override_dh_auto_build-arch:
+	dh_auto_build --builddirectory=$(BUILDDIR) -- app
+	dh_auto_build --builddirectory=$(BUILDDIR) -- tuiapp
+
+# debhelper-compat 13's cmake buildsystem installs via plain "make install",
+# which has no concept of CMake COMPONENTs, so dh_auto_install can't select a
+# subset of targets. Run the generated cmake_install.cmake script directly
+# instead.
+override_dh_auto_install-indep:
+	DESTDIR=$(CURDIR)/debian/tmp cmake -DCMAKE_INSTALL_COMPONENT=resources -P $(BUILDDIR)/cmake_install.cmake
+
+override_dh_auto_install-arch:
+	DESTDIR=$(CURDIR)/debian/tmp cmake -DCMAKE_INSTALL_COMPONENT=app -P $(BUILDDIR)/cmake_install.cmake
+	DESTDIR=$(CURDIR)/debian/tmp cmake -DCMAKE_INSTALL_COMPONENT=tui -P $(BUILDDIR)/cmake_install.cmake
+
+override_dh_auto_clean:
+	dh_auto_clean --builddirectory=$(BUILDDIR)

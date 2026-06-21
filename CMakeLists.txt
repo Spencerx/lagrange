@@ -169,6 +169,7 @@ endif ()
 set (EMB_BIN ${CMAKE_CURRENT_BINARY_DIR}/resources.lgr)
 make_resources (${EMB_BIN} ${RESOURCES})
 set_source_files_properties (${EMB_BIN} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+add_custom_target (resources DEPENDS ${EMB_BIN})
 if (IOS)
     set (EMB_FONTS
         res/fonts/Roboto-Regular.ttf
@@ -483,6 +484,7 @@ if (ENABLE_GUI)
         # The whole app becomes one shared library, based on this static one.
         add_library (app SHARED ${SOURCES})
     endif ()
+    add_dependencies (app resources)
 
     set_common_app_properties (app)
     set_target_properties (app PROPERTIES OUTPUT_NAME lagrange)
@@ -662,6 +664,7 @@ endif ()
 if (ENABLE_TUI)
     # TUI is its own target that links with SEALCurses instead of SDL2.
     add_executable (tuiapp ${TUI_SOURCES} ${RESOURCES})
+    add_dependencies (tuiapp resources)
     target_compile_definitions (tuiapp PUBLIC -DiPlatformTerminal=1)
     set_target_properties (tuiapp PROPERTIES OUTPUT_NAME clagrange)
     if (TARGET sealcurses-static)
@@ -733,22 +736,24 @@ StartupWMClass=lagrange
 Icon=fi.skyjake.Lagrange
 MimeType=x-scheme-handler/gemini;x-scheme-handler/gopher;x-scheme-handler/spartan;
 ")
-        install (TARGETS app DESTINATION ${CMAKE_INSTALL_BINDIR})
-        install (FILES ${desktop} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+        install (TARGETS app DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT app)
+        install (FILES ${desktop} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications COMPONENT app)
         install (FILES res/lagrange-256.png
             DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps
             RENAME fi.skyjake.Lagrange.png
+            COMPONENT app
         )
         install (FILES res/fi.skyjake.Lagrange.appdata.xml
             DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo
+            COMPONENT app
         )
+        install (FILES res/lagrange.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT app)
         if (NOT ENABLE_RELATIVE_EMBED)
             target_compile_definitions (app PUBLIC
                     LAGRANGE_EMB_BIN="${CMAKE_INSTALL_FULL_DATADIR}/lagrange/resources.lgr")
         endif ()
     endif ()
-    install (FILES res/lagrange.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-    install (FILES ${EMB_BIN} DESTINATION ${CMAKE_INSTALL_DATADIR}/lagrange)
+    install (FILES ${EMB_BIN} DESTINATION ${CMAKE_INSTALL_DATADIR}/lagrange COMPONENT resources)
 endif ()
 
 if (TARGET tuiapp)
@@ -758,7 +763,7 @@ if (TARGET tuiapp)
         if (UNIX AND NOT APPLE)
             include (GNUInstallDirs)
         endif ()
-        install (TARGETS tuiapp DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install (TARGETS tuiapp DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT tui)
 
         set (desktop ${CMAKE_CURRENT_BINARY_DIR}/fi.skyjake.clagrange.desktop)
         file (WRITE ${desktop} "[Desktop Entry]
@@ -773,10 +778,11 @@ StartupWMClass=clagrange
 Icon=fi.skyjake.clagrange
 MimeType=x-scheme-handler/gemini;x-scheme-handler/gopher;x-scheme-handler/spartan;
 ")
-        install (FILES ${desktop} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+        install (FILES ${desktop} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications COMPONENT tui)
         install (FILES res/lagrange-256.png
             DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps
             RENAME fi.skyjake.clagrange.png
+            COMPONENT tui
         )
     endif ()
     if (RESOURCES_LGR_PATH)
