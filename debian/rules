@@ -8,15 +8,8 @@ LAGRANGE_CMAKE_FLAGS = -DCMAKE_BUILD_TYPE=Release -DENABLE_IDLE_SLEEP=YES \
 	-DENABLE_TUI=ON -DENABLE_HARFBUZZ_MINIMAL=OFF -DENABLE_FRIBIDI_BUILD=OFF \
 	-Dthe_Foundation_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/the_Foundation
 
-# SSE4.1 support (or lack thereof) is only a concern on x86_64/x86 machines.
-# Use DEB_HOST_ARCH (not DEB_BUILD_ARCH) so this is correct under cross builds,
-# where the build machine is always amd64 but the target (host) arch varies.
-ifeq ($(DEB_HOST_ARCH), amd64)
-	LAGRANGE_CMAKE_FLAGS += -DTFDN_ENABLE_SSE41=NO
-else ifeq ($(DEB_HOST_ARCH), i386)
-	LAGRANGE_CMAKE_FLAGS += -DTFDN_ENABLE_SSE41=NO
-else ifeq ($(DEB_HOST_ARCH), armhf)
-	# armhf targets older/weaker boards where OpenGL hw acceleration under X11
+ifeq ($(DEB_HOST_ARCH), armhf)
+	# armhf targets older/weaker boards where OpenGL HW acceleration under X11
 	# is a bit too slow; arm64 boards are assumed capable enough to keep it.
 	LAGRANGE_CMAKE_FLAGS += -DENABLE_KERNING=NO -DENABLE_X11_SWRENDER=YES
 endif
