@@ -25,8 +25,8 @@ project (Lagrange
 set (COPYRIGHT_YEAR 2026)
 if (IOS)
     set (PROJECT_VERSION 1.20)
-    set (IOS_BUNDLE_VERSION 11)
-    set (IOS_BUILD_DATE "2026-06-09")
+    set (IOS_BUNDLE_VERSION 13)
+    set (IOS_BUILD_DATE "2026-06-23")
 endif ()
 if (ANDROID)
     set (PROJECT_VERSION 1.20)
@@ -606,7 +606,8 @@ if (ENABLE_GUI)
         if (ENABLE_SPARKLE)
             target_link_libraries (app PUBLIC sparkle)
         endif ()
-        if (SDL2_LIBRARY_DIRS)
+        if (SDL2_LIBRARY_DIRS AND NOT IOS)
+            # On iOS, the runpath is set to @executable_path/Frameworks below.
             set_property (TARGET app PROPERTY BUILD_RPATH ${SDL2_LIBRARY_DIRS})
         endif ()
         set_target_properties (app PROPERTIES
@@ -636,6 +637,14 @@ if (ENABLE_GUI)
                 XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
                 XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)" # fix missing dSYM issue
                 MACOSX_BUNDLE_ICON_FILE "AppIcon"
+            )
+            # Embed (and sign) the dynamic sdl2-compat and SDL3 in the app bundle.
+            set_target_properties (app PROPERTIES
+                XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks"
+                XCODE_EMBED_FRAMEWORKS
+                    "${IOS_DIR}/lib/libSDL2-2.0.0.dylib;${IOS_DIR}/lib/libSDL3.dylib"
+                XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY      YES
+                XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY YES
             )
         endif ()
         if (XCODE_DEVELOPMENT_TEAM)

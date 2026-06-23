@@ -4,7 +4,7 @@ find_package (the_Foundation REQUIRED)
 
 set (SDL2_INCLUDE_DIRS ${IOS_DIR}/include/SDL2)
 set (SDL2_LDFLAGS
-    ${IOS_DIR}/lib/libSDL2.a
+    ${IOS_DIR}/lib/libSDL2.dylib
     "-framework AudioToolbox"
     "-framework AVFoundation"
     "-framework AVFAudio"

@@ -2178,65 +2178,6 @@ void processEvents_App(enum iAppEventMode eventMode) {
                     goto backToMainLoop;
                 }
                 break;
-            case SDL_APP_TERMINATING: {
-                iForEach(PtrArray, i, &d->mainWindows) {
-                    setFreezeDraw_MainWindow(*i.value, iTrue);
-                }
-#if defined (iPlatformAppleMobile)
-                /* SDL docs warn that we may not get any execution time after this event,
-                   so deinitialize everything immediately. */
-                deinit_App(d);
-                goto backToMainLoop; /* no further processing of events */
-#else
-                savePrefs_App_(d);
-                saveState_App_(d, iTrue);
-#endif
-                break;
-            }
-            case SDL_APP_LOWMEMORY:
-                clearCache_App_();
-                break;
-            case SDL_APP_WILLENTERFOREGROUND:
-                invalidate_Window(as_Window(d->window));
-                d->isSuspended = iFalse;
-                break;
-            case SDL_APP_DIDENTERFOREGROUND:
-                d->warmupFrames = 5;
-#if defined (LAGRANGE_ENABLE_IDLE_SLEEP)
-                gotEvents = iTrue;
-                d->isIdling = iFalse;
-                d->lastEventTime = SDL_GetTicks();
-#endif
-                postRefreshAllWindows_App();
-                if (d->isTextInputActive) {
-                    SDL_StartTextInput();
-                }
-                postCommand_App("media.player.update"); /* in case there are any */
-                break;
-            case SDL_APP_WILLENTERBACKGROUND: {
-#if defined (iPlatformAppleMobile)
-                updateNowPlayingInfo_iOS();
-#endif
-#if defined (iPlatformAndroidMobile)
-                postCommand_App("backup.now"); /* ensure there's a copy of user data */
-                saveIdentities_GmCerts(certs_App());
-                save_Bookmarks(d->bookmarks, dataDir_App_());
-#endif
-                iForEach(PtrArray, i, &d->mainWindows) {
-                    setFreezeDraw_MainWindow(*i.value, iTrue);
-                }
-                if (d->pendingVisitedSave) {
-                    save_Visited(visited_App(), dataDir_App_());
-                    d->pendingVisitedSave = iFalse;
-                }
-                savePrefs_App_(d);
-                saveState_App_(d, iTrue);
-                d->isSuspended = iTrue;
-                if (d->isTextInputActive) {
-                    SDL_StopTextInput();
-                }
-                break;
-            }
             case SDL_DROPFILE: {
                 if (isDesktop_Platform() && !d->window) {
                     /* Need to open an empty window now. */
@@ -2602,6 +2543,69 @@ backToMainLoop:;
     setCurrent_Root(oldCurrentRoot);
 }
 
+static void handleLifecycleEvent_App_(iApp *d, const SDL_Event *ev) {
+    switch (ev->type) {
+        case SDL_APP_TERMINATING: {
+            iForEach(PtrArray, i, &d->mainWindows) {
+                setFreezeDraw_MainWindow(*i.value, iTrue);
+            }
+#if defined (iPlatformAppleMobile)
+            /* SDL docs warn that we may not get any execution time after this event,
+               so deinitialize everything immediately. */
+            deinit_App(d);
+            d->isRunning = iFalse; /* stop the main loop; no further event processing */
+#else
+            savePrefs_App_(d);
+            saveState_App_(d, iTrue);
+#endif
+            break;
+        }
+        case SDL_APP_LOWMEMORY:
+            clearCache_App_();
+            break;
+        case SDL_APP_WILLENTERFOREGROUND:
+            invalidate_Window(as_Window(d->window));
+            d->isSuspended = iFalse;
+            break;
+        case SDL_APP_DIDENTERFOREGROUND:
+            d->warmupFrames = 5;
+#if defined (LAGRANGE_ENABLE_IDLE_SLEEP)
+            d->isIdling = iFalse;
+            d->lastEventTime = SDL_GetTicks();
+#endif
+            postRefreshAllWindows_App();
+            if (d->isTextInputActive) {
+                SDL_StartTextInput();
+            }
+            postCommand_App("media.player.update"); /* in case there are any */
+            break;
+        case SDL_APP_WILLENTERBACKGROUND: {
+#if defined (iPlatformAppleMobile)
+            updateNowPlayingInfo_iOS();
+#endif
+#if defined (iPlatformAndroidMobile)
+            postCommand_App("backup.now"); /* ensure there's a copy of user data */
+            saveIdentities_GmCerts(certs_App());
+            save_Bookmarks(d->bookmarks, dataDir_App_());
+#endif
+            iForEach(PtrArray, i, &d->mainWindows) {
+                setFreezeDraw_MainWindow(*i.value, iTrue);
+            }
+            if (d->pendingVisitedSave) {
+                save_Visited(visited_App(), dataDir_App_());
+                d->pendingVisitedSave = iFalse;
+            }
+            savePrefs_App_(d);
+            saveState_App_(d, iTrue);
+            d->isSuspended = iTrue;
+            if (d->isTextInputActive) {
+                SDL_StopTextInput();
+            }
+            break;
+        }
+    }
+}
+
 static void runTickers_App_(iApp *d) {
     const uint32_t now = SDL_GetTicks();
     d->elapsedSinceLastTicker = (d->lastTickerTime ? now - d->lastTickerTime : 0);
@@ -2641,6 +2645,21 @@ static void runTickers_App_(iApp *d) {
     if (isEmpty_SortedArray(&d->tickers)) {
         d->lastTickerTime = 0;
     }
+}
+
+static int lifecycleWatcher_App_(void *user, SDL_Event *event) {
+    /* Application lifecycle events are delivered synchronously to event watchers
+       (the app may be suspended/terminated before the main loop polls again). */
+    switch (event->type) {
+        case SDL_APP_TERMINATING:
+        case SDL_APP_LOWMEMORY:
+        case SDL_APP_WILLENTERFOREGROUND:
+        case SDL_APP_DIDENTERFOREGROUND:
+        case SDL_APP_WILLENTERBACKGROUND:
+            handleLifecycleEvent_App_(user, event);
+            break;
+    }
+    return 0;
 }
 
 static int resizeWatcher_(void *user, SDL_Event *event) {
@@ -2694,6 +2713,7 @@ static int run_App_(iApp *d) {
     }
     d->isRunning = iTrue;
     SDL_EventState(SDL_DROPFILE, SDL_ENABLE); /* open files via drag'n'drop */
+    SDL_AddEventWatch(lifecycleWatcher_App_, d); /* synchronous handling */
     if (isResizeDrawEnabled_()) {
         SDL_AddEventWatch(resizeWatcher_, d); /* redraw window during resizing */
     }
@@ -2712,6 +2732,7 @@ static int run_App_(iApp *d) {
         recycle_Garbage();
     }
     SDL_DelEventWatch(resizeWatcher_, d);
+    SDL_DelEventWatch(lifecycleWatcher_App_, d);
 #if defined (iPlatformAppleMobile)
     SDL_DelEventWatch(wakeRunLoopOnEvent_App_, NULL);
 #endif
