@@ -25,7 +25,7 @@ project (Lagrange
 set (COPYRIGHT_YEAR 2026)
 if (IOS)
     set (PROJECT_VERSION 1.20)
-    set (IOS_BUNDLE_VERSION 13)
+    set (IOS_BUNDLE_VERSION 14)
     set (IOS_BUILD_DATE "2026-06-23")
 endif ()
 if (ANDROID)
@@ -642,9 +642,22 @@ if (ENABLE_GUI)
             set_target_properties (app PROPERTIES
                 XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks"
                 XCODE_EMBED_FRAMEWORKS
-                    "${IOS_DIR}/lib/libSDL2-2.0.0.dylib;${IOS_DIR}/lib/libSDL3.dylib"
+                    "${IOS_DIR}/SDL2.framework;${IOS_DIR}/SDL3.framework"
                 XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY      YES
                 XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY YES
+            )
+            # Copy SDL dSYMs into BUILT_PRODUCTS_DIR so Xcode includes them in
+            # the xcarchive for App Store / TestFlight crash symbolication.
+            set (_sdl_dsym_script "${CMAKE_CURRENT_BINARY_DIR}/copy-sdl-dsyms.sh")
+            file (WRITE "${_sdl_dsym_script}"
+"#!/bin/sh
+for dsym in '${IOS_DIR}/SDL2.framework.dSYM' '${IOS_DIR}/SDL3.framework.dSYM'; do
+    [ -d \"\$dsym\" ] && cp -r \"\$dsym\" \"\$BUILT_PRODUCTS_DIR/\"
+done
+")
+            add_custom_command (TARGET app POST_BUILD
+                COMMAND /bin/sh "${_sdl_dsym_script}"
+                COMMENT "Copying SDL dSYMs to build products"
             )
         endif ()
         if (XCODE_DEVELOPMENT_TEAM)

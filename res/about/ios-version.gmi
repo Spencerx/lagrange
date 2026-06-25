@@ -6,7 +6,7 @@
 ```
 # Release notes
 
-## 1.20 (13)
+## 1.20 (14)
 * Now using SDL3 via sdl2-compat. This is required on iOS 27 where UIScene based lifecycle management is mandatory. (SDL2 iOS apps will not launch when built against the 27 SDK.)
 * Improved app lifecycle event handling. This is now done synchronously for robust state saving when backgrounding/terminating the app.
 * Adjusted first-line indentation so it not applied to text that looks like lists (starts with punctuation, numbers, etc.).
