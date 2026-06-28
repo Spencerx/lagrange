@@ -144,10 +144,11 @@ static const char *defaultDataDir_App_ = "~/config/settings/lagrange";
 #   define PREFS_NAME "prefs"
 #endif
 
-static const char *prefsFileName_App_      = PREFS_NAME ".cfg";
-static const char *oldStateFileName_App_   = STATE_NAME ".binary";
-static const char *stateFileName_App_      = STATE_NAME ".lgr";
-static const char *tempStateFileName_App_  = STATE_NAME ".lgr.tmp";
+static const char *prefsFileName_App_       = PREFS_NAME ".cfg";
+static const char *oldStateFileName_App_    = STATE_NAME ".binary";
+static const char *stateFileName_App_       = STATE_NAME ".lgr";
+static const char *tempStateFileName_App_   = STATE_NAME ".lgr.tmp";
+static const char *backupStateFileName_App_ = STATE_NAME ".lgr.old"; /* non-POSIX only */
 static const char *defaultDownloadDir_App_ = "~/Downloads";
 
 static const int    idleThreshold_App_             = 1000; /* ms */
@@ -809,9 +810,13 @@ static iRect initialWindowRect_App_(const iApp *d, size_t windowIndex) {
 
 static iBool loadState_App_(iApp *d) {
     iUnused(d);
-    const char *oldPath = concatPath_CStr(dataDir_App_(), oldStateFileName_App_);
-    const char *path    = concatPath_CStr(dataDir_App_(), stateFileName_App_);
-    iFile *f = iClob(newCStr_File(fileExistsCStr_FileInfo(path) ? path : oldPath));
+    const char *oldPath    = concatPath_CStr(dataDir_App_(), oldStateFileName_App_);
+    const char *path       = concatPath_CStr(dataDir_App_(), stateFileName_App_);
+    const char *backupPath = concatPath_CStr(dataDir_App_(), backupStateFileName_App_);
+    const char *usedPath   = fileExistsCStr_FileInfo(path)       ? path :
+                             fileExistsCStr_FileInfo(backupPath) ? backupPath :
+                                                                   oldPath;
+    iFile *f = iClob(newCStr_File(usedPath));
     if (open_File(f, readOnly_FileMode)) {
         char magic[4];
         readData_File(f, 4, magic);
@@ -1079,11 +1084,15 @@ static void saveState_App_(const iApp *d, iBool withContent) {
 }
 
 void commitFile_App(const char *path, const char *tempPathWithNewContents) {
+#if defined (iPlatformMsys) || defined (iPlatformWindows)
     iString *oldPath = collectNewCStr_String(path);
     appendCStr_String(oldPath, ".old");
-    renamePath_CStr(path, cstr_String(oldPath));
+    renamePath_CStr(path, cstr_String(oldPath)); /* move the old file out of the way */
     renamePath_CStr(tempPathWithNewContents, path);
     removePath_CStr(cstr_String(oldPath));
+#else
+    renamePath_CStr(tempPathWithNewContents, path); /* atomic; replaces destination file */
+#endif
 }
 
  void deferVisitedSave_App(void) {
