@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.20 (16)
+* Tell SDL to batch render operations whenever possible to potentially improve drawing performance.
+
 ## 1.20 (15)
 * Now using SDL3 via sdl2-compat. This is required on iOS 27 where UIScene based lifecycle management is mandatory. (SDL2 iOS apps will not launch when built against the 27 SDK.)
 * Improved app lifecycle event handling. It is done synchronously for robust state saving when backgrounding/terminating the app.
