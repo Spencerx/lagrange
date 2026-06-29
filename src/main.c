@@ -85,6 +85,11 @@ int main(int argc, char **argv) {
 #if SDL_VERSION_ATLEAST(2, 0, 8)
     SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 #endif
+#if defined (iPlatformLinux) && !defined (iPlatformAndroid) && !defined (iPlatformTerminal) && \
+    SDL_VERSION_ATLEAST(2, 0, 22)
+    /* Use the real Wayland backend when available. */
+    SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
+#endif
 #if 0
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1"); /* debugging! */
 #endif
