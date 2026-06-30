@@ -251,7 +251,8 @@ iRect documentBounds_DocumentView(const iDocumentView *d) {
             may produce an asymmetric layout: consider a long page with one wide
             preformatted block somewhere in the middle; until that block is seen, the
             page layout looks broken if it's shifted too much to the left. */
-         format_GmDocument(d->doc) == plainText_SourceFormat || isGopherMenu_GmDocument(d->doc) ||
+         viewFormat_GmDocument(d->doc) == plainText_SourceFormat ||
+         isGopherMenu_GmDocument(d->doc) ||
          contentWidth_GmDocument(d->doc) < size_GmDocument(d->doc).x * 1.333f)) { /* < ⅓ increase */
         rect.size.x = iMini(iMax(rect.size.x, contentWidth_GmDocument(d->doc)),
                             maxDocumentWidth_DocumentView(d));

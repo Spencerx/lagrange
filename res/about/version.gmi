@@ -6,6 +6,9 @@
 ```
 # Release notes
 
+## 1.20.10
+* Fixed: Overflowing text with "View as Plain Text".
+
 ## 1.20.9
 * Fixed: Potential crash when Fingerprints menu open in Page Information.
 * Fixed: Page Information popup dismissed inadvertently.
