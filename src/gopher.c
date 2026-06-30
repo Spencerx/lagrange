@@ -283,7 +283,7 @@ void open_Gopher(iGopher *d, const iString *url) {
         }
         case '1':
         case '7':
-            setCStr_String(d->meta, "text/gophermap");
+            setCStr_String(d->meta, "text/gophermenu");
             break;
         case '4':
             setCStr_String(d->meta, "application/mac-binhex");
@@ -366,7 +366,7 @@ iBool checkFormat_Gopher(iGopher *d) {
     iBool isValidUtf8 = iTrue;
     if (d->type != '1' && d->type != '7' && isMenuSyntax_Gopher_(d, &isValidUtf8)) {
         /* It looks like we actually received a gophermap! Let's convert it now. */
-        setCStr_String(d->meta, "text/gophermap");
+        setCStr_String(d->meta, "text/gophermenu");
         set_Block(&d->source, d->output);
         clear_Block(d->output);
         convertSource_Gopher_(d);

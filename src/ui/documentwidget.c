@@ -1402,7 +1402,8 @@ static void updateDocument_DocumentWidget_(iDocumentWidget *d,
 #endif
                     }
                 }
-                if (equal_Rangecc(param, "text/gemini") || equal_Rangecc(param, "text/gophermap")) {
+                if (equal_Rangecc(param, "text/gemini") ||
+                    equal_Rangecc(param, "text/gophermenu")) {
                     docFormat = gemini_SourceFormat;
                     setRange_String(&d->sourceMime, param);
                 }
